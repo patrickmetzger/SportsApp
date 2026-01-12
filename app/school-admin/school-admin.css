@@ -1,0 +1,143 @@
+/* School Admin Custom Styles */
+/* These styles use CSS variables set by the school's branding */
+
+/* Primary Button */
+.school-btn-primary {
+  background-color: var(--school-primary, #16a34a);
+  color: white;
+  transition: all 0.2s ease;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+}
+
+.school-btn-primary:hover:not(:disabled) {
+  background-color: var(--school-primary-dark, #15803d);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  transform: translateY(-1px);
+}
+
+.school-btn-primary:active:not(:disabled) {
+  background-color: var(--school-primary-darker, #14532d);
+  transform: translateY(0);
+}
+
+.school-btn-primary:focus {
+  outline: 2px solid var(--school-primary-light, #22c55e);
+  outline-offset: 2px;
+}
+
+/* Secondary Button */
+.school-btn-secondary {
+  background-color: var(--school-secondary, #22c55e);
+  color: white;
+  transition: all 0.2s ease;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+}
+
+.school-btn-secondary:hover:not(:disabled) {
+  background-color: var(--school-secondary-dark, #16a34a);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  transform: translateY(-1px);
+}
+
+.school-btn-secondary:active:not(:disabled) {
+  background-color: var(--school-secondary-darker, #14532d);
+  transform: translateY(0);
+}
+
+.school-btn-secondary:focus {
+  outline: 2px solid var(--school-secondary-light, #4ade80);
+  outline-offset: 2px;
+}
+
+/* Outline Button (uses primary color for border/text) */
+.school-btn-outline {
+  background-color: transparent;
+  color: var(--school-primary, #16a34a);
+  border: 2px solid var(--school-primary, #16a34a);
+  transition: all 0.2s ease;
+}
+
+.school-btn-outline:hover:not(:disabled) {
+  background-color: var(--school-neutral-50, #f0fdf4);
+  border-color: var(--school-primary-dark, #15803d);
+  color: var(--school-primary-dark, #15803d);
+}
+
+/* Accent elements */
+.school-accent {
+  color: var(--school-accent, #dc2626);
+}
+
+.school-bg-accent {
+  background-color: var(--school-accent-light, #ef4444);
+}
+
+/* Backgrounds and surfaces */
+.school-bg-surface {
+  background-color: var(--school-neutral-50, #f9fafb);
+}
+
+.school-bg-surface-hover:hover {
+  background-color: var(--school-neutral-100, #f3f4f6);
+}
+
+/* Borders */
+.school-border {
+  border-color: var(--school-neutral-200, #e5e7eb);
+}
+
+.school-border-accent {
+  border-color: var(--school-primary, #16a34a);
+}
+
+/* Focus rings for inputs */
+.school-ring-accent:focus {
+  --tw-ring-color: var(--school-primary, #16a34a);
+  border-color: var(--school-primary, #16a34a);
+}
+
+/* Text colors */
+.school-text-primary {
+  color: var(--school-primary, #16a34a);
+}
+
+.school-text-secondary {
+  color: var(--school-secondary, #22c55e);
+}
+
+/* Badge/Tag styles */
+.school-badge {
+  background-color: var(--school-primary-lighter, #bbf7d0);
+  color: var(--school-primary-darker, #14532d);
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+/* Link styles */
+.school-link {
+  color: var(--school-primary, #16a34a);
+  text-decoration: underline;
+  transition: color 0.2s ease;
+}
+
+.school-link:hover {
+  color: var(--school-primary-dark, #15803d);
+}
+
+/* Input styles */
+.school-input {
+  transition: all 0.2s ease;
+}
+
+.school-input:focus {
+  --tw-ring-color: var(--school-primary, #16a34a);
+  border-color: var(--school-primary, #16a34a);
+  outline: 2px solid var(--school-primary-lighter, #bbf7d0);
+  outline-offset: 0;
+}
+
+.school-input:hover:not(:focus) {
+  border-color: var(--school-neutral-200, #e5e7eb);
+}

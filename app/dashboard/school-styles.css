@@ -1,0 +1,135 @@
+/* School-branded styles for all user dashboards (coach, parent, student) */
+
+.school-branded-btn-primary {
+  background-color: var(--school-primary, #3b82f6);
+  color: white;
+  transition: all 0.2s ease;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+}
+
+.school-branded-btn-primary:hover:not(:disabled) {
+  background-color: var(--school-primary-dark, #2563eb);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  transform: translateY(-1px);
+}
+
+.school-branded-btn-primary:active:not(:disabled) {
+  background-color: var(--school-primary-darker, #1d4ed8);
+  transform: translateY(0);
+}
+
+.school-branded-btn-secondary {
+  background-color: var(--school-secondary, #60a5fa);
+  color: white;
+  transition: all 0.2s ease;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+}
+
+.school-branded-btn-secondary:hover:not(:disabled) {
+  background-color: var(--school-secondary-dark, #3b82f6);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  transform: translateY(-1px);
+}
+
+.school-branded-btn-secondary:active:not(:disabled) {
+  background-color: var(--school-secondary-darker, #2563eb);
+  transform: translateY(0);
+}
+
+/* Sidebar branding */
+.school-branded-sidebar {
+  border-right: 2px solid var(--school-primary, #3b82f6);
+}
+
+.school-branded-sidebar-header {
+  background: linear-gradient(135deg, var(--school-primary, #3b82f6) 0%, var(--school-primary-dark, #2563eb) 100%);
+  color: white;
+}
+
+.school-branded-nav-item:hover {
+  background-color: var(--school-primary-lighter, #dbeafe);
+  color: var(--school-primary-darker, #1d4ed8);
+}
+
+.school-branded-nav-item.active {
+  background-color: var(--school-primary-light, #93c5fd);
+  color: var(--school-primary-darker, #1d4ed8);
+  font-weight: 600;
+}
+
+/* Top bar branding */
+.school-branded-topbar {
+  border-bottom: 3px solid var(--school-primary, #3b82f6);
+  background: white;
+}
+
+/* Mobile adjustments - add left padding for hamburger button */
+@media (max-width: 768px) {
+  .school-branded-topbar {
+    padding-left: 4rem !important; /* Space for hamburger menu */
+  }
+
+  /* Reduce padding on mobile for better space usage */
+  main {
+    padding: 1rem !important;
+  }
+
+  /* Stack form grids on mobile - 2 and 3 column grids become single column */
+  .grid-cols-2,
+  .md\:grid-cols-2,
+  .grid-cols-3,
+  .md\:grid-cols-3,
+  .lg\:grid-cols-3 {
+    grid-template-columns: repeat(1, minmax(0, 1fr)) !important;
+  }
+
+  /* 4 column grids become 2 columns on mobile (for status buttons) */
+  .grid-cols-4 {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+
+  /* Smaller text on mobile for space efficiency */
+  h1 {
+    font-size: 1.5rem !important;
+  }
+
+  h2 {
+    font-size: 1.25rem !important;
+  }
+
+  /* Touch-friendly button sizing */
+  button,
+  a.btn,
+  input[type="submit"] {
+    min-height: 44px; /* iOS recommendation for touch targets */
+  }
+}
+
+/* Cards with school accent */
+.school-branded-card {
+  border-top: 4px solid var(--school-primary, #3b82f6);
+}
+
+.school-branded-card:hover {
+  border-top-color: var(--school-primary-dark, #2563eb);
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+}
+
+/* Badges with school colors */
+.school-badge-primary {
+  background-color: var(--school-primary-lighter, #dbeafe);
+  color: var(--school-primary-darker, #1d4ed8);
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.school-badge-secondary {
+  background-color: var(--school-secondary-lighter, #dbeafe);
+  color: var(--school-secondary-darker, #1d4ed8);
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.875rem;
+  font-weight: 600;
+}
