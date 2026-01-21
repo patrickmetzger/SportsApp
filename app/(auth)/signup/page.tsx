@@ -154,7 +154,7 @@ export default function SignupPage() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-3.5 rounded-xl font-semibold hover:from-blue-700 hover:to-indigo-700 disabled:from-gray-300 disabled:to-gray-400 disabled:cursor-not-allowed transition-all duration-200 shadow-soft-md hover:shadow-soft-lg active:scale-[0.98] mt-6"
+            className="w-full bg-slate-900 text-white py-3.5 rounded-xl font-semibold hover:bg-slate-800 disabled:bg-gray-300 disabled:cursor-not-allowed transition-all duration-200 shadow-soft-md hover:shadow-soft-lg active:scale-[0.98] mt-6"
           >
             {loading ? (
               <span className="flex items-center justify-center gap-2">
@@ -174,7 +174,7 @@ export default function SignupPage() {
         <div className="mt-8 text-center">
           <p className="text-sm text-gray-600">
             Already have an account?{' '}
-            <a href="/login" className="font-semibold text-blue-600 hover:text-blue-700 transition-colors">
+            <a href="/login" className="font-semibold text-slate-900 hover:text-slate-700 transition-colors">
               Sign in
             </a>
           </p>
