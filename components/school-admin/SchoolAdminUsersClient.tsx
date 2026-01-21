@@ -11,6 +11,7 @@ interface User {
   last_name: string;
   role: string;
   created_at: string;
+  archived: boolean;
   phone?: string;
 }
 

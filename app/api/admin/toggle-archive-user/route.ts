@@ -18,7 +18,7 @@ export async function POST(request: NextRequest) {
       .eq('id', user.id)
       .single();
 
-    if (!['admin', 'school_admin'].includes(currentUserData?.role || '')) {
+    if (!currentUserData || !['admin', 'school_admin'].includes(currentUserData.role)) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 

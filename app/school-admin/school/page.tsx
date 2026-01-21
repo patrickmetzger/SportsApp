@@ -20,7 +20,9 @@ export default async function SchoolSettingsPage() {
       .eq('id', effectiveUserId)
       .single();
 
-    if (!userData?.school) {
+    const school = Array.isArray(userData?.school) ? userData.school[0] : userData?.school;
+
+    if (!school) {
       redirect('/school-admin');
     }
 
@@ -28,7 +30,7 @@ export default async function SchoolSettingsPage() {
       <div className="p-8">
         <div className="max-w-3xl mx-auto">
           <h1 className="text-2xl font-bold text-gray-800 mb-6">School Settings</h1>
-          <SchoolSettingsForm school={userData.school} />
+          <SchoolSettingsForm school={school} />
         </div>
       </div>
     );

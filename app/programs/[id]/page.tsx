@@ -21,7 +21,7 @@ export default async function ProgramDetailPage({ params }: { params: Promise<{ 
   }
 
   // Fetch coaches for this program
-  const { data: programCoaches } = await supabase
+  const { data: programCoachesData } = await supabase
     .from('program_coaches')
     .select(`
       role,
@@ -33,6 +33,12 @@ export default async function ProgramDetailPage({ params }: { params: Promise<{ 
       )
     `)
     .eq('program_id', id);
+
+  // Transform the data: Supabase returns users as array, but we need a single object
+  const programCoaches = programCoachesData?.map((pc: any) => ({
+    role: pc.role,
+    users: Array.isArray(pc.users) ? pc.users[0] : pc.users
+  }));
 
   const requirements = program.requirements as string[] || [];
   const startDate = new Date(program.start_date).toLocaleDateString('en-US', {

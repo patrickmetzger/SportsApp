@@ -14,6 +14,10 @@ export default async function CoachAttendancePage() {
     // Get the effective user ID (handles impersonation)
     const effectiveUserId = await getEffectiveUserId();
 
+    if (!effectiveUserId) {
+      redirect('/login');
+    }
+
     // Fetch coach's school information
     const { data: userData } = await supabase
       .from('users')
@@ -32,8 +36,9 @@ export default async function CoachAttendancePage() {
       .single();
 
     // Use school colors or defaults
-    const primaryColor = userData?.school?.primary_color || '#3b82f6';
-    const secondaryColor = userData?.school?.secondary_color || '#60a5fa';
+    const school = Array.isArray(userData?.school) ? userData.school[0] : userData?.school;
+    const primaryColor = school?.primary_color || '#3b82f6';
+    const secondaryColor = school?.secondary_color || '#60a5fa';
     const cssVariables = generateCSSVariables(primaryColor, secondaryColor);
 
     const navItems = [
@@ -91,8 +96,8 @@ export default async function CoachAttendancePage() {
         <Sidebar
           items={navItems}
           userEmail={userData?.email}
-          schoolName={userData?.school?.name}
-          schoolLogo={userData?.school?.logo_url}
+          schoolName={school?.name}
+          schoolLogo={school?.logo_url}
         />
 
         {/* Main Content */}
@@ -100,17 +105,17 @@ export default async function CoachAttendancePage() {
           {/* Top Bar */}
           <div className="bg-white border-b border-gray-200 h-16 flex items-center px-8 school-branded-topbar">
             <div className="flex items-center gap-3">
-              {userData?.school?.logo_url && (
+              {school?.logo_url && (
                 <img
-                  src={userData.school.logo_url}
-                  alt={userData.school.name}
+                  src={school.logo_url}
+                  alt={school.name}
                   className="h-8 w-auto"
                 />
               )}
               <div>
                 <h1 className="text-xl font-semibold text-gray-900">Attendance Management</h1>
-                {userData?.school?.name && (
-                  <p className="text-xs text-gray-500">{userData.school.name}</p>
+                {school?.name && (
+                  <p className="text-xs text-gray-500">{school.name}</p>
                 )}
               </div>
             </div>

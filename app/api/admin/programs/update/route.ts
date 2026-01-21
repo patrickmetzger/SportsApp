@@ -18,7 +18,7 @@ export async function PUT(request: NextRequest) {
       .single();
 
     // Allow both admin and school_admin
-    if (!['admin', 'school_admin'].includes(currentUserData?.role || '')) {
+    if (!currentUserData || !['admin', 'school_admin'].includes(currentUserData.role)) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 

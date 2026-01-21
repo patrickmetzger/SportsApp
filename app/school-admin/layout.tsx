@@ -50,8 +50,9 @@ export default async function SchoolAdminLayout({
     }
 
     // Use school colors or defaults
-    const primaryColor = userData.school.primary_color || '#16a34a';
-    const secondaryColor = userData.school.secondary_color || '#22c55e';
+    const school = Array.isArray(userData.school) ? userData.school[0] : userData.school;
+    const primaryColor = school?.primary_color || '#16a34a';
+    const secondaryColor = school?.secondary_color || '#22c55e';
 
     // Generate full color palette
     const cssVariables = generateCSSVariables(primaryColor, secondaryColor);
@@ -63,8 +64,8 @@ export default async function SchoolAdminLayout({
         }} />
         <SchoolAdminSidebar
           userEmail={userData.email}
-          schoolName={userData.school.name}
-          schoolLogo={userData.school.logo_url}
+          schoolName={school?.name}
+          schoolLogo={school?.logo_url}
           primaryColor={primaryColor}
           secondaryColor={secondaryColor}
         />
