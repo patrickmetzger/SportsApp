@@ -3,16 +3,17 @@ import { createClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
 import EditUserForm from '@/components/admin/EditUserForm';
 
-export default async function EditUserPage({ params }: { params: { id: string } }) {
+export default async function EditUserPage({ params }: { params: Promise<{ id: string }> }) {
   try {
     await requireRole('admin');
     const supabase = await createClient();
+    const { id } = await params;
 
     // Fetch the user to edit
     const { data: user, error } = await supabase
       .from('users')
       .select('*')
-      .eq('id', params.id)
+      .eq('id', id)
       .single();
 
     if (error || !user) {
