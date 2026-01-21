@@ -22,6 +22,9 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
+    // At this point, currentUserData is guaranteed to be non-null
+    const userData = currentUserData;
+
     const body = await request.json();
     const { userId, archived } = body;
 
@@ -35,7 +38,7 @@ export async function POST(request: NextRequest) {
     }
 
     // For school admins, verify the user belongs to their school
-    if (currentUserData.role === 'school_admin') {
+    if (userData.role === 'school_admin') {
       const { data: userToArchive } = await supabase
         .from('users')
         .select('school_id, role')
@@ -47,7 +50,7 @@ export async function POST(request: NextRequest) {
       }
 
       // School admins can only archive users at their school
-      if (userToArchive.school_id !== currentUserData.school_id) {
+      if (userToArchive.school_id !== userData.school_id) {
         return NextResponse.json({ error: 'Can only archive users at your school' }, { status: 403 });
       }
 

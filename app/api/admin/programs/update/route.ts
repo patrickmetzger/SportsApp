@@ -22,6 +22,9 @@ export async function PUT(request: NextRequest) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
+    // At this point, currentUserData is guaranteed to be non-null
+    const userData = currentUserData;
+
     const body = await request.json();
     const { id, coach_ids, ...updateData } = body;
 
@@ -33,14 +36,14 @@ export async function PUT(request: NextRequest) {
     }
 
     // For school_admins, verify the program belongs to their school
-    if (currentUserData.role === 'school_admin') {
+    if (userData.role === 'school_admin') {
       const { data: programToEdit } = await supabase
         .from('summer_programs')
         .select('school_id')
         .eq('id', id)
         .single();
 
-      if (!programToEdit || programToEdit.school_id !== currentUserData.school_id) {
+      if (!programToEdit || programToEdit.school_id !== userData.school_id) {
         return NextResponse.json(
           { error: 'Program not found or not at your school' },
           { status: 404 }

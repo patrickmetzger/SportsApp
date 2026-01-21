@@ -22,6 +22,9 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
+    // At this point, currentUserData is guaranteed to be non-null
+    const userData = currentUserData;
+
     const body = await request.json();
     const {
       name,
@@ -44,8 +47,8 @@ export async function POST(request: NextRequest) {
     } = body;
 
     // School admins must provide their school_id
-    if (currentUserData.role === 'school_admin') {
-      if (!school_id || school_id !== currentUserData.school_id) {
+    if (userData.role === 'school_admin') {
+      if (!school_id || school_id !== userData.school_id) {
         return NextResponse.json(
           { error: 'Can only create programs for your school' },
           { status: 403 }
