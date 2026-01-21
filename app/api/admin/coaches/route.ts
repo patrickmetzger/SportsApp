@@ -21,6 +21,9 @@ export async function GET() {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
+    // At this point, currentUserData is guaranteed to be non-null
+    const userData = currentUserData;
+
     // Build query
     let query = supabase
       .from('users')
@@ -41,8 +44,8 @@ export async function GET() {
       .eq('archived', false);
 
     // School admins only see coaches at their school
-    if (currentUserData.role === 'school_admin' && currentUserData.school_id) {
-      query = query.eq('school_id', currentUserData.school_id);
+    if (userData.role === 'school_admin' && userData.school_id) {
+      query = query.eq('school_id', userData.school_id);
     }
 
     const { data: coaches, error } = await query.order('last_name');
