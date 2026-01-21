@@ -27,8 +27,11 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
+    // At this point, currentUserData is guaranteed to be non-null
+    const userData = currentUserData;
+
     // Only admins and school_admins can send communications
-    if (currentUserData.role !== "admin" && currentUserData.role !== "school_admin") {
+    if (userData.role !== "admin" && userData.role !== "school_admin") {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
@@ -56,7 +59,7 @@ export async function POST(request: NextRequest) {
     }
 
     // School admins can only send to coaches and parents at their school
-    if (currentUserData.role === "school_admin") {
+    if (userData.role === "school_admin") {
       // Verify all recipients are coaches or parents at the school admin's school
       const { data: recipients, error: recipientsError } = await supabase
         .from("users")
@@ -68,7 +71,7 @@ export async function POST(request: NextRequest) {
       }
 
       const invalidRecipients = recipients?.filter(
-        (r) => !["coach", "parent"].includes(r.role) || r.school_id !== currentUserData.school_id
+        (r) => !["coach", "parent"].includes(r.role) || r.school_id !== userData.school_id
       );
 
       if (invalidRecipients && invalidRecipients.length > 0) {
@@ -83,7 +86,7 @@ export async function POST(request: NextRequest) {
     }
 
     // School admins cannot send to all_coaches
-    if (currentUserData.role === "school_admin" && recipient_type === "all_coaches") {
+    if (userData.role === "school_admin" && recipient_type === "all_coaches") {
       return NextResponse.json(
         { error: "School admins cannot send to all coaches" },
         { status: 403 }
@@ -91,8 +94,8 @@ export async function POST(request: NextRequest) {
     }
 
     // For school admins, always use their school_id
-    const finalSchoolId = currentUserData.role === 'school_admin'
-      ? currentUserData.school_id
+    const finalSchoolId = userData.role === 'school_admin'
+      ? userData.school_id
       : (school_id || null);
 
     console.log('Final school_id for communication:', finalSchoolId);

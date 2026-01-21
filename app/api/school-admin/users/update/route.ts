@@ -16,9 +16,12 @@ export async function PUT(request: NextRequest) {
       .eq('id', user.id)
       .single();
 
-    if (currentUserData?.role !== 'school_admin' || !currentUserData.school_id) {
+    if (!currentUserData || currentUserData.role !== 'school_admin' || !currentUserData.school_id) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
+
+    // At this point, currentUserData is guaranteed to be non-null
+    const userData = currentUserData;
 
     const body = await request.json();
     const { id, email, first_name, last_name, phone, role, school_id } = body;
@@ -33,7 +36,7 @@ export async function PUT(request: NextRequest) {
     }
 
     // Validate school_id matches current user's school
-    if (school_id && school_id !== currentUserData.school_id) {
+    if (school_id && school_id !== userData.school_id) {
       return NextResponse.json({ error: 'Can only update users at your school' }, { status: 403 });
     }
 
@@ -44,7 +47,7 @@ export async function PUT(request: NextRequest) {
       .eq('id', id)
       .single();
 
-    if (!userToEdit || userToEdit.school_id !== currentUserData.school_id) {
+    if (!userToEdit || userToEdit.school_id !== userData.school_id) {
       return NextResponse.json({ error: 'User not found or not at your school' }, { status: 404 });
     }
 

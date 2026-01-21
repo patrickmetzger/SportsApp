@@ -16,9 +16,12 @@ export async function POST(request: NextRequest) {
       .eq('id', user.id)
       .single();
 
-    if (currentUserData?.role !== 'school_admin' || !currentUserData.school_id) {
+    if (!currentUserData || currentUserData.role !== 'school_admin' || !currentUserData.school_id) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
+
+    // At this point, currentUserData is guaranteed to be non-null
+    const userData = currentUserData;
 
     const body = await request.json();
     const { email, password, firstName, lastName, phone, role, school_id } = body;
@@ -29,7 +32,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Validate school_id matches current user's school
-    if (school_id !== currentUserData.school_id) {
+    if (school_id !== userData.school_id) {
       return NextResponse.json({ error: 'Can only create users for your school' }, { status: 403 });
     }
 

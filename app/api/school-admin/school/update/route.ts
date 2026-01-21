@@ -16,9 +16,12 @@ export async function PUT(request: NextRequest) {
       .eq('id', user.id)
       .single();
 
-    if (currentUserData?.role !== 'school_admin' || !currentUserData.school_id) {
+    if (!currentUserData || currentUserData.role !== 'school_admin' || !currentUserData.school_id) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
+
+    // At this point, currentUserData is guaranteed to be non-null
+    const userData = currentUserData;
 
     const body = await request.json();
     const { id, name, address, city, state, zip_code, phone, email, website, logo_url, primary_color, secondary_color } = body;
@@ -28,7 +31,7 @@ export async function PUT(request: NextRequest) {
     }
 
     // Verify the school being edited is the school admin's school
-    if (id !== currentUserData.school_id) {
+    if (id !== userData.school_id) {
       return NextResponse.json({ error: 'Can only update your own school' }, { status: 403 });
     }
 
