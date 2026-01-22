@@ -37,86 +37,100 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 p-4">
-      {/* Glassmorphism card */}
-      <div className="bg-white/80 backdrop-blur-xl p-10 rounded-3xl shadow-soft-xl border border-white/20 w-full max-w-md animate-fade-in">
-        {/* Header */}
-        <div className="mb-8 text-center">
-          <h1 className="text-4xl font-bold text-gray-900 mb-2">
-            Welcome back
-          </h1>
-          <p className="text-gray-500 text-sm">Sign in to your account to continue</p>
-        </div>
+    <div className="min-h-screen flex bg-white">
+      {/* Left side - Hero section with minimal design */}
+      <div className="hidden lg:flex lg:w-1/2 bg-black text-white items-center justify-center p-16 relative overflow-hidden">
+        {/* Subtle gold accent line */}
+        <div className="absolute top-0 left-0 w-1 h-full bg-gradient-to-b from-gold-400 to-gold-600"></div>
 
-        {/* Error message with modern styling */}
-        {error && (
-          <div className="bg-red-50/80 backdrop-blur-sm border border-red-100 text-red-600 p-4 rounded-2xl mb-6 text-sm animate-slide-up">
-            {error}
+        <div className="max-w-md space-y-8">
+          <div className="space-y-4">
+            <h1 className="text-6xl font-extralight tracking-tighter leading-tight">
+              Elevate Your<br />Athletic Excellence
+            </h1>
+            <div className="w-16 h-0.5 bg-gold-500"></div>
           </div>
-        )}
-
-        {/* Form */}
-        <form onSubmit={handleLogin} className="space-y-5">
-          {/* Email input */}
-          <div className="space-y-2">
-            <label htmlFor="email" className="block text-sm font-semibold text-gray-700">
-              Email
-            </label>
-            <input
-              id="email"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              placeholder="you@example.com"
-              className="w-full px-4 py-3.5 bg-white border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200 shadow-soft hover:shadow-soft-md"
-            />
-          </div>
-
-          {/* Password input */}
-          <div className="space-y-2">
-            <label htmlFor="password" className="block text-sm font-semibold text-gray-700">
-              Password
-            </label>
-            <input
-              id="password"
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              placeholder="••••••••"
-              className="w-full px-4 py-3.5 bg-white border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200 shadow-soft hover:shadow-soft-md"
-            />
-          </div>
-
-          {/* Submit button */}
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full bg-slate-900 text-white py-3.5 rounded-xl font-semibold hover:bg-slate-800 disabled:bg-gray-300 disabled:cursor-not-allowed transition-all duration-200 shadow-soft-md hover:shadow-soft-lg active:scale-[0.98] mt-6"
-          >
-            {loading ? (
-              <span className="flex items-center justify-center gap-2">
-                <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                </svg>
-                Signing in...
-              </span>
-            ) : (
-              'Sign in'
-            )}
-          </button>
-        </form>
-
-        {/* Footer */}
-        <div className="mt-8 text-center">
-          <p className="text-sm text-gray-600">
-            Don&apos;t have an account?{' '}
-            <a href="/signup" className="font-semibold text-slate-900 hover:text-slate-700 transition-colors">
-              Sign up
-            </a>
+          <p className="text-lg font-light text-gray-400 leading-relaxed">
+            Premium sports management for institutions that demand more.
           </p>
+        </div>
+      </div>
+
+      {/* Right side - Form */}
+      <div className="flex-1 flex items-center justify-center p-8 lg:p-16">
+        <div className="w-full max-w-md space-y-12">
+          {/* Logo/Brand */}
+          <div className="text-center lg:text-left space-y-3">
+            <h2 className="text-4xl font-light tracking-tight text-black">
+              Welcome back
+            </h2>
+            <p className="text-gray-500 font-light">Enter your credentials to continue</p>
+          </div>
+
+          {/* Error message */}
+          {error && (
+            <div className="border-l-2 border-red-600 bg-red-50 p-4 text-sm text-red-900 font-light">
+              {error}
+            </div>
+          )}
+
+          {/* Form */}
+          <form onSubmit={handleLogin} className="space-y-8">
+            {/* Email input */}
+            <div className="space-y-3">
+              <label htmlFor="email" className="block text-xs uppercase tracking-wider text-gray-500 font-medium">
+                Email Address
+              </label>
+              <input
+                id="email"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                className="w-full px-0 py-3 bg-transparent border-0 border-b-2 border-gray-200 text-black placeholder-gray-400 focus:outline-none focus:border-black transition-colors font-light text-lg"
+                placeholder="you@example.com"
+              />
+            </div>
+
+            {/* Password input */}
+            <div className="space-y-3">
+              <label htmlFor="password" className="block text-xs uppercase tracking-wider text-gray-500 font-medium">
+                Password
+              </label>
+              <input
+                id="password"
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                className="w-full px-0 py-3 bg-transparent border-0 border-b-2 border-gray-200 text-black placeholder-gray-400 focus:outline-none focus:border-black transition-colors font-light text-lg"
+                placeholder="Enter your password"
+              />
+            </div>
+
+            {/* Submit button */}
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full bg-black text-white py-4 font-light text-sm uppercase tracking-widest hover:bg-gray-900 disabled:bg-gray-300 disabled:cursor-not-allowed transition-all duration-300 relative group overflow-hidden"
+            >
+              <span className="relative z-10">
+                {loading ? 'Authenticating...' : 'Sign In'}
+              </span>
+              {/* Gold accent on hover */}
+              <div className="absolute inset-0 bg-gradient-to-r from-gold-600 to-gold-500 transform translate-y-full group-hover:translate-y-0 transition-transform duration-300"></div>
+            </button>
+          </form>
+
+          {/* Footer */}
+          <div className="text-center pt-8 border-t border-gray-100">
+            <p className="text-sm text-gray-500 font-light">
+              New to the platform?{' '}
+              <a href="/signup" className="text-black hover:text-gold-600 transition-colors font-normal">
+                Create an account
+              </a>
+            </p>
+          </div>
         </div>
       </div>
     </div>
