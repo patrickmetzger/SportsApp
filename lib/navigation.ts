@@ -50,9 +50,9 @@ export const coachNavigation: NavItem[] = [
 
 export const parentNavigation: NavItem[] = [
   { name: 'Dashboard', href: '/dashboard/parent', icon: 'HomeIcon' },
-  { name: 'My Children', href: '/dashboard/parent/children', icon: 'UserGroupIcon' },
-  { name: 'Registrations', href: '/dashboard/parent/registrations', icon: 'ClipboardDocumentListIcon' },
-  { name: 'Payments', href: '/dashboard/parent/payments', icon: 'CreditCardIcon' },
+  { name: 'My Children', href: '/dashboard/parent#children', icon: 'UserGroupIcon' },
+  { name: 'Registrations', href: '/dashboard/parent#registrations', icon: 'ClipboardDocumentListIcon' },
+  { name: 'Communications', href: '/dashboard/parent/communications', icon: 'ChatBubbleLeftRightIcon' },
   { name: 'Programs', href: '/programs', icon: 'TrophyIcon' },
 ];
 
