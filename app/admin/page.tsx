@@ -8,163 +8,231 @@ import {
   ChartBarIcon,
   Cog6ToothIcon,
   BuildingOfficeIcon,
-  CreditCardIcon
+  CreditCardIcon,
+  ArrowTrendingUpIcon,
+  UserGroupIcon,
 } from '@heroicons/react/24/outline';
 
 export default async function AdminDashboard() {
   try {
-    const { user } = await requireRole('admin');
+    await requireRole('admin');
 
     return (
-      <div className="min-h-screen bg-white">
-        {/* Premium Navigation Bar */}
-        <nav className="border-b border-gray-100">
-          <div className="max-w-7xl mx-auto px-8 lg:px-16">
-            <div className="flex justify-between h-20 items-center">
+      <div className="space-y-8">
+        {/* Page Header */}
+        <div>
+          <h1 className="text-2xl font-bold text-slate-900">Dashboard</h1>
+          <p className="text-slate-500 mt-1">Welcome to the admin command center</p>
+        </div>
+
+        {/* Quick Stats */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="bg-white rounded-xl p-6 shadow-card">
+            <div className="flex items-center justify-between">
               <div>
-                <h1 className="text-sm uppercase tracking-widest font-light text-black">
-                  Dashboard
-                </h1>
+                <p className="text-sm text-slate-500">Total Users</p>
+                <p className="text-2xl font-bold text-slate-900 mt-1">2,847</p>
               </div>
-              <div className="flex items-center gap-8">
-                <span className="text-sm font-light text-gray-500">{user.email}</span>
-                <form action="/api/auth/logout" method="POST">
-                  <button className="px-6 py-2 bg-black text-white text-xs uppercase tracking-wider hover:bg-gray-900 transition-all duration-300 font-light">
-                    Sign Out
-                  </button>
-                </form>
+              <div className="w-12 h-12 bg-teal-50 rounded-xl flex items-center justify-center">
+                <UsersIcon className="w-6 h-6 text-teal-600" />
               </div>
             </div>
-          </div>
-        </nav>
-
-        <main className="max-w-7xl mx-auto px-8 lg:px-16 py-16 lg:py-24">
-          {/* Hero Welcome Section */}
-          <div className="mb-24 space-y-6">
-            <div className="w-12 h-0.5 bg-gold-500"></div>
-            <h2 className="text-6xl lg:text-7xl font-extralight tracking-tighter text-black leading-none">
-              Command<br />Center
-            </h2>
-            <p className="text-xl font-light text-gray-500 max-w-2xl leading-relaxed">
-              Orchestrate every aspect of your athletic programs with precision and elegance.
-            </p>
+            <div className="flex items-center gap-1 mt-3 text-sm">
+              <ArrowTrendingUpIcon className="w-4 h-4 text-teal-500" />
+              <span className="text-teal-600 font-medium">12%</span>
+              <span className="text-slate-400">vs last month</span>
+            </div>
           </div>
 
-          {/* Premium Magazine Grid */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-px bg-gray-100 border border-gray-100 mb-24">
-            {/* User Management - Featured */}
+          <div className="bg-white rounded-xl p-6 shadow-card">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-slate-500">Active Schools</p>
+                <p className="text-2xl font-bold text-slate-900 mt-1">48</p>
+              </div>
+              <div className="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center">
+                <AcademicCapIcon className="w-6 h-6 text-blue-600" />
+              </div>
+            </div>
+            <div className="flex items-center gap-1 mt-3 text-sm">
+              <ArrowTrendingUpIcon className="w-4 h-4 text-teal-500" />
+              <span className="text-teal-600 font-medium">4</span>
+              <span className="text-slate-400">new this month</span>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-xl p-6 shadow-card">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-slate-500">Programs</p>
+                <p className="text-2xl font-bold text-slate-900 mt-1">156</p>
+              </div>
+              <div className="w-12 h-12 bg-amber-50 rounded-xl flex items-center justify-center">
+                <TrophyIcon className="w-6 h-6 text-amber-600" />
+              </div>
+            </div>
+            <div className="flex items-center gap-1 mt-3 text-sm">
+              <span className="text-slate-400">Across all schools</span>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-xl p-6 shadow-card">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-slate-500">Active Athletes</p>
+                <p className="text-2xl font-bold text-slate-900 mt-1">1,892</p>
+              </div>
+              <div className="w-12 h-12 bg-purple-50 rounded-xl flex items-center justify-center">
+                <UserGroupIcon className="w-6 h-6 text-purple-600" />
+              </div>
+            </div>
+            <div className="flex items-center gap-1 mt-3 text-sm">
+              <ArrowTrendingUpIcon className="w-4 h-4 text-teal-500" />
+              <span className="text-teal-600 font-medium">8%</span>
+              <span className="text-slate-400">vs last month</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Quick Actions Grid */}
+        <div>
+          <h2 className="text-lg font-semibold text-slate-900 mb-4">Quick Actions</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {/* User Management */}
             <a
               href="/admin/users"
-              className="bg-black text-white p-12 lg:p-16 group hover:bg-gray-900 transition-all duration-500 lg:row-span-2"
+              className="bg-white rounded-xl p-6 shadow-card hover:shadow-card-hover transition-shadow group"
             >
-              <div className="flex flex-col h-full justify-between space-y-12">
-                <div className="space-y-6">
-                  <UsersIcon className="w-10 h-10 text-gold-400" />
-                  <div>
-                    <h3 className="text-3xl font-light mb-3 tracking-tight">User Management</h3>
-                    <p className="text-gray-400 font-light leading-relaxed">
-                      Administer the complete lifecycle of all system participants
-                    </p>
-                  </div>
+              <div className="flex items-start gap-4">
+                <div className="w-12 h-12 bg-teal-500 rounded-xl flex items-center justify-center flex-shrink-0">
+                  <UsersIcon className="w-6 h-6 text-white" />
                 </div>
-                <div className="flex items-center gap-2 text-sm uppercase tracking-widest text-gold-400">
-                  <span>Enter</span>
-                  <svg className="w-4 h-4 group-hover:translate-x-2 transition-transform duration-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17 8l4 4m0 0l-4 4m4-4H3" />
-                  </svg>
+                <div className="flex-1">
+                  <h3 className="font-semibold text-slate-900 group-hover:text-teal-600 transition-colors">
+                    User Management
+                  </h3>
+                  <p className="text-sm text-slate-500 mt-1">
+                    Manage all system users and permissions
+                  </p>
                 </div>
               </div>
             </a>
 
             {/* Schools */}
-            <a href="/admin/schools" className="bg-white p-12 group hover:bg-cream-50 transition-all duration-500">
-              <div className="space-y-6">
-                <AcademicCapIcon className="w-8 h-8 text-black" />
-                <div>
-                  <h3 className="text-xl font-light mb-2 tracking-tight">Schools</h3>
-                  <p className="text-gray-500 text-sm font-light">Institution oversight and management</p>
+            <a
+              href="/admin/schools"
+              className="bg-white rounded-xl p-6 shadow-card hover:shadow-card-hover transition-shadow group"
+            >
+              <div className="flex items-start gap-4">
+                <div className="w-12 h-12 bg-blue-500 rounded-xl flex items-center justify-center flex-shrink-0">
+                  <AcademicCapIcon className="w-6 h-6 text-white" />
+                </div>
+                <div className="flex-1">
+                  <h3 className="font-semibold text-slate-900 group-hover:text-teal-600 transition-colors">
+                    Schools
+                  </h3>
+                  <p className="text-sm text-slate-500 mt-1">
+                    Institution oversight and management
+                  </p>
                 </div>
               </div>
             </a>
 
             {/* Programs */}
-            <a href="/admin/programs" className="bg-white p-12 group hover:bg-cream-50 transition-all duration-500">
-              <div className="space-y-6">
-                <TrophyIcon className="w-8 h-8 text-black" />
-                <div>
-                  <h3 className="text-xl font-light mb-2 tracking-tight">Programs</h3>
-                  <p className="text-gray-500 text-sm font-light">Athletic program administration</p>
+            <a
+              href="/admin/programs"
+              className="bg-white rounded-xl p-6 shadow-card hover:shadow-card-hover transition-shadow group"
+            >
+              <div className="flex items-start gap-4">
+                <div className="w-12 h-12 bg-amber-500 rounded-xl flex items-center justify-center flex-shrink-0">
+                  <TrophyIcon className="w-6 h-6 text-white" />
+                </div>
+                <div className="flex-1">
+                  <h3 className="font-semibold text-slate-900 group-hover:text-teal-600 transition-colors">
+                    Programs
+                  </h3>
+                  <p className="text-sm text-slate-500 mt-1">
+                    Athletic program administration
+                  </p>
                 </div>
               </div>
             </a>
 
             {/* Communications */}
-            <a href="/admin/communications" className="bg-white p-12 group hover:bg-cream-50 transition-all duration-500">
-              <div className="space-y-6">
-                <ChatBubbleLeftRightIcon className="w-8 h-8 text-black" />
-                <div>
-                  <h3 className="text-xl font-light mb-2 tracking-tight">Communications</h3>
-                  <p className="text-gray-500 text-sm font-light">Broadcast and messaging</p>
+            <a
+              href="/admin/communications"
+              className="bg-white rounded-xl p-6 shadow-card hover:shadow-card-hover transition-shadow group"
+            >
+              <div className="flex items-start gap-4">
+                <div className="w-12 h-12 bg-purple-500 rounded-xl flex items-center justify-center flex-shrink-0">
+                  <ChatBubbleLeftRightIcon className="w-6 h-6 text-white" />
+                </div>
+                <div className="flex-1">
+                  <h3 className="font-semibold text-slate-900 group-hover:text-teal-600 transition-colors">
+                    Communications
+                  </h3>
+                  <p className="text-sm text-slate-500 mt-1">
+                    Broadcast and messaging center
+                  </p>
                 </div>
               </div>
             </a>
 
             {/* Analytics */}
-            <div className="bg-white p-12 group hover:bg-cream-50 transition-all duration-500 cursor-pointer">
-              <div className="space-y-6">
-                <ChartBarIcon className="w-8 h-8 text-black" />
-                <div>
-                  <h3 className="text-xl font-light mb-2 tracking-tight">Analytics</h3>
-                  <p className="text-gray-500 text-sm font-light">Performance insights</p>
+            <a
+              href="/admin/analytics"
+              className="bg-white rounded-xl p-6 shadow-card hover:shadow-card-hover transition-shadow group"
+            >
+              <div className="flex items-start gap-4">
+                <div className="w-12 h-12 bg-indigo-500 rounded-xl flex items-center justify-center flex-shrink-0">
+                  <ChartBarIcon className="w-6 h-6 text-white" />
+                </div>
+                <div className="flex-1">
+                  <h3 className="font-semibold text-slate-900 group-hover:text-teal-600 transition-colors">
+                    Analytics
+                  </h3>
+                  <p className="text-sm text-slate-500 mt-1">
+                    Performance insights and reports
+                  </p>
                 </div>
               </div>
-            </div>
+            </a>
 
             {/* Settings */}
-            <div className="bg-white p-12 group hover:bg-cream-50 transition-all duration-500 cursor-pointer">
-              <div className="space-y-6">
-                <Cog6ToothIcon className="w-8 h-8 text-black" />
-                <div>
-                  <h3 className="text-xl font-light mb-2 tracking-tight">Settings</h3>
-                  <p className="text-gray-500 text-sm font-light">System configuration</p>
+            <a
+              href="/admin/settings"
+              className="bg-white rounded-xl p-6 shadow-card hover:shadow-card-hover transition-shadow group"
+            >
+              <div className="flex items-start gap-4">
+                <div className="w-12 h-12 bg-slate-500 rounded-xl flex items-center justify-center flex-shrink-0">
+                  <Cog6ToothIcon className="w-6 h-6 text-white" />
+                </div>
+                <div className="flex-1">
+                  <h3 className="font-semibold text-slate-900 group-hover:text-teal-600 transition-colors">
+                    Settings
+                  </h3>
+                  <p className="text-sm text-slate-500 mt-1">
+                    System configuration
+                  </p>
                 </div>
               </div>
-            </div>
-
-            {/* Facilities */}
-            <div className="bg-white p-12 group hover:bg-cream-50 transition-all duration-500 cursor-pointer">
-              <div className="space-y-6">
-                <BuildingOfficeIcon className="w-8 h-8 text-black" />
-                <div>
-                  <h3 className="text-xl font-light mb-2 tracking-tight">Facilities</h3>
-                  <p className="text-gray-500 text-sm font-light">Venue management</p>
-                </div>
-              </div>
-            </div>
-
-            {/* Payments */}
-            <div className="bg-white p-12 group hover:bg-cream-50 transition-all duration-500 cursor-pointer">
-              <div className="space-y-6">
-                <CreditCardIcon className="w-8 h-8 text-black" />
-                <div>
-                  <h3 className="text-xl font-light mb-2 tracking-tight">Payments</h3>
-                  <p className="text-gray-500 text-sm font-light">Financial tracking</p>
-                </div>
-              </div>
-            </div>
+            </a>
           </div>
+        </div>
 
-          {/* System Status */}
-          <div className="border-t border-gray-100 pt-16">
-            <div className="flex items-center justify-between">
-              <div className="space-y-2">
-                <p className="text-xs uppercase tracking-widest text-gray-400 font-medium">System Status</p>
-                <p className="text-sm font-light text-black">All systems operational</p>
+        {/* System Status */}
+        <div className="bg-white rounded-xl p-6 shadow-card">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-3 h-3 bg-teal-500 rounded-full animate-pulse"></div>
+              <div>
+                <p className="font-medium text-slate-900">System Status</p>
+                <p className="text-sm text-slate-500">All systems operational</p>
               </div>
-              <div className="w-2 h-2 bg-gold-500 rounded-full"></div>
             </div>
+            <span className="text-xs text-slate-400">Last checked: Just now</span>
           </div>
-        </main>
+        </div>
       </div>
     );
   } catch (error) {

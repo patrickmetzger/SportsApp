@@ -11,93 +11,94 @@ const config: Config = {
       colors: {
         background: "var(--background)",
         foreground: "var(--foreground)",
-        // Premium minimalist palette - black, white, gold
-        gold: {
-          50: '#fefce8',
-          100: '#fef9c3',
-          200: '#fef08a',
-          300: '#fde047',
-          400: '#facc15',
-          500: '#eab308',
-          600: '#ca8a04',
-          700: '#a16207',
-          800: '#854d0e',
-          900: '#713f12',
+        // Navy sidebar palette
+        navy: {
+          50: '#f0f4f8',
+          100: '#d9e2ec',
+          200: '#bcccdc',
+          300: '#9fb3c8',
+          400: '#829ab1',
+          500: '#627d98',
+          600: '#486581',
+          700: '#334e68',
+          800: '#243b53',
+          900: '#1e3a5f',
+          950: '#102a43',
         },
-        cream: {
-          50: '#fefdfb',
-          100: '#fef9f3',
-          200: '#fef4e6',
-          300: '#fdefd9',
-          400: '#fce9cc',
-          500: '#fbe4bf',
+        // Teal accent palette
+        teal: {
+          50: '#f0fdfa',
+          100: '#ccfbf1',
+          200: '#99f6e4',
+          300: '#5eead4',
+          400: '#2dd4bf',
+          500: '#14b8a6',
+          600: '#0d9488',
+          700: '#0f766e',
+          800: '#115e59',
+          900: '#134e4a',
+        },
+        // Keep some utility colors
+        slate: {
+          50: '#f8fafc',
+          100: '#f1f5f9',
+          200: '#e2e8f0',
+          300: '#cbd5e1',
+          400: '#94a3b8',
+          500: '#64748b',
+          600: '#475569',
+          700: '#334155',
+          800: '#1e293b',
+          900: '#0f172a',
         },
       },
-      // Premium typography
+      // Typography
       fontSize: {
-        'hero': ['5rem', { lineHeight: '1.1', letterSpacing: '-0.02em', fontWeight: '300' }],
-        'display': ['4rem', { lineHeight: '1.1', letterSpacing: '-0.01em', fontWeight: '300' }],
+        'hero': ['3rem', { lineHeight: '1.1', letterSpacing: '-0.02em', fontWeight: '700' }],
+        'display': ['2.5rem', { lineHeight: '1.1', letterSpacing: '-0.01em', fontWeight: '700' }],
       },
       fontWeight: {
-        'extralight': '200',
-        'light': '300',
+        'normal': '400',
+        'medium': '500',
+        'semibold': '600',
+        'bold': '700',
       },
-      letterSpacing: {
-        'tighter': '-0.04em',
-        'tight': '-0.02em',
-      },
-      // Minimal rounded corners
+      // Rounded corners
       borderRadius: {
-        'sm': '2px',
-        'md': '4px',
-        'lg': '8px',
-        'xl': '12px',
+        'sm': '6px',
+        'md': '8px',
+        'lg': '12px',
+        'xl': '16px',
+        '2xl': '20px',
+        '3xl': '24px',
       },
-      // Premium subtle shadows
+      // Card shadows
       boxShadow: {
-        'premium': '0 1px 3px rgba(0, 0, 0, 0.05)',
-        'premium-md': '0 4px 12px rgba(0, 0, 0, 0.08)',
-        'premium-lg': '0 8px 30px rgba(0, 0, 0, 0.12)',
-        'gold-glow': '0 0 20px rgba(202, 138, 4, 0.3)',
+        'card': '0 1px 3px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.06)',
+        'card-hover': '0 4px 6px rgba(0, 0, 0, 0.1), 0 2px 4px rgba(0, 0, 0, 0.06)',
+        'card-lg': '0 10px 15px rgba(0, 0, 0, 0.1), 0 4px 6px rgba(0, 0, 0, 0.05)',
+        'sidebar': '4px 0 6px rgba(0, 0, 0, 0.05)',
       },
       // Smooth transitions
       transitionDuration: {
-        '400': '400ms',
+        '200': '200ms',
+        '300': '300ms',
       },
       transitionTimingFunction: {
         'smooth': 'cubic-bezier(0.4, 0, 0.2, 1)',
       },
-      // Backdrop blur for glassmorphism
-      backdropBlur: {
-        xs: '2px',
-      },
       animation: {
-        blob: "blob 7s infinite",
-        'fade-in': 'fadeIn 0.4s ease-out',
-        'slide-up': 'slideUp 0.4s ease-out',
+        'fade-in': 'fadeIn 0.3s ease-out',
+        'slide-in': 'slideIn 0.3s ease-out',
       },
       keyframes: {
-        blob: {
-          "0%": {
-            transform: "translate(0px, 0px) scale(1)",
-          },
-          "33%": {
-            transform: "translate(30px, -50px) scale(1.1)",
-          },
-          "66%": {
-            transform: "translate(-20px, 20px) scale(0.9)",
-          },
-          "100%": {
-            transform: "translate(0px, 0px) scale(1)",
-          },
-        },
         fadeIn: {
           '0%': { opacity: '0' },
           '100%': { opacity: '1' },
         },
-        slideUp: {
-          '0%': { transform: 'translateY(10px)', opacity: '0' },
-          '100%': { transform: 'translateY(0)', opacity: '1' },
+        slideIn: {
+          '0%': { transform: 'translateX(-10px)', opacity: '0' },
+          '100%': { transform: 'translateX(0)', opacity: '1' },
         },
       },
     },

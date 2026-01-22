@@ -1,5 +1,7 @@
 'use client';
 
+import { ClipboardDocumentListIcon, CalendarIcon } from '@heroicons/react/24/outline';
+
 interface Program {
   id: string;
   name: string;
@@ -18,10 +20,12 @@ interface CoachProgramsListProps {
 export default function CoachProgramsList({ programs }: CoachProgramsListProps) {
   if (!programs || programs.length === 0) {
     return (
-      <div className="bg-white rounded-lg shadow p-8 text-center">
-        <div className="text-gray-400 text-5xl mb-4">📋</div>
-        <h3 className="text-lg font-semibold text-gray-700 mb-2">No Programs Assigned</h3>
-        <p className="text-gray-500">
+      <div className="bg-white rounded-xl p-12 text-center shadow-card">
+        <div className="w-16 h-16 bg-slate-100 rounded-xl flex items-center justify-center mx-auto mb-4">
+          <ClipboardDocumentListIcon className="w-8 h-8 text-slate-400" />
+        </div>
+        <h3 className="text-lg font-semibold text-slate-900 mb-2">No Programs Assigned</h3>
+        <p className="text-sm text-slate-500">
           You are not currently assigned to any programs. Contact your school administrator.
         </p>
       </div>
@@ -52,19 +56,19 @@ export default function CoachProgramsList({ programs }: CoachProgramsListProps) 
   const getStatusBadge = (startDate: string, endDate: string) => {
     if (isProgramActive(startDate, endDate)) {
       return (
-        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+        <span className="px-2.5 py-1 rounded-full bg-teal-100 text-teal-700 text-xs font-medium">
           Active
         </span>
       );
     } else if (isProgramUpcoming(startDate)) {
       return (
-        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium school-badge-primary">
+        <span className="px-2.5 py-1 rounded-full bg-blue-100 text-blue-700 text-xs font-medium">
           Upcoming
         </span>
       );
     } else {
       return (
-        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+        <span className="px-2.5 py-1 rounded-full bg-slate-100 text-slate-600 text-xs font-medium">
           Completed
         </span>
       );
@@ -76,73 +80,68 @@ export default function CoachProgramsList({ programs }: CoachProgramsListProps) 
       {programs.map((program) => (
         <div
           key={program.id}
-          className="bg-white rounded-lg shadow hover:shadow-lg transition school-branded-card"
+          className="bg-white rounded-xl p-6 shadow-card hover:shadow-card-hover transition-shadow"
         >
-          <div className="p-6">
-            <div className="flex items-start justify-between mb-4">
-              <div className="flex-1">
-                <div className="flex items-center gap-3 mb-2">
-                  <h3 className="text-xl font-semibold text-gray-900">
-                    {program.name}
-                  </h3>
-                  {getStatusBadge(program.start_date, program.end_date)}
+          <div className="flex flex-col lg:flex-row lg:items-start gap-6">
+            {/* Program Image */}
+            {program.header_image_url && (
+              <img
+                src={program.header_image_url}
+                alt={program.name}
+                className="w-full lg:w-40 h-32 object-cover rounded-lg flex-shrink-0"
+              />
+            )}
+
+            {/* Program Info */}
+            <div className="flex-1">
+              <div className="flex items-start justify-between mb-3">
+                <div>
+                  <div className="flex items-center gap-3 mb-1">
+                    <h3 className="text-lg font-semibold text-slate-900">
+                      {program.name}
+                    </h3>
+                    {getStatusBadge(program.start_date, program.end_date)}
+                  </div>
+                  <p className="text-sm text-slate-500 line-clamp-2">
+                    {program.description || 'No description available'}
+                  </p>
                 </div>
-                <p className="text-gray-600 text-sm line-clamp-2">
-                  {program.description || 'No description available'}
-                </p>
               </div>
-              {program.header_image_url && (
-                <img
-                  src={program.header_image_url}
-                  alt={program.name}
-                  className="w-24 h-24 object-cover rounded-lg ml-4"
-                />
-              )}
-            </div>
 
-            <div className="grid grid-cols-3 gap-4 pt-4 border-t border-gray-100">
-              <div>
-                <p className="text-xs text-gray-500 mb-1">Start Date</p>
-                <p className="text-sm font-medium text-gray-900">
-                  {formatDate(program.start_date)}
-                </p>
+              {/* Dates and Cost */}
+              <div className="flex flex-wrap items-center gap-4 text-sm text-slate-500 mb-4">
+                <div className="flex items-center gap-1.5">
+                  <CalendarIcon className="w-4 h-4" />
+                  <span>{formatDate(program.start_date)} - {formatDate(program.end_date)}</span>
+                </div>
+                <div className="font-medium text-slate-900">
+                  ${Number(program.cost).toFixed(0)}
+                </div>
               </div>
-              <div>
-                <p className="text-xs text-gray-500 mb-1">End Date</p>
-                <p className="text-sm font-medium text-gray-900">
-                  {formatDate(program.end_date)}
-                </p>
-              </div>
-              <div>
-                <p className="text-xs text-gray-500 mb-1">Cost</p>
-                <p className="text-sm font-medium text-gray-900">
-                  ${Number(program.cost).toFixed(2)}
-                </p>
-              </div>
-            </div>
 
-            <div className="mt-4 flex gap-2">
-              <a
-                href={`/programs/${program.id}`}
-                className="flex-1 text-center px-4 py-2 school-branded-btn-primary rounded-lg text-sm font-medium"
-              >
-                View Details
-              </a>
-              <a
-                href={`/dashboard/coach/programs/${program.id}/edit`}
-                className="px-4 py-2 school-branded-btn-secondary rounded-lg text-sm font-medium"
-              >
-                Edit Program
-              </a>
-              <button
-                className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition text-sm font-medium"
-                onClick={() => {
-                  // TODO: Navigate to manage registrations
-                  console.log('Manage registrations for:', program.id);
-                }}
-              >
-                Registrations
-              </button>
+              {/* Actions */}
+              <div className="flex flex-wrap gap-3">
+                <a
+                  href={`/programs/${program.id}`}
+                  className="px-4 py-2 bg-teal-500 text-white text-sm font-medium rounded-lg hover:bg-teal-600 transition-colors"
+                >
+                  View Details
+                </a>
+                <a
+                  href={`/dashboard/coach/programs/${program.id}/edit`}
+                  className="px-4 py-2 bg-white border border-slate-200 text-slate-700 text-sm font-medium rounded-lg hover:bg-slate-50 transition-colors"
+                >
+                  Edit Program
+                </a>
+                <button
+                  className="px-4 py-2 bg-white border border-slate-200 text-slate-700 text-sm font-medium rounded-lg hover:bg-slate-50 transition-colors"
+                  onClick={() => {
+                    console.log('Manage registrations for:', program.id);
+                  }}
+                >
+                  Registrations
+                </button>
+              </div>
             </div>
           </div>
         </div>

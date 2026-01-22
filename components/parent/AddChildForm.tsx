@@ -55,16 +55,16 @@ export default function AddChildForm({ onSuccess, onCancel }: AddChildFormProps)
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
+    <form onSubmit={handleSubmit} className="space-y-6">
       {error && (
-        <div className="bg-red-50 text-red-600 p-3 rounded-lg text-sm">
+        <div className="bg-red-100 rounded-xl px-4 py-3 text-sm font-medium text-red-600">
           {error}
         </div>
       )}
 
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-2 gap-6">
         <div>
-          <label htmlFor="first_name" className="block text-sm font-medium text-gray-700 mb-1">
+          <label htmlFor="first_name" className="block text-xs text-gray-400 font-medium mb-2">
             First Name *
           </label>
           <input
@@ -74,13 +74,13 @@ export default function AddChildForm({ onSuccess, onCancel }: AddChildFormProps)
             required
             value={formData.first_name}
             onChange={handleChange}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl text-black placeholder-gray-400 focus:outline-none focus:border-black focus:ring-1 focus:ring-black transition-colors"
             placeholder="John"
           />
         </div>
 
         <div>
-          <label htmlFor="last_name" className="block text-sm font-medium text-gray-700 mb-1">
+          <label htmlFor="last_name" className="block text-xs text-gray-400 font-medium mb-2">
             Last Name *
           </label>
           <input
@@ -90,14 +90,14 @@ export default function AddChildForm({ onSuccess, onCancel }: AddChildFormProps)
             required
             value={formData.last_name}
             onChange={handleChange}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl text-black placeholder-gray-400 focus:outline-none focus:border-black focus:ring-1 focus:ring-black transition-colors"
             placeholder="Doe"
           />
         </div>
       </div>
 
       <div>
-        <label htmlFor="student_id" className="block text-sm font-medium text-gray-700 mb-1">
+        <label htmlFor="student_id" className="block text-xs text-gray-400 font-medium mb-2">
           Student ID (optional)
         </label>
         <input
@@ -106,14 +106,14 @@ export default function AddChildForm({ onSuccess, onCancel }: AddChildFormProps)
           type="text"
           value={formData.student_id}
           onChange={handleChange}
-          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl text-black placeholder-gray-400 focus:outline-none focus:border-black focus:ring-1 focus:ring-black transition-colors"
           placeholder="STU001"
         />
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-2 gap-6">
         <div>
-          <label htmlFor="date_of_birth" className="block text-sm font-medium text-gray-700 mb-1">
+          <label htmlFor="date_of_birth" className="block text-xs text-gray-400 font-medium mb-2">
             Date of Birth (optional)
           </label>
           <input
@@ -122,12 +122,12 @@ export default function AddChildForm({ onSuccess, onCancel }: AddChildFormProps)
             type="date"
             value={formData.date_of_birth}
             onChange={handleChange}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl text-black placeholder-gray-400 focus:outline-none focus:border-black focus:ring-1 focus:ring-black transition-colors"
           />
         </div>
 
         <div>
-          <label htmlFor="grade" className="block text-sm font-medium text-gray-700 mb-1">
+          <label htmlFor="grade" className="block text-xs text-gray-400 font-medium mb-2">
             Grade (optional)
           </label>
           <input
@@ -138,14 +138,14 @@ export default function AddChildForm({ onSuccess, onCancel }: AddChildFormProps)
             max="12"
             value={formData.grade}
             onChange={handleChange}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl text-black placeholder-gray-400 focus:outline-none focus:border-black focus:ring-1 focus:ring-black transition-colors"
             placeholder="9"
           />
         </div>
       </div>
 
       <div>
-        <label htmlFor="gender" className="block text-sm font-medium text-gray-700 mb-1">
+        <label htmlFor="gender" className="block text-xs text-gray-400 font-medium mb-2">
           Gender (optional)
         </label>
         <select
@@ -153,7 +153,7 @@ export default function AddChildForm({ onSuccess, onCancel }: AddChildFormProps)
           name="gender"
           value={formData.gender}
           onChange={handleChange}
-          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl text-black focus:outline-none focus:border-black focus:ring-1 focus:ring-black transition-colors"
         >
           <option value="">Select gender...</option>
           <option value="male">Male</option>
@@ -162,7 +162,7 @@ export default function AddChildForm({ onSuccess, onCancel }: AddChildFormProps)
       </div>
 
       <div>
-        <label htmlFor="notes" className="block text-sm font-medium text-gray-700 mb-1">
+        <label htmlFor="notes" className="block text-xs text-gray-400 font-medium mb-2">
           Notes (optional)
         </label>
         <textarea
@@ -171,23 +171,23 @@ export default function AddChildForm({ onSuccess, onCancel }: AddChildFormProps)
           rows={3}
           value={formData.notes}
           onChange={handleChange}
-          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl text-black placeholder-gray-400 focus:outline-none focus:border-black focus:ring-1 focus:ring-black transition-colors resize-none"
           placeholder="Any additional information..."
         />
       </div>
 
-      <div className="flex gap-3">
+      <div className="flex gap-3 pt-4">
         <button
           type="submit"
           disabled={loading}
-          className="flex-1 bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 disabled:bg-gray-400 transition font-semibold"
+          className="flex-1 bg-black text-white py-3 px-4 text-xs font-semibold uppercase tracking-wider rounded-xl hover:bg-gray-800 disabled:bg-gray-400 transition-all duration-300"
         >
           {loading ? 'Adding...' : 'Add Child'}
         </button>
         <button
           type="button"
           onClick={onCancel}
-          className="flex-1 bg-gray-200 text-gray-700 py-2 rounded-lg hover:bg-gray-300 transition font-semibold"
+          className="flex-1 bg-white text-black py-3 px-4 text-xs font-semibold uppercase tracking-wider rounded-xl hover:bg-gray-50 transition-all duration-300"
         >
           Cancel
         </button>

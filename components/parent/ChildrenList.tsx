@@ -100,8 +100,10 @@ export default function ChildrenList({ children, onRefresh }: ChildrenListProps)
 
   if (children.length === 0) {
     return (
-      <div className="text-center py-8 text-gray-500">
-        No children added yet. Click "Add Child" to get started.
+      <div className="text-center py-12">
+        <p className="text-sm text-gray-400">
+          No children added yet. Click "Add Child" to get started.
+        </p>
       </div>
     );
   }
@@ -109,18 +111,18 @@ export default function ChildrenList({ children, onRefresh }: ChildrenListProps)
   return (
     <div className="space-y-4">
       {error && (
-        <div className="bg-red-50 text-red-600 p-3 rounded-lg text-sm">
+        <div className="bg-red-100 rounded-xl px-4 py-3 text-sm font-medium text-red-600">
           {error}
         </div>
       )}
 
       {children.map((child) => (
-        <div key={child.id} className="bg-white border border-gray-200 rounded-lg p-4">
+        <div key={child.id} className="bg-white rounded-xl p-6 hover:shadow-bento transition-all duration-300">
           {editingId === child.id ? (
-            <div className="space-y-3">
-              <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-6">
+              <div className="grid grid-cols-2 gap-6">
                 <div>
-                  <label className="block text-xs font-medium text-gray-700 mb-1">
+                  <label className="block text-xs text-gray-400 font-medium mb-2">
                     First Name *
                   </label>
                   <input
@@ -129,11 +131,11 @@ export default function ChildrenList({ children, onRefresh }: ChildrenListProps)
                     required
                     value={editFormData.first_name || ''}
                     onChange={handleChange}
-                    className="w-full px-3 py-1.5 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-4 py-3 bg-cream-50 border border-gray-200 rounded-xl text-black placeholder-gray-400 focus:outline-none focus:border-black focus:ring-1 focus:ring-black transition-colors"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-gray-700 mb-1">
+                  <label className="block text-xs text-gray-400 font-medium mb-2">
                     Last Name *
                   </label>
                   <input
@@ -142,13 +144,13 @@ export default function ChildrenList({ children, onRefresh }: ChildrenListProps)
                     required
                     value={editFormData.last_name || ''}
                     onChange={handleChange}
-                    className="w-full px-3 py-1.5 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-4 py-3 bg-cream-50 border border-gray-200 rounded-xl text-black placeholder-gray-400 focus:outline-none focus:border-black focus:ring-1 focus:ring-black transition-colors"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1">
+                <label className="block text-xs text-gray-400 font-medium mb-2">
                   Student ID
                 </label>
                 <input
@@ -156,13 +158,13 @@ export default function ChildrenList({ children, onRefresh }: ChildrenListProps)
                   type="text"
                   value={editFormData.student_id || ''}
                   onChange={handleChange}
-                  className="w-full px-3 py-1.5 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-4 py-3 bg-cream-50 border border-gray-200 rounded-xl text-black placeholder-gray-400 focus:outline-none focus:border-black focus:ring-1 focus:ring-black transition-colors"
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-2 gap-6">
                 <div>
-                  <label className="block text-xs font-medium text-gray-700 mb-1">
+                  <label className="block text-xs text-gray-400 font-medium mb-2">
                     Date of Birth
                   </label>
                   <input
@@ -170,11 +172,11 @@ export default function ChildrenList({ children, onRefresh }: ChildrenListProps)
                     type="date"
                     value={editFormData.date_of_birth || ''}
                     onChange={handleChange}
-                    className="w-full px-3 py-1.5 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-4 py-3 bg-cream-50 border border-gray-200 rounded-xl text-black placeholder-gray-400 focus:outline-none focus:border-black focus:ring-1 focus:ring-black transition-colors"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-gray-700 mb-1">
+                  <label className="block text-xs text-gray-400 font-medium mb-2">
                     Grade
                   </label>
                   <input
@@ -184,20 +186,20 @@ export default function ChildrenList({ children, onRefresh }: ChildrenListProps)
                     max="12"
                     value={editFormData.grade || ''}
                     onChange={handleChange}
-                    className="w-full px-3 py-1.5 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-4 py-3 bg-cream-50 border border-gray-200 rounded-xl text-black placeholder-gray-400 focus:outline-none focus:border-black focus:ring-1 focus:ring-black transition-colors"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1">
+                <label className="block text-xs text-gray-400 font-medium mb-2">
                   Gender
                 </label>
                 <select
                   name="gender"
                   value={editFormData.gender || ''}
                   onChange={handleChange}
-                  className="w-full px-3 py-1.5 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-4 py-3 bg-cream-50 border border-gray-200 rounded-xl text-black focus:outline-none focus:border-black focus:ring-1 focus:ring-black transition-colors"
                 >
                   <option value="">Select gender...</option>
                   <option value="male">Male</option>
@@ -206,7 +208,7 @@ export default function ChildrenList({ children, onRefresh }: ChildrenListProps)
               </div>
 
               <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1">
+                <label className="block text-xs text-gray-400 font-medium mb-2">
                   Notes
                 </label>
                 <textarea
@@ -214,76 +216,84 @@ export default function ChildrenList({ children, onRefresh }: ChildrenListProps)
                   rows={2}
                   value={editFormData.notes || ''}
                   onChange={handleChange}
-                  className="w-full px-3 py-1.5 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-4 py-3 bg-cream-50 border border-gray-200 rounded-xl text-black placeholder-gray-400 focus:outline-none focus:border-black focus:ring-1 focus:ring-black transition-colors resize-none"
                 />
               </div>
 
-              <div className="flex gap-2">
+              <div className="flex gap-3 pt-4">
                 <button
                   type="button"
                   onClick={() => handleSaveEdit(child.id)}
                   disabled={loading}
-                  className="flex-1 bg-blue-600 text-white py-1.5 px-3 rounded text-sm hover:bg-blue-700 disabled:bg-gray-400 transition font-semibold"
+                  className="flex-1 bg-black text-white py-3 px-4 text-xs font-semibold uppercase tracking-wider rounded-xl hover:bg-gray-800 disabled:bg-gray-400 transition-all duration-300"
                 >
                   {loading ? 'Saving...' : 'Save'}
                 </button>
                 <button
                   type="button"
                   onClick={handleCancelEdit}
-                  className="flex-1 bg-gray-200 text-gray-700 py-1.5 px-3 rounded text-sm hover:bg-gray-300 transition font-semibold"
+                  className="flex-1 bg-cream-100 text-black py-3 px-4 text-xs font-semibold uppercase tracking-wider rounded-xl hover:bg-cream-200 transition-all duration-300"
                 >
                   Cancel
                 </button>
               </div>
             </div>
           ) : (
-            <div>
-              <div className="flex justify-between items-start mb-2">
-                <div>
-                  <h3 className="font-semibold text-gray-900">
+            <div className="space-y-4">
+              <div className="flex justify-between items-start">
+                <div className="flex-1">
+                  <h4 className="text-lg font-bold tracking-tight text-black mb-1">
                     {child.first_name} {child.last_name}
-                  </h3>
+                  </h4>
                   {child.student_id && (
-                    <p className="text-sm text-gray-600">Student ID: {child.student_id}</p>
+                    <p className="text-sm text-gray-500">Student ID: {child.student_id}</p>
                   )}
                 </div>
-                <div className="flex gap-2">
+                <div className="flex gap-3">
                   <button
                     onClick={() => handleEdit(child)}
-                    className="text-blue-600 hover:text-blue-800 text-sm font-medium"
+                    className="px-4 py-2 bg-cream-100 text-black text-xs font-semibold uppercase tracking-wider rounded-lg hover:bg-cream-200 transition-colors"
                   >
                     Edit
                   </button>
                   <button
                     onClick={() => handleDelete(child.id, `${child.first_name} ${child.last_name}`)}
                     disabled={loading}
-                    className="text-red-600 hover:text-red-800 text-sm font-medium disabled:text-gray-400"
+                    className="px-4 py-2 bg-gray-100 text-gray-600 text-xs font-semibold uppercase tracking-wider rounded-lg hover:bg-red-100 hover:text-red-600 transition-colors disabled:opacity-50"
                   >
                     Remove
                   </button>
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-2 text-sm text-gray-600">
-                {child.date_of_birth && (
-                  <div>
-                    <span className="font-medium">DOB:</span> {new Date(child.date_of_birth).toLocaleDateString()}
-                  </div>
-                )}
-                {child.grade && (
-                  <div>
-                    <span className="font-medium">Grade:</span> {child.grade}
-                  </div>
-                )}
-                {child.gender && (
-                  <div>
-                    <span className="font-medium">Gender:</span> {child.gender.charAt(0).toUpperCase() + child.gender.slice(1)}
-                  </div>
-                )}
-              </div>
+              {(child.date_of_birth || child.grade || child.gender) && (
+                <div className="grid grid-cols-3 gap-4 pt-4 border-t border-gray-100">
+                  {child.date_of_birth && (
+                    <div className="bg-cream-50 rounded-lg p-3">
+                      <p className="text-xs text-gray-400 font-medium mb-1">Date of Birth</p>
+                      <p className="text-sm font-semibold text-black">{new Date(child.date_of_birth).toLocaleDateString()}</p>
+                    </div>
+                  )}
+                  {child.grade && (
+                    <div className="bg-cream-50 rounded-lg p-3">
+                      <p className="text-xs text-gray-400 font-medium mb-1">Grade</p>
+                      <p className="text-sm font-semibold text-black">{child.grade}</p>
+                    </div>
+                  )}
+                  {child.gender && (
+                    <div className="bg-cream-50 rounded-lg p-3">
+                      <p className="text-xs text-gray-400 font-medium mb-1">Gender</p>
+                      <p className="text-sm font-semibold text-black">{child.gender.charAt(0).toUpperCase() + child.gender.slice(1)}</p>
+                    </div>
+                  )}
+                </div>
+              )}
 
               {child.notes && (
-                <p className="mt-2 text-sm text-gray-600">{child.notes}</p>
+                <div className="pt-4 border-t border-gray-100">
+                  <p className="text-xs text-gray-400 font-medium mb-2">Notes</p>
+                  <p className="text-sm text-gray-500 leading-relaxed">{child.notes}</p>
+                </div>
               )}
             </div>
           )}

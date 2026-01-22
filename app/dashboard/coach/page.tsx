@@ -1,33 +1,29 @@
 import { requireRole, getEffectiveUserId } from '@/lib/auth';
 import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
-import { generateCSSVariables } from '@/lib/colorPalette';
-import Sidebar from '@/components/layout/Sidebar';
 import CoachProgramsList from '@/components/coach/CoachProgramsList';
-import '../school-styles.css';
+import {
+  TrophyIcon,
+  CheckCircleIcon,
+  CalendarIcon,
+  ClipboardDocumentListIcon,
+  UsersIcon,
+  ChatBubbleLeftRightIcon,
+  ChartBarIcon,
+  ArrowTrendingUpIcon,
+} from '@heroicons/react/24/outline';
 
 export default async function CoachDashboard() {
   try {
     await requireRole('coach');
     const supabase = await createClient();
 
-    // Get the effective user ID (handles impersonation)
     const effectiveUserId = await getEffectiveUserId();
 
-    // Fetch coach's school information
+    // Fetch coach's info
     const { data: userData } = await supabase
       .from('users')
-      .select(`
-        email,
-        first_name,
-        school:school_id (
-          id,
-          name,
-          logo_url,
-          primary_color,
-          secondary_color
-        )
-      `)
+      .select('first_name')
       .eq('id', effectiveUserId)
       .single();
 
@@ -49,7 +45,6 @@ export default async function CoachDashboard() {
       `)
       .eq('coach_id', effectiveUserId);
 
-    // Extract the programs from the nested structure
     const programs = programsData?.map(pc => pc.summer_programs).filter(Boolean) || [];
 
     // Calculate program stats
@@ -65,162 +60,149 @@ export default async function CoachDashboard() {
       return now < start;
     }).length;
 
-    // Use school colors or defaults
-    const school = Array.isArray(userData?.school) ? userData.school[0] : userData?.school;
-    const primaryColor = school?.primary_color || '#3b82f6';
-    const secondaryColor = school?.secondary_color || '#60a5fa';
-    const cssVariables = generateCSSVariables(primaryColor, secondaryColor);
-
-    const navItems = [
-      { name: 'Dashboard', icon: 'Calendar' as const, href: '/dashboard/coach' },
-      { name: 'Attendance', icon: 'UserGroup' as const, href: '/dashboard/coach/attendance' },
-      { name: 'Schedule', icon: 'Calendar' as const, href: '#schedule' },
-      { name: 'Messages', icon: 'ChatBubble' as const, href: '#messages' },
-    ];
-
     return (
-      <div className="flex h-screen bg-gray-50">
-        <style dangerouslySetInnerHTML={{
-          __html: `:root { ${cssVariables} }`
-        }} />
+      <div className="space-y-8">
+        {/* Page Header */}
+        <div>
+          <h1 className="text-2xl font-bold text-slate-900">
+            Welcome back{userData?.first_name ? `, ${userData.first_name}` : ''}
+          </h1>
+          <p className="text-slate-500 mt-1">Manage your programs and athletes</p>
+        </div>
 
-        {/* Sidebar */}
-        <Sidebar
-          items={navItems}
-          userEmail={userData?.email}
-          schoolName={school?.name}
-          schoolLogo={school?.logo_url}
-        />
-
-        {/* Main Content */}
-        <div className="flex-1 overflow-auto">
-          {/* Top Bar */}
-          <div className="bg-white border-b border-gray-200 h-16 flex items-center px-8 school-branded-topbar">
-            <div className="flex items-center gap-3">
-              {school?.logo_url && (
-                <img
-                  src={school.logo_url}
-                  alt={school.name}
-                  className="h-8 w-auto"
-                />
-              )}
+        {/* Stats Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="bg-white rounded-xl p-6 shadow-card">
+            <div className="flex items-center justify-between">
               <div>
-                <h1 className="text-xl font-semibold text-gray-900">Coach Dashboard</h1>
-                {school?.name && (
-                  <p className="text-xs text-gray-500">{school.name}</p>
-                )}
+                <p className="text-sm text-slate-500">Total Programs</p>
+                <p className="text-3xl font-bold text-slate-900 mt-1">{programs.length}</p>
+              </div>
+              <div className="w-12 h-12 bg-teal-50 rounded-xl flex items-center justify-center">
+                <ClipboardDocumentListIcon className="w-6 h-6 text-teal-600" />
               </div>
             </div>
           </div>
 
-          {/* Content Area */}
-          <main className="p-8">
-            <div className="mb-8">
-              <h2 className="text-3xl font-bold text-gray-900 mb-3">
-                Welcome back{userData?.first_name ? `, ${userData.first_name}` : ''}
-              </h2>
-              <p className="text-lg text-gray-600">
-                Manage your programs, schedules, and communicate with players and parents.
-              </p>
-            </div>
-
-            {/* Stats Section */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-              <div className="bg-white rounded-lg shadow p-6 school-branded-card">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm text-gray-600 mb-1">Total Programs</p>
-                    <p className="text-3xl font-bold text-gray-900">{programs.length}</p>
-                  </div>
-                  <div className="text-4xl">📋</div>
-                </div>
+          <div className="bg-white rounded-xl p-6 shadow-card">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-slate-500">Active Now</p>
+                <p className="text-3xl font-bold text-slate-900 mt-1">{activePrograms}</p>
               </div>
-
-              <div className="bg-white rounded-lg shadow p-6 school-branded-card">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm text-gray-600 mb-1">Active Programs</p>
-                    <p className="text-3xl font-bold text-green-600">{activePrograms}</p>
-                  </div>
-                  <div className="text-4xl">✅</div>
-                </div>
-              </div>
-
-              <div className="bg-white rounded-lg shadow p-6 school-branded-card">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm text-gray-600 mb-1">Upcoming Programs</p>
-                    <p className="text-3xl font-bold text-blue-600">{upcomingPrograms}</p>
-                  </div>
-                  <div className="text-4xl">📅</div>
-                </div>
+              <div className="w-12 h-12 bg-green-50 rounded-xl flex items-center justify-center">
+                <CheckCircleIcon className="w-6 h-6 text-green-600" />
               </div>
             </div>
+          </div>
 
-            {/* My Programs Section */}
-            <div className="mb-8">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-2xl font-bold text-gray-900">My Programs</h3>
-                <span className="text-sm text-gray-500">
-                  {programs.length} {programs.length === 1 ? 'program' : 'programs'} assigned
-                </span>
+          <div className="bg-white rounded-xl p-6 shadow-card">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-slate-500">Upcoming</p>
+                <p className="text-3xl font-bold text-slate-900 mt-1">{upcomingPrograms}</p>
               </div>
-              <CoachProgramsList programs={programs as any} />
+              <div className="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center">
+                <CalendarIcon className="w-6 h-6 text-blue-600" />
+              </div>
             </div>
+          </div>
+        </div>
 
-            {/* Quick Actions */}
-            <div className="mt-8">
-              <h3 className="text-xl font-bold text-gray-900 mb-4">Quick Actions</h3>
-              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-                <a
-                  href="/dashboard/coach/attendance"
-                  className="bg-white rounded-lg shadow p-6 school-branded-card hover:shadow-lg transition block"
-                >
-                  <div className="flex items-center gap-3 mb-2">
-                    <span className="text-2xl">✓</span>
-                    <h4 className="font-semibold text-lg text-gray-800">Take Attendance</h4>
-                  </div>
-                  <p className="text-gray-600 text-sm">Mark daily attendance for active programs</p>
-                </a>
+        {/* My Programs Section */}
+        <div>
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-lg font-semibold text-slate-900">Your Programs</h2>
+            <span className="text-sm text-slate-500">
+              {programs.length} {programs.length === 1 ? 'program' : 'programs'} assigned
+            </span>
+          </div>
+          <CoachProgramsList programs={programs as any} />
+        </div>
 
-                <div className="bg-white rounded-lg shadow p-6 school-branded-card hover:shadow-lg transition cursor-pointer opacity-60">
-                  <div className="flex items-center gap-3 mb-2">
-                    <span className="text-2xl">👥</span>
-                    <h4 className="font-semibold text-lg text-gray-800">Athletes</h4>
-                  </div>
-                  <p className="text-gray-600 text-sm">Manage athlete rosters and information</p>
-                  <span className="text-xs text-gray-400 mt-2 block">Coming soon</span>
+        {/* Quick Actions */}
+        <div>
+          <h2 className="text-lg font-semibold text-slate-900 mb-4">Quick Actions</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <a
+              href="/dashboard/coach/attendance"
+              className="bg-white rounded-xl p-6 shadow-card hover:shadow-card-hover transition-shadow group"
+            >
+              <div className="flex items-start gap-4">
+                <div className="w-12 h-12 bg-teal-500 rounded-xl flex items-center justify-center flex-shrink-0">
+                  <ClipboardDocumentListIcon className="w-6 h-6 text-white" />
                 </div>
-
-                <div className="bg-white rounded-lg shadow p-6 school-branded-card hover:shadow-lg transition cursor-pointer opacity-60">
-                  <div className="flex items-center gap-3 mb-2">
-                    <span className="text-2xl">📅</span>
-                    <h4 className="font-semibold text-lg text-gray-800">Schedule</h4>
-                  </div>
-                  <p className="text-gray-600 text-sm">Create and manage practice schedules</p>
-                  <span className="text-xs text-gray-400 mt-2 block">Coming soon</span>
+                <div className="flex-1">
+                  <h3 className="font-semibold text-slate-900 group-hover:text-teal-600 transition-colors">
+                    Take Attendance
+                  </h3>
+                  <p className="text-sm text-slate-500 mt-1">
+                    Mark daily attendance for active programs
+                  </p>
                 </div>
+              </div>
+            </a>
 
-                <div className="bg-white rounded-lg shadow p-6 school-branded-card hover:shadow-lg transition cursor-pointer opacity-60">
-                  <div className="flex items-center gap-3 mb-2">
-                    <span className="text-2xl">💬</span>
-                    <h4 className="font-semibold text-lg text-gray-800">Communication</h4>
-                  </div>
-                  <p className="text-gray-600 text-sm">Message athletes and parents</p>
-                  <span className="text-xs text-gray-400 mt-2 block">Coming soon</span>
+            <div className="bg-white rounded-xl p-6 shadow-card opacity-60">
+              <div className="flex items-start gap-4">
+                <div className="w-12 h-12 bg-slate-200 rounded-xl flex items-center justify-center flex-shrink-0">
+                  <UsersIcon className="w-6 h-6 text-slate-400" />
                 </div>
-
-                <div className="bg-white rounded-lg shadow p-6 school-branded-card hover:shadow-lg transition cursor-pointer opacity-60">
-                  <div className="flex items-center gap-3 mb-2">
-                    <span className="text-2xl">📊</span>
-                    <h4 className="font-semibold text-lg text-gray-800">Reports</h4>
-                  </div>
-                  <p className="text-gray-600 text-sm">Generate program and athlete reports</p>
-                  <span className="text-xs text-gray-400 mt-2 block">Coming soon</span>
+                <div className="flex-1">
+                  <h3 className="font-semibold text-slate-900">Athletes</h3>
+                  <p className="text-sm text-slate-500 mt-1">Manage athlete rosters</p>
+                  <span className="inline-block mt-2 px-2 py-0.5 rounded-full bg-slate-100 text-slate-500 text-xs font-medium">
+                    Coming Soon
+                  </span>
                 </div>
               </div>
             </div>
-          </main>
+
+            <div className="bg-white rounded-xl p-6 shadow-card opacity-60">
+              <div className="flex items-start gap-4">
+                <div className="w-12 h-12 bg-slate-200 rounded-xl flex items-center justify-center flex-shrink-0">
+                  <CalendarIcon className="w-6 h-6 text-slate-400" />
+                </div>
+                <div className="flex-1">
+                  <h3 className="font-semibold text-slate-900">Schedule</h3>
+                  <p className="text-sm text-slate-500 mt-1">Manage practice schedules</p>
+                  <span className="inline-block mt-2 px-2 py-0.5 rounded-full bg-slate-100 text-slate-500 text-xs font-medium">
+                    Coming Soon
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-white rounded-xl p-6 shadow-card opacity-60">
+              <div className="flex items-start gap-4">
+                <div className="w-12 h-12 bg-slate-200 rounded-xl flex items-center justify-center flex-shrink-0">
+                  <ChatBubbleLeftRightIcon className="w-6 h-6 text-slate-400" />
+                </div>
+                <div className="flex-1">
+                  <h3 className="font-semibold text-slate-900">Messages</h3>
+                  <p className="text-sm text-slate-500 mt-1">Communicate with parents</p>
+                  <span className="inline-block mt-2 px-2 py-0.5 rounded-full bg-slate-100 text-slate-500 text-xs font-medium">
+                    Coming Soon
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-white rounded-xl p-6 shadow-card opacity-60">
+              <div className="flex items-start gap-4">
+                <div className="w-12 h-12 bg-slate-200 rounded-xl flex items-center justify-center flex-shrink-0">
+                  <ChartBarIcon className="w-6 h-6 text-slate-400" />
+                </div>
+                <div className="flex-1">
+                  <h3 className="font-semibold text-slate-900">Reports</h3>
+                  <p className="text-sm text-slate-500 mt-1">Generate program reports</p>
+                  <span className="inline-block mt-2 px-2 py-0.5 rounded-full bg-slate-100 text-slate-500 text-xs font-medium">
+                    Coming Soon
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     );
