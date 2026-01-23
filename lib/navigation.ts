@@ -34,19 +34,9 @@ export const schoolAdminNavigation: NavItem[] = [
 
 export const coachNavigation: NavItem[] = [
   { name: 'Dashboard', href: '/dashboard/coach', icon: 'HomeIcon' },
-  {
-    name: 'Programs',
-    href: '/dashboard/coach/programs',
-    icon: 'TrophyIcon',
-    children: [
-      { name: 'My Programs', href: '/dashboard/coach/programs' },
-      { name: 'Attendance', href: '/dashboard/coach/attendance' },
-    ]
-  },
-  { name: 'Schedule', href: '/dashboard/coach/schedule', icon: 'CalendarIcon' },
-  { name: 'Athletes', href: '/dashboard/coach/athletes', icon: 'UserGroupIcon' },
+  { name: 'My Programs', href: '/dashboard/coach#programs', icon: 'TrophyIcon' },
+  { name: 'Attendance', href: '/dashboard/coach/attendance', icon: 'ClipboardDocumentListIcon' },
   { name: 'Report Incident', href: '/dashboard/coach/incident', icon: 'ExclamationTriangleIcon' },
-  { name: 'Reports', href: '/dashboard/coach/reports', icon: 'ChartBarIcon' },
 ];
 
 export const parentNavigation: NavItem[] = [
