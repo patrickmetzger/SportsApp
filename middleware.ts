@@ -33,8 +33,9 @@ export async function middleware(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  // Protected routes
+  // Protected routes - redirect to login if not authenticated
   if (!user && (
+    request.nextUrl.pathname === '/' ||
     request.nextUrl.pathname.startsWith('/dashboard') ||
     request.nextUrl.pathname.startsWith('/admin') ||
     request.nextUrl.pathname.startsWith('/school-admin')
@@ -46,6 +47,7 @@ export async function middleware(request: NextRequest) {
 
   // Redirect to dashboard if already logged in
   if (user && (
+    request.nextUrl.pathname === '/' ||
     request.nextUrl.pathname === '/login' ||
     request.nextUrl.pathname === '/signup'
   )) {

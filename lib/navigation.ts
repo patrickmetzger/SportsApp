@@ -45,6 +45,7 @@ export const coachNavigation: NavItem[] = [
   },
   { name: 'Schedule', href: '/dashboard/coach/schedule', icon: 'CalendarIcon' },
   { name: 'Athletes', href: '/dashboard/coach/athletes', icon: 'UserGroupIcon' },
+  { name: 'Report Incident', href: '/dashboard/coach/incident', icon: 'ExclamationTriangleIcon' },
   { name: 'Reports', href: '/dashboard/coach/reports', icon: 'ChartBarIcon' },
 ];
 

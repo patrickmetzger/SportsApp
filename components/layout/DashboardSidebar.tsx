@@ -20,6 +20,7 @@ import {
   ChartBarIcon,
   ClipboardDocumentListIcon,
   CreditCardIcon,
+  ExclamationTriangleIcon,
 } from '@heroicons/react/24/outline';
 
 // Icon map to convert string names to components
@@ -36,6 +37,7 @@ const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
   ChartBarIcon,
   ClipboardDocumentListIcon,
   CreditCardIcon,
+  ExclamationTriangleIcon,
 };
 
 export interface NavItem {
