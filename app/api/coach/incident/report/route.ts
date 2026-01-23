@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { NextRequest, NextResponse } from "next/server";
 import { resend } from "@/lib/resend";
+import { createNotification } from "@/lib/notifications";
 
 export async function POST(request: NextRequest) {
   try {
@@ -199,6 +200,40 @@ export async function POST(request: NextRequest) {
       } catch (emailError: any) {
         console.error(`Failed to send email to ${recipient.email}:`, emailError);
         emailErrors.push(recipient.email);
+      }
+    }
+
+    // Create in-app notifications for parent
+    if (notify_parties.includes('parent') && parent_id) {
+      await createNotification({
+        supabase,
+        userId: parent_id,
+        type: 'incident_report',
+        title: `Incident Report: ${student_name}`,
+        message: `${severity.charAt(0).toUpperCase() + severity.slice(1)} incident reported by ${coach.first_name} ${coach.last_name}. ${description.substring(0, 100)}${description.length > 100 ? '...' : ''}`,
+        link: '/dashboard/parent',
+      });
+    }
+
+    // Create in-app notifications for school admins
+    if (notify_parties.includes('school_admin') && school_id) {
+      const { data: schoolAdminUsers } = await supabase
+        .from("users")
+        .select("id")
+        .eq("school_id", school_id)
+        .eq("role", "school_admin");
+
+      if (schoolAdminUsers) {
+        for (const admin of schoolAdminUsers) {
+          await createNotification({
+            supabase,
+            userId: admin.id,
+            type: 'incident_report',
+            title: `Incident Report: ${student_name}`,
+            message: `${severity.charAt(0).toUpperCase() + severity.slice(1)} incident in ${program?.name || 'program'}. Reported by ${coach.first_name} ${coach.last_name}.`,
+            link: '/school-admin',
+          });
+        }
       }
     }
 

@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { NextRequest, NextResponse } from "next/server";
 import { resend } from "@/lib/resend";
+import { createNotification } from "@/lib/notifications";
 
 export async function POST(request: NextRequest) {
   try {
@@ -139,6 +140,16 @@ export async function POST(request: NextRequest) {
         sent_at: emailSent ? new Date().toISOString() : null
       })
       .eq("id", communication.id);
+
+    // Create in-app notification for the coach
+    await createNotification({
+      supabase,
+      userId: coach_id,
+      type: 'message',
+      title: `Message from ${currentUser.first_name} ${currentUser.last_name}`,
+      message: `${subject}: ${message.substring(0, 80)}${message.length > 80 ? '...' : ''}`,
+      link: '/dashboard/coach',
+    });
 
     return NextResponse.json({
       success: true,

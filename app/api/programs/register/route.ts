@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { registrationSchema } from '@/lib/validation/programSchema';
+import { createNotification } from '@/lib/notifications';
 
 export async function POST(request: NextRequest) {
   try {
@@ -210,6 +211,25 @@ export async function POST(request: NextRequest) {
         { error: regError.message },
         { status: 400 }
       );
+    }
+
+    // Notify coaches of the program about new registration
+    const { data: programCoaches } = await supabase
+      .from('program_coaches')
+      .select('coach_id')
+      .eq('program_id', programId);
+
+    if (programCoaches) {
+      for (const coach of programCoaches) {
+        await createNotification({
+          supabase,
+          userId: coach.coach_id,
+          type: 'new_registration',
+          title: 'New Student Registration',
+          message: `${studentName} has registered for ${program.name}.`,
+          link: '/dashboard/coach',
+        });
+      }
     }
 
     return NextResponse.json({
