@@ -7,7 +7,10 @@ export type NotificationType =
   | "incident_update"
   | "payment_received"
   | "program_update"
-  | "schedule_change";
+  | "schedule_change"
+  | "certification_expiring"
+  | "certification_expired"
+  | "certification_missing";
 
 interface CreateNotificationParams {
   supabase: SupabaseClient;

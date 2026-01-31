@@ -11,7 +11,7 @@ interface User {
 
 interface Communication {
   id: string;
-  sender: User;
+  sender: User | null;
   recipient_ids: string[];
   recipient_type: string;
   school_id?: string;
@@ -135,7 +135,7 @@ export default function CommunicationsList({ communications }: CommunicationsLis
                   </div>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                  {comm.sender.first_name} {comm.sender.last_name}
+                  {comm.sender ? `${comm.sender.first_name} ${comm.sender.last_name}` : 'Unknown User'}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                   <div>{getRecipientTypeLabel(comm.recipient_type)}</div>
@@ -193,9 +193,13 @@ export default function CommunicationsList({ communications }: CommunicationsLis
                   <div>
                     <label className="text-sm font-medium text-gray-500">Sender</label>
                     <p className="text-gray-900">
-                      {selectedCommunication.sender.first_name} {selectedCommunication.sender.last_name}
+                      {selectedCommunication.sender
+                        ? `${selectedCommunication.sender.first_name} ${selectedCommunication.sender.last_name}`
+                        : 'Unknown User'}
                     </p>
-                    <p className="text-sm text-gray-600">{selectedCommunication.sender.email}</p>
+                    <p className="text-sm text-gray-600">
+                      {selectedCommunication.sender?.email || 'No email available'}
+                    </p>
                   </div>
 
                   <div>

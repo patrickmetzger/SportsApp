@@ -2,6 +2,8 @@ import { requireRole, getEffectiveUserId } from '@/lib/auth';
 import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import CoachProgramsList from '@/components/coach/CoachProgramsList';
+import CertificationStatusAlert from '@/components/coach/CertificationStatusAlert';
+import CertificationNotificationTrigger from '@/components/coach/CertificationNotificationTrigger';
 import {
   TrophyIcon,
   CheckCircleIcon,
@@ -62,6 +64,12 @@ export default async function CoachDashboard() {
 
     return (
       <div className="space-y-8">
+        {/* Trigger notification generation on dashboard load */}
+        <CertificationNotificationTrigger />
+
+        {/* Certification Status Alert */}
+        <CertificationStatusAlert />
+
         {/* Page Header */}
         <div>
           <h1 className="text-2xl font-bold text-slate-900">

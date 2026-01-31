@@ -2,6 +2,7 @@ import { requireRole, getEffectiveUserId } from '@/lib/auth';
 import { createClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
 import SchoolAdminProgramForm from '@/components/school-admin/SchoolAdminProgramForm';
+import ProgramCertificationRequirementsWrapper from './ProgramCertificationRequirementsWrapper';
 
 export default async function SchoolAdminEditProgramPage({ params }: { params: Promise<{ id: string }> }) {
   try {
@@ -63,6 +64,20 @@ export default async function SchoolAdminEditProgramPage({ params }: { params: P
             mode="edit"
             program={program}
           />
+
+          {/* Certification Requirements Section */}
+          <div className="mt-8 bg-white rounded-lg shadow p-6">
+            <h2 className="text-lg font-semibold text-gray-800 mb-4">
+              Certification Requirements
+            </h2>
+            <p className="text-sm text-gray-600 mb-4">
+              Select which certifications coaches must have to work with this program.
+            </p>
+            <ProgramCertificationRequirementsWrapper
+              programId={program.id}
+              schoolId={userData.school_id}
+            />
+          </div>
         </div>
       </div>
     );

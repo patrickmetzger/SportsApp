@@ -20,7 +20,7 @@ export default async function UsersPage() {
           state
         )
       `)
-      .eq('archived', false)
+      .or('archived.eq.false,archived.is.null')
       .order('created_at', { ascending: false });
 
     if (error) {

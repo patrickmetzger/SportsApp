@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import UserFilters, { FilterState } from './UserFilters';
 import UsersList from './UsersList';
 
@@ -65,9 +65,9 @@ export default function UsersPageClient({ initialUsers }: UsersPageClientProps) 
     return filtered;
   }, [initialUsers, filters]);
 
-  const handleFilterChange = (newFilters: FilterState) => {
+  const handleFilterChange = useCallback((newFilters: FilterState) => {
     setFilters(newFilters);
-  };
+  }, []);
 
   return (
     <div>

@@ -63,27 +63,17 @@ export async function getUserRole(userId?: string): Promise<UserRole | null> {
     console.log("User exists in DB but has NULL role:", data.email);
   }
 
-  // If there's an error other than not found, log it
-  if (error && error.code !== "PGRST116") {
-    console.log("Error fetching user role:", error);
+  // If there's an error (RLS blocking, not found, etc.), log it
+  if (error) {
+    console.log("Error fetching user role:", error.code, error.message);
   }
 
-  // Fallback: check auth metadata if database doesn't have role
-  const {
-    data: { user: authUser }
-  } = await supabase.auth.getUser();
-  if (authUser?.user_metadata?.role) {
-    console.log(
-      "WARNING: Using role from auth metadata for",
-      authUser.email,
-      "->",
-      authUser.user_metadata.role,
-      "(should be in users table!)"
-    );
-    return authUser.user_metadata.role as UserRole;
-  }
+  // Note: We intentionally do NOT fall back to auth metadata here because:
+  // 1. It can get out of sync with the database (causing wrong redirects)
+  // 2. During impersonation, auth metadata would return the admin's role, not the impersonated user's
+  // The database is the source of truth for roles.
 
-  console.log("No role found in database or auth metadata for user:", effectiveUserId);
+  console.log("No role found in database for user:", effectiveUserId);
   return null;
 }
 

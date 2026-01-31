@@ -35,7 +35,13 @@ export async function PUT(request: NextRequest) {
       registration_deadline,
       cost,
       header_image_url,
-      program_image_url
+      program_image_url,
+      min_grade,
+      max_grade,
+      min_age,
+      max_age,
+      gender_restriction,
+      eligibility_notes
     } = body;
 
     if (!id) {
@@ -83,6 +89,12 @@ export async function PUT(request: NextRequest) {
         cost,
         header_image_url: header_image_url || null,
         program_image_url: program_image_url || null,
+        min_grade: min_grade || null,
+        max_grade: max_grade || null,
+        min_age: min_age || null,
+        max_age: max_age || null,
+        gender_restriction: gender_restriction || 'any',
+        eligibility_notes: eligibility_notes || null,
         updated_at: new Date().toISOString()
       })
       .eq('id', id);

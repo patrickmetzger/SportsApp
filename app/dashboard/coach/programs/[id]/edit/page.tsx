@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/server';
 import { generateCSSVariables } from '@/lib/colorPalette';
 import Sidebar from '@/components/layout/Sidebar';
 import CoachProgramEditForm from '@/components/coach/CoachProgramEditForm';
+import ProgramCertificationRequirements from '@/components/admin/ProgramCertificationRequirements';
 import '../../../../school-styles.css';
 
 export default async function CoachEditProgramPage({ params }: { params: Promise<{ id: string }> }) {
@@ -131,6 +132,21 @@ export default async function CoachEditProgramPage({ params }: { params: Promise
               </div>
 
               <CoachProgramEditForm program={program} coachId={effectiveUserId} />
+
+              {/* Certification Requirements Section */}
+              <div className="mt-8 bg-white rounded-lg shadow p-6">
+                <h2 className="text-xl font-bold text-gray-900 mb-4">
+                  Certification Requirements
+                </h2>
+                <p className="text-sm text-gray-600 mb-4">
+                  Specify which certifications coaches need to have for this program.
+                  Universal certifications automatically apply to all programs.
+                </p>
+                <ProgramCertificationRequirements
+                  programId={id}
+                  isCoach={true}
+                />
+              </div>
             </div>
           </main>
         </div>

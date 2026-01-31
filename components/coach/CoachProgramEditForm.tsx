@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import ImageUpload from '@/components/admin/ImageUpload';
 
 interface Program {
   id: string;
@@ -13,6 +14,12 @@ interface Program {
   cost: number;
   header_image_url?: string;
   program_image_url?: string;
+  min_grade?: number | null;
+  max_grade?: number | null;
+  min_age?: number | null;
+  max_age?: number | null;
+  gender_restriction?: string;
+  eligibility_notes?: string;
   requirements?: any;
 }
 
@@ -35,13 +42,26 @@ export default function CoachProgramEditForm({ program, coachId }: CoachProgramE
     cost: program.cost,
     header_image_url: program.header_image_url || '',
     program_image_url: program.program_image_url || '',
+    min_grade: program.min_grade?.toString() || '',
+    max_grade: program.max_grade?.toString() || '',
+    min_age: program.min_age?.toString() || '',
+    max_age: program.max_age?.toString() || '',
+    gender_restriction: program.gender_restriction || 'any',
+    eligibility_notes: program.eligibility_notes || '',
   });
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({
       ...prev,
       [name]: name === 'cost' ? parseFloat(value) || 0 : value
+    }));
+  };
+
+  const handleImageUpload = (field: 'header_image_url' | 'program_image_url') => (url: string) => {
+    setFormData(prev => ({
+      ...prev,
+      [field]: url
     }));
   };
 
@@ -69,7 +89,20 @@ export default function CoachProgramEditForm({ program, coachId }: CoachProgramE
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           id: program.id,
-          ...formData
+          name: formData.name,
+          description: formData.description,
+          start_date: formData.start_date,
+          end_date: formData.end_date,
+          registration_deadline: formData.registration_deadline,
+          cost: formData.cost,
+          header_image_url: formData.header_image_url,
+          program_image_url: formData.program_image_url,
+          min_grade: formData.min_grade ? parseInt(formData.min_grade) : null,
+          max_grade: formData.max_grade ? parseInt(formData.max_grade) : null,
+          min_age: formData.min_age ? parseInt(formData.min_age) : null,
+          max_age: formData.max_age ? parseInt(formData.max_age) : null,
+          gender_restriction: formData.gender_restriction,
+          eligibility_notes: formData.eligibility_notes,
         })
       });
 
@@ -194,41 +227,151 @@ export default function CoachProgramEditForm({ program, coachId }: CoachProgramE
         />
       </div>
 
-      {/* Images */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div>
-          <label htmlFor="header_image_url" className="block text-sm font-medium text-gray-700 mb-2">
-            Header Image URL
-          </label>
-          <input
-            type="url"
-            id="header_image_url"
-            name="header_image_url"
-            value={formData.header_image_url}
-            onChange={handleChange}
-            placeholder="https://example.com/image.jpg"
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          />
-        </div>
+      {/* Eligibility Criteria */}
+      <div className="border-t pt-6">
+        <h2 className="text-lg font-semibold text-gray-900 mb-4">Eligibility Criteria</h2>
+        <p className="text-sm text-gray-600 mb-4">
+          Set requirements for who can register for this program. Leave fields empty for no restriction.
+        </p>
 
-        <div>
-          <label htmlFor="program_image_url" className="block text-sm font-medium text-gray-700 mb-2">
-            Program Image URL
-          </label>
-          <input
-            type="url"
-            id="program_image_url"
-            name="program_image_url"
-            value={formData.program_image_url}
-            onChange={handleChange}
-            placeholder="https://example.com/image.jpg"
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          />
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label htmlFor="min_grade" className="block text-sm font-medium text-gray-700 mb-2">
+              Minimum Grade
+            </label>
+            <input
+              type="number"
+              id="min_grade"
+              name="min_grade"
+              value={formData.min_grade}
+              onChange={handleChange}
+              min="1"
+              max="12"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              placeholder="e.g., 9"
+            />
+            <p className="text-xs text-gray-500 mt-1">Leave empty for no minimum</p>
+          </div>
+
+          <div>
+            <label htmlFor="max_grade" className="block text-sm font-medium text-gray-700 mb-2">
+              Maximum Grade
+            </label>
+            <input
+              type="number"
+              id="max_grade"
+              name="max_grade"
+              value={formData.max_grade}
+              onChange={handleChange}
+              min="1"
+              max="12"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              placeholder="e.g., 12"
+            />
+            <p className="text-xs text-gray-500 mt-1">Leave empty for no maximum</p>
+          </div>
+
+          <div>
+            <label htmlFor="min_age" className="block text-sm font-medium text-gray-700 mb-2">
+              Minimum Age
+            </label>
+            <input
+              type="number"
+              id="min_age"
+              name="min_age"
+              value={formData.min_age}
+              onChange={handleChange}
+              min="1"
+              max="100"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              placeholder="e.g., 14"
+            />
+            <p className="text-xs text-gray-500 mt-1">Leave empty for no minimum</p>
+          </div>
+
+          <div>
+            <label htmlFor="max_age" className="block text-sm font-medium text-gray-700 mb-2">
+              Maximum Age
+            </label>
+            <input
+              type="number"
+              id="max_age"
+              name="max_age"
+              value={formData.max_age}
+              onChange={handleChange}
+              min="1"
+              max="100"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              placeholder="e.g., 18"
+            />
+            <p className="text-xs text-gray-500 mt-1">Leave empty for no maximum</p>
+          </div>
+
+          <div className="md:col-span-2">
+            <label htmlFor="gender_restriction" className="block text-sm font-medium text-gray-700 mb-2">
+              Gender Restriction
+            </label>
+            <select
+              id="gender_restriction"
+              name="gender_restriction"
+              value={formData.gender_restriction}
+              onChange={handleChange}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            >
+              <option value="any">Any Gender</option>
+              <option value="male">Male Only</option>
+              <option value="female">Female Only</option>
+            </select>
+          </div>
+
+          <div className="md:col-span-2">
+            <label htmlFor="eligibility_notes" className="block text-sm font-medium text-gray-700 mb-2">
+              Additional Eligibility Notes
+            </label>
+            <textarea
+              id="eligibility_notes"
+              name="eligibility_notes"
+              value={formData.eligibility_notes}
+              onChange={handleChange}
+              rows={3}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              placeholder="Any other eligibility requirements or notes..."
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* Images */}
+      <div className="border-t pt-6">
+        <h2 className="text-lg font-semibold text-gray-900 mb-4">Images</h2>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Header Image
+            </label>
+            <ImageUpload
+              currentImageUrl={formData.header_image_url}
+              onUploadComplete={handleImageUpload('header_image_url')}
+              folder="headers"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Program Card Image
+            </label>
+            <ImageUpload
+              currentImageUrl={formData.program_image_url}
+              onUploadComplete={handleImageUpload('program_image_url')}
+              folder="programs"
+            />
+          </div>
         </div>
       </div>
 
       {/* Submit Buttons */}
-      <div className="flex gap-3 pt-4">
+      <div className="flex gap-3 pt-4 border-t">
         <button
           type="submit"
           disabled={loading}

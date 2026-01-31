@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import ProgramForm from '@/components/admin/ProgramForm';
+import ProgramCertificationRequirements from '@/components/admin/ProgramCertificationRequirements';
 
 export default function EditProgramClient({ program }: { program: any }) {
   const router = useRouter();
@@ -64,6 +65,20 @@ export default function EditProgramClient({ program }: { program: any }) {
           loading={loading}
           submitLabel="Update Program"
         />
+
+        {/* Certification Requirements Section */}
+        <div className="mt-8 bg-white rounded-lg shadow p-6">
+          <h2 className="text-lg font-semibold text-gray-800 mb-4">
+            Certification Requirements
+          </h2>
+          <p className="text-sm text-gray-600 mb-4">
+            Select which certifications coaches must have to work with this program.
+          </p>
+          <ProgramCertificationRequirements
+            programId={program.id}
+            isSchoolAdmin={false}
+          />
+        </div>
       </main>
     </div>
   );

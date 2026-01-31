@@ -10,6 +10,15 @@ export const adminNavigation: NavItem[] = [
   { name: 'User Management', href: '/admin/users', icon: 'UsersIcon' },
   { name: 'Schools', href: '/admin/schools', icon: 'AcademicCapIcon' },
   { name: 'Programs', href: '/admin/programs', icon: 'TrophyIcon' },
+  {
+    name: 'Certifications',
+    href: '/admin/certifications',
+    icon: 'DocumentCheckIcon',
+    children: [
+      { name: 'Certification Types', href: '/admin/certification-types' },
+      { name: 'Coach Certifications', href: '/admin/coach-certifications' },
+    ]
+  },
   { name: 'Communications', href: '/admin/communications', icon: 'ChatBubbleLeftRightIcon' },
   { name: 'Settings', href: '/admin/settings', icon: 'Cog6ToothIcon' },
 ];
@@ -27,6 +36,15 @@ export const schoolAdminNavigation: NavItem[] = [
       { name: 'Sessions', href: '/school-admin/sessions' },
     ]
   },
+  {
+    name: 'Certifications',
+    href: '/school-admin/certifications',
+    icon: 'DocumentCheckIcon',
+    children: [
+      { name: 'Certification Types', href: '/school-admin/certification-types' },
+      { name: 'Coach Certifications', href: '/school-admin/coach-certifications' },
+    ]
+  },
   { name: 'Communications', href: '/school-admin/communications', icon: 'ChatBubbleLeftRightIcon' },
   { name: 'School Settings', href: '/school-admin/school', icon: 'BuildingOfficeIcon' },
   { name: 'Settings', href: '/school-admin/settings', icon: 'Cog6ToothIcon' },
@@ -35,6 +53,7 @@ export const schoolAdminNavigation: NavItem[] = [
 export const coachNavigation: NavItem[] = [
   { name: 'Dashboard', href: '/dashboard/coach', icon: 'HomeIcon' },
   { name: 'My Programs', href: '/dashboard/coach#programs', icon: 'TrophyIcon' },
+  { name: 'Certifications', href: '/dashboard/coach/certifications', icon: 'DocumentCheckIcon' },
   { name: 'Attendance', href: '/dashboard/coach/attendance', icon: 'ClipboardDocumentListIcon' },
   { name: 'Report Incident', href: '/dashboard/coach/incident', icon: 'ExclamationTriangleIcon' },
 ];

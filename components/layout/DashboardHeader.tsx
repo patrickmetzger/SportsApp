@@ -9,6 +9,7 @@ import {
   UserPlusIcon,
   CreditCardIcon,
   CalendarIcon,
+  ShieldCheckIcon,
 } from '@heroicons/react/24/solid';
 
 interface Breadcrumb {
@@ -41,6 +42,9 @@ const notificationIcons: Record<string, React.ComponentType<{ className?: string
   payment_received: CreditCardIcon,
   program_update: CalendarIcon,
   schedule_change: CalendarIcon,
+  certification_expiring: ShieldCheckIcon,
+  certification_expired: ShieldCheckIcon,
+  certification_missing: ShieldCheckIcon,
 };
 
 const notificationColors: Record<string, string> = {
@@ -51,6 +55,9 @@ const notificationColors: Record<string, string> = {
   payment_received: 'bg-green-100 text-green-600',
   program_update: 'bg-purple-100 text-purple-600',
   schedule_change: 'bg-yellow-100 text-yellow-600',
+  certification_expiring: 'bg-yellow-100 text-yellow-600',
+  certification_expired: 'bg-red-100 text-red-600',
+  certification_missing: 'bg-red-100 text-red-600',
 };
 
 export default function DashboardHeader({
