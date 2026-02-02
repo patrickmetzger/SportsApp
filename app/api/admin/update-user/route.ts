@@ -30,9 +30,9 @@ export async function PUT(request: NextRequest) {
       return NextResponse.json({ error: 'User ID is required' }, { status: 400 });
     }
 
-    // If role is coach or school_admin, school_id is required
-    if ((role === 'coach' || role === 'school_admin') && !school_id) {
-      return NextResponse.json({ error: `School is required for ${role}s` }, { status: 400 });
+    // If role is coach, assistant_coach, or school_admin, school_id is required
+    if ((role === 'coach' || role === 'assistant_coach' || role === 'school_admin') && !school_id) {
+      return NextResponse.json({ error: `School is required for ${role === 'assistant_coach' ? 'assistant coaches' : role + 's'}` }, { status: 400 });
     }
 
     // Update the user record
@@ -43,7 +43,7 @@ export async function PUT(request: NextRequest) {
         last_name,
         email,
         role,
-        school_id: (role === 'coach' || role === 'school_admin' || role === 'parent') ? school_id : null,
+        school_id: (role === 'coach' || role === 'assistant_coach' || role === 'school_admin' || role === 'parent') ? school_id : null,
       })
       .eq('id', id);
 

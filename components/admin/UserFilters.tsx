@@ -98,6 +98,7 @@ export default function UserFilters({ onFilterChange }: UserFiltersProps) {
             <option value="admin">Admin</option>
             <option value="school_admin">School Admin</option>
             <option value="coach">Coach</option>
+            <option value="assistant_coach">Assistant Coach</option>
             <option value="parent">Parent</option>
             <option value="student">Student</option>
           </select>

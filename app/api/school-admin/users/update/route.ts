@@ -31,7 +31,7 @@ export async function PUT(request: NextRequest) {
     }
 
     // Validate role
-    if (role && !['coach', 'parent', 'school_admin'].includes(role)) {
+    if (role && !['coach', 'assistant_coach', 'parent', 'school_admin'].includes(role)) {
       return NextResponse.json({ error: 'Invalid role' }, { status: 400 });
     }
 
@@ -52,7 +52,7 @@ export async function PUT(request: NextRequest) {
     }
 
     // Prevent editing users of unauthorized roles
-    if (!['coach', 'parent', 'school_admin'].includes(userToEdit.role)) {
+    if (!['coach', 'assistant_coach', 'parent', 'school_admin'].includes(userToEdit.role)) {
       return NextResponse.json({ error: 'Cannot edit this user' }, { status: 403 });
     }
 

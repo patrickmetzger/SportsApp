@@ -55,7 +55,14 @@ export const coachNavigation: NavItem[] = [
   { name: 'My Programs', href: '/dashboard/coach#programs', icon: 'TrophyIcon' },
   { name: 'Certifications', href: '/dashboard/coach/certifications', icon: 'DocumentCheckIcon' },
   { name: 'Attendance', href: '/dashboard/coach/attendance', icon: 'ClipboardDocumentListIcon' },
+  { name: 'Assistants', href: '/dashboard/coach/assistants', icon: 'UserGroupIcon' },
   { name: 'Report Incident', href: '/dashboard/coach/incident', icon: 'ExclamationTriangleIcon' },
+];
+
+export const assistantCoachNavigation: NavItem[] = [
+  { name: 'Dashboard', href: '/dashboard/assistant', icon: 'HomeIcon' },
+  { name: 'Programs', href: '/dashboard/assistant#programs', icon: 'TrophyIcon' },
+  { name: 'Attendance', href: '/dashboard/assistant/attendance', icon: 'ClipboardDocumentListIcon' },
 ];
 
 export const parentNavigation: NavItem[] = [
@@ -81,6 +88,8 @@ export function getNavigationByRole(role: string): NavItem[] {
       return schoolAdminNavigation;
     case 'coach':
       return coachNavigation;
+    case 'assistant_coach':
+      return assistantCoachNavigation;
     case 'parent':
       return parentNavigation;
     case 'student':
@@ -98,6 +107,8 @@ export function getRoleDisplayName(role: string): string {
       return 'School Admin';
     case 'coach':
       return 'Coach';
+    case 'assistant_coach':
+      return 'Assistant Coach';
     case 'parent':
       return 'Parent';
     case 'student':

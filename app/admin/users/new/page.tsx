@@ -8,7 +8,7 @@ export default function NewUserPage() {
   const [password, setPassword] = useState('');
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
-  const [role, setRole] = useState<'student' | 'parent' | 'coach' | 'school_admin'>('parent');
+  const [role, setRole] = useState<'student' | 'parent' | 'coach' | 'assistant_coach' | 'school_admin'>('parent');
   const [schoolId, setSchoolId] = useState('');
   const [schools, setSchools] = useState<any[]>([]);
   const [error, setError] = useState('');
@@ -46,7 +46,7 @@ export default function NewUserPage() {
           firstName,
           lastName,
           role,
-          school_id: (role === 'coach' || role === 'school_admin' || role === 'parent') && schoolId ? schoolId : null,
+          school_id: (role === 'coach' || role === 'assistant_coach' || role === 'school_admin' || role === 'parent') && schoolId ? schoolId : null,
         }),
       });
 
@@ -162,20 +162,21 @@ export default function NewUserPage() {
                 <option value="student">Student</option>
                 <option value="parent">Parent</option>
                 <option value="coach">Coach</option>
+                <option value="assistant_coach">Assistant Coach</option>
                 <option value="school_admin">School Admin</option>
               </select>
             </div>
 
-            {(role === 'coach' || role === 'school_admin' || role === 'parent') && (
+            {(role === 'coach' || role === 'assistant_coach' || role === 'school_admin' || role === 'parent') && (
               <div>
                 <label htmlFor="school" className="block text-sm font-medium text-gray-700 mb-1">
-                  School {(role === 'coach' || role === 'school_admin') && '*'}
+                  School {(role === 'coach' || role === 'assistant_coach' || role === 'school_admin') && '*'}
                 </label>
                 <select
                   id="school"
                   value={schoolId}
                   onChange={(e) => setSchoolId(e.target.value)}
-                  required={role === 'coach' || role === 'school_admin'}
+                  required={role === 'coach' || role === 'assistant_coach' || role === 'school_admin'}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 >
                   <option value="">Select a school...</option>
@@ -188,6 +189,11 @@ export default function NewUserPage() {
                 {role === 'school_admin' && (
                   <p className="text-xs text-gray-500 mt-1">
                     School Admins can manage everything for their assigned school
+                  </p>
+                )}
+                {role === 'assistant_coach' && (
+                  <p className="text-xs text-gray-500 mt-1">
+                    Assistant Coaches help coaches with attendance and can view their programs
                   </p>
                 )}
                 {role === 'parent' && (

@@ -85,12 +85,14 @@ export async function requireAuth() {
   return user;
 }
 
-export async function requireRole(requiredRole: UserRole) {
+export async function requireRole(requiredRole: UserRole | UserRole[]) {
   const user = await requireAuth();
   // Don't pass user.id - let getUserRole handle impersonation
   const role = await getUserRole();
 
-  if (role !== requiredRole) {
+  const allowedRoles = Array.isArray(requiredRole) ? requiredRole : [requiredRole];
+
+  if (!role || !allowedRoles.includes(role)) {
     throw new Error("Forbidden: Insufficient permissions");
   }
 

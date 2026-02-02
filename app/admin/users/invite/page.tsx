@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 
 export default function InviteUserPage() {
   const [email, setEmail] = useState('');
-  const [role, setRole] = useState<'coach' | 'parent' | 'student' | 'school_admin'>('coach');
+  const [role, setRole] = useState<'coach' | 'assistant_coach' | 'parent' | 'student' | 'school_admin'>('coach');
   const [schoolId, setSchoolId] = useState('');
   const [schools, setSchools] = useState<any[]>([]);
   const [error, setError] = useState('');
@@ -42,7 +42,7 @@ export default function InviteUserPage() {
         body: JSON.stringify({
           email,
           role,
-          school_id: (role === 'coach' || role === 'school_admin' || role === 'parent') && schoolId ? schoolId : null,
+          school_id: (role === 'coach' || role === 'assistant_coach' || role === 'school_admin' || role === 'parent') && schoolId ? schoolId : null,
         }),
       });
 
@@ -132,22 +132,23 @@ export default function InviteUserPage() {
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               >
                 <option value="coach">Coach</option>
+                <option value="assistant_coach">Assistant Coach</option>
                 <option value="parent">Parent</option>
                 <option value="student">Student</option>
                 <option value="school_admin">School Admin</option>
               </select>
             </div>
 
-            {(role === 'coach' || role === 'school_admin' || role === 'parent') && (
+            {(role === 'coach' || role === 'assistant_coach' || role === 'school_admin' || role === 'parent') && (
               <div>
                 <label htmlFor="school" className="block text-sm font-medium text-gray-700 mb-1">
-                  School {(role === 'coach' || role === 'school_admin') && '*'}
+                  School {(role === 'coach' || role === 'assistant_coach' || role === 'school_admin') && '*'}
                 </label>
                 <select
                   id="school"
                   value={schoolId}
                   onChange={(e) => setSchoolId(e.target.value)}
-                  required={role === 'coach' || role === 'school_admin'}
+                  required={role === 'coach' || role === 'assistant_coach' || role === 'school_admin'}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 >
                   <option value="">Select a school...</option>
@@ -160,6 +161,11 @@ export default function InviteUserPage() {
                 {role === 'parent' && (
                   <p className="text-xs text-gray-500 mt-1">
                     Assign parent to a school (optional but recommended)
+                  </p>
+                )}
+                {role === 'assistant_coach' && (
+                  <p className="text-xs text-gray-500 mt-1">
+                    Assistant Coaches help coaches with attendance and can view their programs
                   </p>
                 )}
                 {role === 'school_admin' && (

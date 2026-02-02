@@ -8,7 +8,7 @@ interface User {
   email: string;
   first_name: string;
   last_name: string;
-  role: 'admin' | 'school_admin' | 'coach' | 'parent' | 'student';
+  role: 'admin' | 'school_admin' | 'coach' | 'assistant_coach' | 'parent' | 'student';
   school_id?: string;
   archived: boolean;
 }
@@ -71,7 +71,7 @@ export default function EditUserForm({ user }: EditUserFormProps) {
           last_name: lastName,
           email,
           role,
-          school_id: (role === 'coach' || role === 'school_admin' || role === 'parent') && schoolId ? schoolId : null,
+          school_id: (role === 'coach' || role === 'assistant_coach' || role === 'school_admin' || role === 'parent') && schoolId ? schoolId : null,
         }),
       });
 
@@ -195,21 +195,22 @@ export default function EditUserForm({ user }: EditUserFormProps) {
             <option value="admin">Admin</option>
             <option value="school_admin">School Admin</option>
             <option value="coach">Coach</option>
+            <option value="assistant_coach">Assistant Coach</option>
             <option value="parent">Parent</option>
             <option value="student">Student</option>
           </select>
         </div>
 
-        {(role === 'coach' || role === 'school_admin' || role === 'parent') && (
+        {(role === 'coach' || role === 'assistant_coach' || role === 'school_admin' || role === 'parent') && (
           <div>
             <label htmlFor="school" className="block text-sm font-medium text-gray-700 mb-1">
-              School {(role === 'coach' || role === 'school_admin') && '*'}
+              School {(role === 'coach' || role === 'assistant_coach' || role === 'school_admin') && '*'}
             </label>
             <select
               id="school"
               value={schoolId}
               onChange={(e) => setSchoolId(e.target.value)}
-              required={role === 'coach' || role === 'school_admin'}
+              required={role === 'coach' || role === 'assistant_coach' || role === 'school_admin'}
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             >
               <option value="">Select a school...</option>
@@ -222,6 +223,11 @@ export default function EditUserForm({ user }: EditUserFormProps) {
             {role === 'coach' && (
               <p className="text-xs text-gray-500 mt-1">
                 Note: Use "Assign Coaches" from Schools Management to reassign coaches between schools
+              </p>
+            )}
+            {role === 'assistant_coach' && (
+              <p className="text-xs text-gray-500 mt-1">
+                Assistant Coaches help coaches with attendance and can view their programs
               </p>
             )}
             {role === 'school_admin' && (

@@ -95,11 +95,13 @@ export default function UsersList({ users }: UsersListProps) {
               <td className="px-6 py-4 whitespace-nowrap">
                 <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
                   user.role === 'admin' ? 'bg-purple-100 text-purple-800' :
+                  user.role === 'school_admin' ? 'bg-indigo-100 text-indigo-800' :
                   user.role === 'coach' ? 'bg-blue-100 text-blue-800' :
+                  user.role === 'assistant_coach' ? 'bg-cyan-100 text-cyan-800' :
                   user.role === 'student' ? 'bg-green-100 text-green-800' :
                   'bg-yellow-100 text-yellow-800'
                 }`}>
-                  {user.role}
+                  {user.role === 'assistant_coach' ? 'assistant coach' : user.role === 'school_admin' ? 'school admin' : user.role}
                 </span>
               </td>
               <td className="px-6 py-4 whitespace-nowrap">
@@ -119,7 +121,7 @@ export default function UsersList({ users }: UsersListProps) {
                       )}
                     </>
                   ) : (
-                    user.role === 'coach' ? (
+                    (user.role === 'coach' || user.role === 'assistant_coach') ? (
                       <span className="text-gray-400 italic">No school assigned</span>
                     ) : (
                       <span className="text-gray-400">-</span>

@@ -36,7 +36,7 @@ export default async function SchoolAdminEditUserPage({ params }: { params: Prom
     }
 
     // Ensure user is allowed to edit this role
-    if (!['coach', 'parent', 'school_admin'].includes(userToEdit.role)) {
+    if (!['coach', 'assistant_coach', 'parent', 'school_admin'].includes(userToEdit.role)) {
       redirect('/school-admin/users');
     }
 

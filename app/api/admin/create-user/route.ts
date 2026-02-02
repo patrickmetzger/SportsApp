@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
+import { createAdminClient } from '@/lib/supabase/admin';
 
 export async function POST(request: NextRequest) {
   try {
@@ -30,9 +31,9 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
 
-    // If role is coach or school_admin, school_id is required
-    if ((role === 'coach' || role === 'school_admin') && !school_id) {
-      return NextResponse.json({ error: `School is required for ${role}s` }, { status: 400 });
+    // If role is coach, assistant_coach, or school_admin, school_id is required
+    if ((role === 'coach' || role === 'assistant_coach' || role === 'school_admin') && !school_id) {
+      return NextResponse.json({ error: `School is required for ${role === 'assistant_coach' ? 'assistant coaches' : role + 's'}` }, { status: 400 });
     }
 
     // Create the user using Supabase Auth API
@@ -53,13 +54,14 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: signUpError.message }, { status: 400 });
     }
 
-    // The trigger should automatically create the user record in public.users
-    // But let's verify it exists
+    // Create the user record using admin client to bypass RLS
     if (newUser.user) {
-      // Wait a moment for the trigger to fire
+      const adminClient = createAdminClient();
+
+      // Wait a moment for any trigger to fire
       await new Promise(resolve => setTimeout(resolve, 500));
 
-      const { data: userRecord } = await supabase
+      const { data: userRecord } = await adminClient
         .from('users')
         .select('*')
         .eq('id', newUser.user.id)
@@ -67,19 +69,19 @@ export async function POST(request: NextRequest) {
 
       if (!userRecord) {
         // If trigger didn't work, create manually
-        await supabase.from('users').insert({
+        await adminClient.from('users').insert({
           id: newUser.user.id,
           email,
           role,
           first_name: firstName,
           last_name: lastName,
-          school_id: (role === 'coach' || role === 'school_admin' || role === 'parent') ? school_id : null,
+          school_id: (role === 'coach' || role === 'assistant_coach' || role === 'school_admin' || role === 'parent') ? school_id : null,
         });
-      } else if ((role === 'coach' || role === 'school_admin' || role === 'parent') && school_id) {
+      } else if ((role === 'coach' || role === 'assistant_coach' || role === 'school_admin' || role === 'parent') && school_id) {
         // Update the school_id if user was created by trigger
-        await supabase
+        await adminClient
           .from('users')
-          .update({ school_id })
+          .update({ school_id, role, first_name: firstName, last_name: lastName })
           .eq('id', newUser.user.id);
       }
     }

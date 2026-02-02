@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
+import { createAdminClient } from '@/lib/supabase/admin';
 
 export async function POST(request: NextRequest) {
   try {
@@ -34,7 +35,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Validate role
-    if (!['coach', 'parent', 'school_admin'].includes(role)) {
+    if (!['coach', 'assistant_coach', 'parent', 'school_admin'].includes(role)) {
       return NextResponse.json({ error: 'Invalid role' }, { status: 400 });
     }
 
@@ -61,9 +62,11 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: inviteError.message }, { status: 400 });
     }
 
-    // Create a pending user record with school_id
+    // Create a pending user record with school_id using admin client to bypass RLS
     if (inviteData.user) {
-      const { error: userInsertError } = await supabase.from('users').upsert({
+      const adminClient = createAdminClient();
+
+      const { error: userInsertError } = await adminClient.from('users').upsert({
         id: inviteData.user.id,
         email,
         role,

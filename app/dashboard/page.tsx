@@ -48,6 +48,8 @@ export default async function DashboardPage() {
       redirect('/school-admin');
     case 'coach':
       redirect('/dashboard/coach');
+    case 'assistant_coach':
+      redirect('/dashboard/assistant');
     case 'student':
       redirect('/dashboard/student');
     case 'parent':

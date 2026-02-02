@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
+import { createAdminClient } from '@/lib/supabase/admin';
 
 export async function POST(request: NextRequest) {
   try {
@@ -30,9 +31,9 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Email and role are required' }, { status: 400 });
     }
 
-    // Validate school_id for coach and school_admin roles
-    if ((role === 'coach' || role === 'school_admin') && !school_id) {
-      return NextResponse.json({ error: 'School is required for coaches and school admins' }, { status: 400 });
+    // Validate school_id for coach, assistant_coach, and school_admin roles
+    if ((role === 'coach' || role === 'assistant_coach' || role === 'school_admin') && !school_id) {
+      return NextResponse.json({ error: 'School is required for coaches, assistant coaches, and school admins' }, { status: 400 });
     }
 
     // Send invitation email using Supabase
@@ -54,10 +55,12 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: inviteError.message }, { status: 400 });
     }
 
-    // Create a pending user record
+    // Create a pending user record using admin client to bypass RLS
     if (inviteData.user) {
+      const adminClient = createAdminClient();
+
       // Try to insert, if user exists, update instead
-      const { error: insertError } = await supabase.from('users').insert({
+      const { error: insertError } = await adminClient.from('users').insert({
         id: inviteData.user.id,
         email,
         role,
@@ -68,7 +71,7 @@ export async function POST(request: NextRequest) {
 
       // If insert failed due to duplicate, update the existing record
       if (insertError && insertError.code === '23505') {
-        const { error: updateError } = await supabase
+        const { error: updateError } = await adminClient
           .from('users')
           .update({
             role,

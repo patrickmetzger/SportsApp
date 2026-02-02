@@ -13,7 +13,7 @@ export default function SchoolAdminCreateUserForm({ schoolId }: SchoolAdminCreat
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [phone, setPhone] = useState('');
-  const [role, setRole] = useState<'coach' | 'parent' | 'school_admin'>('coach');
+  const [role, setRole] = useState<'coach' | 'assistant_coach' | 'parent' | 'school_admin'>('coach');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const router = useRouter();
@@ -139,11 +139,14 @@ export default function SchoolAdminCreateUserForm({ schoolId }: SchoolAdminCreat
             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
           >
             <option value="coach">Coach</option>
+            <option value="assistant_coach">Assistant Coach</option>
             <option value="parent">Parent</option>
             <option value="school_admin">School Admin</option>
           </select>
           <p className="text-xs text-gray-500 mt-1">
-            User will be automatically assigned to your school
+            {role === 'assistant_coach'
+              ? 'Assistant Coaches help coaches with attendance and can view their programs'
+              : 'User will be automatically assigned to your school'}
           </p>
         </div>
 

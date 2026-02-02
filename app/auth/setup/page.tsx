@@ -54,43 +54,16 @@ export default function SetupAccountPage() {
 
       if (passwordError) throw passwordError;
 
-      // Update user record in database
-      const { data: { user } } = await supabase.auth.getUser();
+      // Update or create user record via API (bypasses RLS)
+      const response = await fetch('/api/auth/setup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ firstName, lastName }),
+      });
 
-      if (user) {
-        // Get existing user data to preserve school_id and role
-        const { data: existingUser } = await supabase
-          .from('users')
-          .select('school_id, role')
-          .eq('id', user.id)
-          .single();
-
-        // Update user with names while preserving school_id and role
-        const updateData: any = {
-          first_name: firstName,
-          last_name: lastName,
-        };
-
-        // Preserve school_id from existing record or fall back to metadata
-        if (existingUser?.school_id) {
-          updateData.school_id = existingUser.school_id;
-        } else if (user.user_metadata?.school_id) {
-          updateData.school_id = user.user_metadata.school_id;
-        }
-
-        // Preserve role from existing record or fall back to metadata
-        if (existingUser?.role) {
-          updateData.role = existingUser.role;
-        } else if (user.user_metadata?.role) {
-          updateData.role = user.user_metadata.role;
-        }
-
-        const { error: updateError } = await supabase
-          .from('users')
-          .update(updateData)
-          .eq('id', user.id);
-
-        if (updateError) throw updateError;
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to setup user record');
       }
 
       // Redirect to dashboard

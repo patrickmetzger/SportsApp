@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase/server';
+import { createAdminClient } from '@/lib/supabase/admin';
 import { NextRequest, NextResponse } from 'next/server';
 
 export async function POST(request: NextRequest) {
@@ -27,7 +28,7 @@ export async function POST(request: NextRequest) {
     const { email, password, firstName, lastName, phone, role, school_id } = body;
 
     // Validate role
-    if (!['coach', 'parent', 'school_admin'].includes(role)) {
+    if (!['coach', 'assistant_coach', 'parent', 'school_admin'].includes(role)) {
       return NextResponse.json({ error: 'Invalid role' }, { status: 400 });
     }
 
@@ -58,11 +59,13 @@ export async function POST(request: NextRequest) {
     }
 
     if (newUser.user) {
-      // Wait a moment for the trigger to fire
+      const adminClient = createAdminClient();
+
+      // Wait a moment for any trigger to fire
       await new Promise(resolve => setTimeout(resolve, 500));
 
       // Check if user record was created by trigger
-      const { data: userRecord } = await supabase
+      const { data: userRecord } = await adminClient
         .from('users')
         .select('*')
         .eq('id', newUser.user.id)
@@ -70,7 +73,7 @@ export async function POST(request: NextRequest) {
 
       if (!userRecord) {
         // Trigger didn't fire, create manually
-        await supabase.from('users').insert({
+        await adminClient.from('users').insert({
           id: newUser.user.id,
           email,
           role,
@@ -81,9 +84,9 @@ export async function POST(request: NextRequest) {
         });
       } else {
         // Update with additional fields
-        await supabase
+        await adminClient
           .from('users')
-          .update({ school_id, phone })
+          .update({ school_id, phone, role, first_name: firstName, last_name: lastName })
           .eq('id', newUser.user.id);
       }
     }
