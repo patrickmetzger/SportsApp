@@ -109,10 +109,11 @@ export async function POST(
 
     // Insert new requirements
     if (requirements.length > 0) {
-      const inserts = requirements.map((req: { certification_type_id: string; is_required: boolean }) => ({
+      const inserts = requirements.map((req: { certification_type_id: string; is_required: boolean; locked_by_admin?: boolean }) => ({
         program_id: programId,
         certification_type_id: req.certification_type_id,
         is_required: req.is_required ?? true,
+        locked_by_admin: req.locked_by_admin ?? false,
       }));
 
       const { error } = await supabase

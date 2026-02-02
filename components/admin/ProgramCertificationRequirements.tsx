@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { LockClosedIcon } from '@heroicons/react/24/solid';
 
 interface CertificationType {
   id: string;
@@ -14,6 +15,7 @@ interface CertificationType {
 interface Requirement {
   certification_type_id: string;
   is_required: boolean;
+  locked_by_admin?: boolean;
 }
 
 interface ProgramCertificationRequirementsProps {
@@ -37,6 +39,9 @@ export default function ProgramCertificationRequirements({
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+
+  // Can this user lock/unlock requirements?
+  const canLock = !isCoach; // Admins and school admins can lock
 
   useEffect(() => {
     loadData();
@@ -74,9 +79,10 @@ export default function ProgramCertificationRequirements({
       const reqsData = await reqsRes.json();
 
       if (reqsRes.ok) {
-        const existingReqs = (reqsData.requirements || []).map((r: { certification_type_id: string; is_required: boolean }) => ({
+        const existingReqs = (reqsData.requirements || []).map((r: { certification_type_id: string; is_required: boolean; locked_by_admin?: boolean }) => ({
           certification_type_id: r.certification_type_id,
           is_required: r.is_required,
+          locked_by_admin: r.locked_by_admin ?? false,
         }));
         setRequirements(existingReqs);
       }
@@ -89,8 +95,13 @@ export default function ProgramCertificationRequirements({
   };
 
   const handleToggleRequirement = (certTypeId: string) => {
+    // Check if this requirement is locked (coaches can't modify locked ones)
+    const existing = requirements.find((r) => r.certification_type_id === certTypeId);
+    if (isCoach && existing?.locked_by_admin) {
+      return; // Can't modify locked requirements
+    }
+
     setRequirements((prev) => {
-      const existing = prev.find((r) => r.certification_type_id === certTypeId);
       if (existing) {
         // Remove requirement
         const newReqs = prev.filter((r) => r.certification_type_id !== certTypeId);
@@ -98,7 +109,7 @@ export default function ProgramCertificationRequirements({
         return newReqs;
       } else {
         // Add as required by default
-        const newReqs = [...prev, { certification_type_id: certTypeId, is_required: true }];
+        const newReqs = [...prev, { certification_type_id: certTypeId, is_required: true, locked_by_admin: false }];
         onRequirementsChange?.(newReqs);
         return newReqs;
       }
@@ -107,10 +118,32 @@ export default function ProgramCertificationRequirements({
   };
 
   const handleToggleRequired = (certTypeId: string) => {
+    // Check if this requirement is locked
+    const existing = requirements.find((r) => r.certification_type_id === certTypeId);
+    if (isCoach && existing?.locked_by_admin) {
+      return; // Can't modify locked requirements
+    }
+
     setRequirements((prev) => {
       const newReqs = prev.map((r) => {
         if (r.certification_type_id === certTypeId) {
           return { ...r, is_required: !r.is_required };
+        }
+        return r;
+      });
+      onRequirementsChange?.(newReqs);
+      return newReqs;
+    });
+    setSuccess('');
+  };
+
+  const handleToggleLocked = (certTypeId: string) => {
+    if (!canLock) return;
+
+    setRequirements((prev) => {
+      const newReqs = prev.map((r) => {
+        if (r.certification_type_id === certTypeId) {
+          return { ...r, locked_by_admin: !r.locked_by_admin };
         }
         return r;
       });
@@ -164,6 +197,11 @@ export default function ProgramCertificationRequirements({
     return req?.is_required ?? true;
   };
 
+  const isLockedCert = (certTypeId: string) => {
+    const req = requirements.find((r) => r.certification_type_id === certTypeId);
+    return req?.locked_by_admin ?? false;
+  };
+
   if (loading) {
     return (
       <div className="animate-pulse p-4">
@@ -179,6 +217,9 @@ export default function ProgramCertificationRequirements({
   // Separate universal and non-universal types
   const universalTypes = certTypes.filter((t) => t.is_universal);
   const regularTypes = certTypes.filter((t) => !t.is_universal);
+
+  // For coaches, separate locked requirements
+  const lockedRequirements = requirements.filter((r) => r.locked_by_admin);
 
   return (
     <div className="space-y-4">
@@ -204,9 +245,36 @@ export default function ProgramCertificationRequirements({
                   key={type.id}
                   className="inline-flex items-center px-3 py-1 rounded-full text-sm bg-purple-100 text-purple-800"
                 >
+                  <LockClosedIcon className="w-3 h-3 mr-1" />
                   {type.name}
                 </span>
               ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Locked requirements (shown to coaches as non-editable) */}
+      {isCoach && lockedRequirements.length > 0 && (
+        <div className="mb-4">
+          <h4 className="text-sm font-medium text-gray-700 mb-2">
+            Required by Administration (cannot be removed)
+          </h4>
+          <div className="bg-amber-50 border border-amber-200 rounded-lg p-3">
+            <div className="flex flex-wrap gap-2">
+              {lockedRequirements.map((req) => {
+                const type = certTypes.find((t) => t.id === req.certification_type_id);
+                return (
+                  <span
+                    key={req.certification_type_id}
+                    className="inline-flex items-center px-3 py-1 rounded-full text-sm bg-amber-100 text-amber-800"
+                  >
+                    <LockClosedIcon className="w-3 h-3 mr-1" />
+                    {type?.name}
+                    {req.is_required ? ' (Required)' : ' (Recommended)'}
+                  </span>
+                );
+              })}
             </div>
           </div>
         </div>
@@ -219,46 +287,76 @@ export default function ProgramCertificationRequirements({
           <p className="text-sm text-gray-500">No certification types available.</p>
         ) : (
           <div className="border border-gray-200 rounded-lg divide-y divide-gray-200">
-            {regularTypes.map((type) => (
-              <div key={type.id} className="p-3 flex items-center justify-between hover:bg-gray-50">
-                <div className="flex items-center gap-3">
-                  <input
-                    type="checkbox"
-                    checked={isSelected(type.id)}
-                    onChange={() => handleToggleRequirement(type.id)}
-                    className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                  />
-                  <div>
-                    <span className="text-sm font-medium text-gray-900">{type.name}</span>
-                    {type.description && (
-                      <p className="text-xs text-gray-500">{type.description}</p>
-                    )}
-                    <p className="text-xs text-gray-400">
-                      Valid for {type.validity_period_months} months
-                      {!type.school_id && ' • Global'}
-                    </p>
-                  </div>
-                </div>
-                {isSelected(type.id) && (
-                  <div className="flex items-center gap-2">
-                    <label className="text-xs text-gray-600">
-                      <input
-                        type="checkbox"
-                        checked={isRequiredCert(type.id)}
-                        onChange={() => handleToggleRequired(type.id)}
-                        className="mr-1 h-3 w-3 text-blue-600 border-gray-300 rounded"
-                      />
-                      Required
-                    </label>
-                    {!isRequiredCert(type.id) && (
-                      <span className="text-xs px-2 py-0.5 bg-yellow-100 text-yellow-700 rounded">
-                        Recommended
+            {regularTypes.map((type) => {
+              const isLocked = isLockedCert(type.id);
+              const isDisabled = isCoach && isLocked;
+
+              // For coaches, skip showing locked items in this list (they're shown above)
+              if (isCoach && isLocked) {
+                return null;
+              }
+
+              return (
+                <div key={type.id} className={`p-3 flex items-center justify-between ${isDisabled ? 'bg-gray-50' : 'hover:bg-gray-50'}`}>
+                  <div className="flex items-center gap-3">
+                    <input
+                      type="checkbox"
+                      checked={isSelected(type.id)}
+                      onChange={() => handleToggleRequirement(type.id)}
+                      disabled={isDisabled}
+                      className={`h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 ${isDisabled ? 'opacity-50 cursor-not-allowed' : ''}`}
+                    />
+                    <div>
+                      <span className="text-sm font-medium text-gray-900">
+                        {type.name}
+                        {isLocked && <LockClosedIcon className="w-3 h-3 inline ml-1 text-amber-600" />}
                       </span>
-                    )}
+                      {type.description && (
+                        <p className="text-xs text-gray-500">{type.description}</p>
+                      )}
+                      <p className="text-xs text-gray-400">
+                        Valid for {type.validity_period_months} months
+                        {!type.school_id && ' • Global'}
+                      </p>
+                    </div>
                   </div>
-                )}
-              </div>
-            ))}
+                  {isSelected(type.id) && (
+                    <div className="flex items-center gap-3">
+                      <label className={`text-xs text-gray-600 ${isDisabled ? 'opacity-50' : ''}`}>
+                        <input
+                          type="checkbox"
+                          checked={isRequiredCert(type.id)}
+                          onChange={() => handleToggleRequired(type.id)}
+                          disabled={isDisabled}
+                          className="mr-1 h-3 w-3 text-blue-600 border-gray-300 rounded"
+                        />
+                        Required
+                      </label>
+                      {!isRequiredCert(type.id) && (
+                        <span className="text-xs px-2 py-0.5 bg-yellow-100 text-yellow-700 rounded">
+                          Recommended
+                        </span>
+                      )}
+                      {/* Lock toggle for admins */}
+                      {canLock && (
+                        <button
+                          type="button"
+                          onClick={() => handleToggleLocked(type.id)}
+                          className={`p-1 rounded transition ${
+                            isLocked
+                              ? 'bg-amber-100 text-amber-700 hover:bg-amber-200'
+                              : 'bg-gray-100 text-gray-400 hover:bg-gray-200 hover:text-gray-600'
+                          }`}
+                          title={isLocked ? 'Unlock (allow coaches to modify)' : 'Lock (prevent coaches from removing)'}
+                        >
+                          <LockClosedIcon className="w-4 h-4" />
+                        </button>
+                      )}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
           </div>
         )}
       </div>
@@ -279,6 +377,7 @@ export default function ProgramCertificationRequirements({
                       : 'bg-yellow-100 text-yellow-800'
                   }`}
                 >
+                  {req.locked_by_admin && <LockClosedIcon className="w-3 h-3 mr-1" />}
                   {type?.name}
                   {req.is_required ? ' (Required)' : ' (Recommended)'}
                 </span>
