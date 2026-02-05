@@ -25,6 +25,7 @@ export const adminNavigation: NavItem[] = [
 
 export const schoolAdminNavigation: NavItem[] = [
   { name: 'Dashboard', href: '/school-admin', icon: 'HomeIcon' },
+  { name: 'Pending Approvals', href: '/school-admin/pending-approvals', icon: 'ClockIcon' },
   { name: 'Users', href: '/school-admin/users', icon: 'UsersIcon' },
   {
     name: 'Academic',
@@ -62,7 +63,13 @@ export const coachNavigation: NavItem[] = [
 export const assistantCoachNavigation: NavItem[] = [
   { name: 'Dashboard', href: '/dashboard/assistant', icon: 'HomeIcon' },
   { name: 'Programs', href: '/dashboard/assistant#programs', icon: 'TrophyIcon' },
+  { name: 'Certifications', href: '/dashboard/assistant/certifications', icon: 'DocumentCheckIcon' },
   { name: 'Attendance', href: '/dashboard/assistant/attendance', icon: 'ClipboardDocumentListIcon' },
+];
+
+export const pendingAssistantNavigation: NavItem[] = [
+  { name: 'Status', href: '/dashboard/assistant/pending', icon: 'ClockIcon' },
+  { name: 'Certifications', href: '/dashboard/assistant/certifications', icon: 'DocumentCheckIcon' },
 ];
 
 export const parentNavigation: NavItem[] = [

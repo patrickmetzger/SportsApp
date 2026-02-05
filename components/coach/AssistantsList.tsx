@@ -1,7 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { UserGroupIcon, PlusIcon, XMarkIcon } from '@heroicons/react/24/outline';
+import { UserGroupIcon, PlusIcon, XMarkIcon, EnvelopeIcon } from '@heroicons/react/24/outline';
+import Link from 'next/link';
 
 interface Assistant {
   assignmentId: string;
@@ -158,15 +159,24 @@ export default function AssistantsList() {
           </div>
         </div>
 
-        {available.length > 0 && (
-          <button
-            onClick={() => setShowAddForm(!showAddForm)}
-            className="inline-flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition text-sm font-medium"
+        <div className="flex gap-2">
+          <Link
+            href="/dashboard/coach/assistants/invite"
+            className="inline-flex items-center gap-2 px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition text-sm font-medium"
           >
-            <PlusIcon className="w-4 h-4" />
-            Add Assistant
-          </button>
-        )}
+            <EnvelopeIcon className="w-4 h-4" />
+            Invite Assistant
+          </Link>
+          {available.length > 0 && (
+            <button
+              onClick={() => setShowAddForm(!showAddForm)}
+              className="inline-flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition text-sm font-medium"
+            >
+              <PlusIcon className="w-4 h-4" />
+              Add Existing
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Add Form */}
@@ -223,8 +233,8 @@ export default function AssistantsList() {
           <p className="text-gray-500 mb-4">
             You haven&apos;t assigned any assistant coaches yet.
             {available.length > 0
-              ? ' Click "Add Assistant" to get started.'
-              : ' Contact your administrator to create assistant coach accounts.'}
+              ? ' Click "Add Existing" to assign an existing assistant, or "Invite Assistant" to invite someone new.'
+              : ' Click "Invite Assistant" to invite a new assistant coach.'}
           </p>
         </div>
       ) : (

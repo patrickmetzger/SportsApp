@@ -1,15 +1,16 @@
 import { requireRole } from '@/lib/auth';
-import { createClient } from '@/lib/supabase/server';
+import { createAdminClient } from '@/lib/supabase/admin';
 import { redirect } from 'next/navigation';
 import UsersPageClient from '@/components/admin/UsersPageClient';
 
 export default async function UsersPage() {
   try {
     await requireRole('admin');
-    const supabase = await createClient();
+    // Use admin client to bypass RLS and see all users
+    const adminClient = createAdminClient();
 
     // Fetch all users (excluding archived) with school information
-    const { data: users, error } = await supabase
+    const { data: users, error } = await adminClient
       .from('users')
       .select(`
         *,

@@ -11,6 +11,7 @@ import {
   MapPinIcon,
   PhoneIcon,
   EnvelopeIcon,
+  ClockIcon,
 } from '@heroicons/react/24/outline';
 
 export default async function SchoolAdminDashboard() {
@@ -53,7 +54,7 @@ export default async function SchoolAdminDashboard() {
       );
     }
 
-    const [coachesCount, parentsCount, programsCount, communicationsCount] = await Promise.all([
+    const [coachesCount, parentsCount, programsCount, communicationsCount, pendingApprovalsCount] = await Promise.all([
       supabase.from('users').select('*', { count: 'exact', head: true })
         .eq('role', 'coach').eq('school_id', userData.school.id),
       supabase.from('users').select('*', { count: 'exact', head: true })
@@ -62,6 +63,10 @@ export default async function SchoolAdminDashboard() {
         .eq('school_id', userData.school.id),
       supabase.from('communications').select('*', { count: 'exact', head: true })
         .eq('school_id', userData.school.id),
+      supabase.from('users').select('*', { count: 'exact', head: true })
+        .eq('role', 'assistant_coach')
+        .eq('school_id', userData.school.id)
+        .eq('approval_status', 'pending'),
     ]);
 
     const school = Array.isArray(userData.school) ? userData.school[0] : userData.school;
@@ -75,6 +80,33 @@ export default async function SchoolAdminDashboard() {
             Welcome back, {userData.first_name}. Manage your institution.
           </p>
         </div>
+
+        {/* Pending Approvals Alert */}
+        {(pendingApprovalsCount.count || 0) > 0 && (
+          <a
+            href="/school-admin/pending-approvals"
+            className="block bg-amber-50 border border-amber-200 rounded-xl p-4 hover:bg-amber-100 transition"
+          >
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 bg-amber-100 rounded-xl flex items-center justify-center flex-shrink-0">
+                <ClockIcon className="w-6 h-6 text-amber-600" />
+              </div>
+              <div className="flex-1">
+                <h3 className="font-semibold text-amber-800">
+                  {pendingApprovalsCount.count} Pending Approval{(pendingApprovalsCount.count || 0) !== 1 ? 's' : ''}
+                </h3>
+                <p className="text-sm text-amber-700">
+                  Assistant coaches are waiting for your review. Click to view and approve.
+                </p>
+              </div>
+              <div className="flex-shrink-0">
+                <svg className="w-5 h-5 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                </svg>
+              </div>
+            </div>
+          </a>
+        )}
 
         {/* School Info Card */}
         {(school.address || school.phone || school.email) && (
@@ -124,7 +156,7 @@ export default async function SchoolAdminDashboard() {
         )}
 
         {/* Stats Grid */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-2 lg:grid-cols-5 gap-6">
           <div className="bg-white rounded-xl p-6 shadow-card">
             <div className="flex items-center justify-between">
               <div>
@@ -172,6 +204,20 @@ export default async function SchoolAdminDashboard() {
               </div>
             </div>
           </div>
+
+          <a href="/school-admin/pending-approvals" className="bg-white rounded-xl p-6 shadow-card hover:shadow-card-hover transition-shadow">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-slate-500">Pending</p>
+                <p className={`text-3xl font-bold mt-1 ${(pendingApprovalsCount.count || 0) > 0 ? 'text-amber-600' : 'text-slate-900'}`}>
+                  {pendingApprovalsCount.count || 0}
+                </p>
+              </div>
+              <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${(pendingApprovalsCount.count || 0) > 0 ? 'bg-amber-50' : 'bg-slate-50'}`}>
+                <ClockIcon className={`w-6 h-6 ${(pendingApprovalsCount.count || 0) > 0 ? 'text-amber-600' : 'text-slate-400'}`} />
+              </div>
+            </div>
+          </a>
         </div>
 
         {/* Quick Actions */}

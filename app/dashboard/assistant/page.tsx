@@ -16,12 +16,17 @@ export default async function AssistantCoachDashboard() {
 
     const effectiveUserId = await getEffectiveUserId();
 
-    // Fetch assistant coach's info
+    // Fetch assistant coach's info including approval status
     const { data: userData } = await supabase
       .from('users')
-      .select('first_name')
+      .select('first_name, approval_status')
       .eq('id', effectiveUserId)
       .single();
+
+    // Redirect pending/rejected users to the pending page
+    if (userData?.approval_status === 'pending' || userData?.approval_status === 'rejected') {
+      redirect('/dashboard/assistant/pending');
+    }
 
     // Fetch assigned coaches
     const { data: coachAssignments } = await supabase

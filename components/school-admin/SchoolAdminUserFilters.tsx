@@ -67,6 +67,7 @@ export default function SchoolAdminUserFilters({ onFilterChange }: SchoolAdminUs
           >
             <option value="">All Roles</option>
             <option value="coach">Coach</option>
+            <option value="assistant_coach">Assistant Coach</option>
             <option value="parent">Parent</option>
             <option value="school_admin">School Admin</option>
           </select>

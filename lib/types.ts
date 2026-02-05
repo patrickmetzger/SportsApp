@@ -1,5 +1,7 @@
 export type UserRole = 'admin' | 'school_admin' | 'coach' | 'assistant_coach' | 'student' | 'parent';
 
+export type ApprovalStatus = 'pending' | 'approved' | 'rejected';
+
 export interface User {
   id: string;
   email: string;

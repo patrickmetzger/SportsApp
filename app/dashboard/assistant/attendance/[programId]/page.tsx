@@ -17,6 +17,17 @@ export default async function AssistantTakeAttendancePage({ params }: { params: 
       redirect('/login');
     }
 
+    // Check approval status - redirect pending users
+    const { data: userData } = await supabase
+      .from('users')
+      .select('approval_status')
+      .eq('id', effectiveUserId)
+      .single();
+
+    if (userData?.approval_status !== 'approved') {
+      redirect('/dashboard/assistant/pending');
+    }
+
     // Verify assistant is assigned to a coach who has this program
     const { data: coachAssignments } = await supabase
       .from('coach_assistants')

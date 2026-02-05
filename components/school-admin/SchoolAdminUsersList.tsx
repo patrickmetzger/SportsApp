@@ -19,6 +19,7 @@ export default function SchoolAdminUsersList({ users }: SchoolAdminUsersListProp
   const getRoleBadge = (role: string) => {
     const colors = {
       coach: 'bg-blue-100 text-blue-800',
+      assistant_coach: 'bg-cyan-100 text-cyan-800',
       parent: 'bg-green-100 text-green-800',
       school_admin: 'bg-purple-100 text-purple-800',
     };
@@ -26,7 +27,11 @@ export default function SchoolAdminUsersList({ users }: SchoolAdminUsersListProp
   };
 
   const getRoleLabel = (role: string) => {
-    return role === 'school_admin' ? 'School Admin' : role.charAt(0).toUpperCase() + role.slice(1);
+    const labels: Record<string, string> = {
+      school_admin: 'School Admin',
+      assistant_coach: 'Assistant Coach',
+    };
+    return labels[role] || role.charAt(0).toUpperCase() + role.slice(1);
   };
 
   const getUserStatus = (user: User) => {

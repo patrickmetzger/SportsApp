@@ -21,7 +21,7 @@ export async function GET() {
       .eq('id', effectiveUserId)
       .single();
 
-    if (!userData || userData.role !== 'coach') {
+    if (!userData || (userData.role !== 'coach' && userData.role !== 'assistant_coach')) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
@@ -65,7 +65,7 @@ export async function POST(request: NextRequest) {
       .eq('id', effectiveUserId)
       .single();
 
-    if (!userData || userData.role !== 'coach') {
+    if (!userData || (userData.role !== 'coach' && userData.role !== 'assistant_coach')) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 

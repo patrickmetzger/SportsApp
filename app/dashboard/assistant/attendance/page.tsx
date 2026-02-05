@@ -14,6 +14,17 @@ export default async function AssistantAttendancePage() {
       redirect('/login');
     }
 
+    // Check approval status - redirect pending users
+    const { data: userData } = await supabase
+      .from('users')
+      .select('approval_status')
+      .eq('id', effectiveUserId)
+      .single();
+
+    if (userData?.approval_status !== 'approved') {
+      redirect('/dashboard/assistant/pending');
+    }
+
     // Fetch assigned coaches
     const { data: coachAssignments } = await supabase
       .from('coach_assistants')

@@ -1,5 +1,6 @@
 import { requireRole, getEffectiveUserId } from '@/lib/auth';
 import { createClient } from '@/lib/supabase/server';
+import { createAdminClient } from '@/lib/supabase/admin';
 import { redirect } from 'next/navigation';
 import SchoolAdminUsersClient from '@/components/school-admin/SchoolAdminUsersClient';
 
@@ -7,6 +8,8 @@ export default async function SchoolAdminUsersPage() {
   try {
     await requireRole('school_admin');
     const supabase = await createClient();
+    // Use admin client to bypass RLS for fetching users
+    const adminClient = createAdminClient();
 
     // Get the effective user ID (handles impersonation)
     const effectiveUserId = await getEffectiveUserId();
@@ -21,8 +24,8 @@ export default async function SchoolAdminUsersPage() {
       redirect('/school-admin');
     }
 
-    // Fetch users at this school (coaches, parents, other school admins)
-    const { data: users, error } = await supabase
+    // Fetch users at this school (coaches, parents, other school admins, assistant coaches)
+    const { data: users, error } = await adminClient
       .from('users')
       .select(`
         *,
@@ -34,7 +37,7 @@ export default async function SchoolAdminUsersPage() {
         )
       `)
       .eq('school_id', userData.school_id)
-      .in('role', ['coach', 'parent', 'school_admin'])
+      .in('role', ['coach', 'assistant_coach', 'parent', 'school_admin'])
       .eq('archived', false)
       .order('created_at', { ascending: false });
 
