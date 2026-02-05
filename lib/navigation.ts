@@ -7,6 +7,7 @@ export interface NavItem {
 
 export const adminNavigation: NavItem[] = [
   { name: 'Dashboard', href: '/admin', icon: 'HomeIcon' },
+  { name: 'Pending Approvals', href: '/admin/pending-approvals', icon: 'ClockIcon' },
   { name: 'User Management', href: '/admin/users', icon: 'UsersIcon' },
   { name: 'Schools', href: '/admin/schools', icon: 'AcademicCapIcon' },
   { name: 'Programs', href: '/admin/programs', icon: 'TrophyIcon' },

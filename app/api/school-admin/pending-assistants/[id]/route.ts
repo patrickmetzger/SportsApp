@@ -19,14 +19,17 @@ export async function GET(
 
     const effectiveUserId = await getEffectiveUserId();
 
-    // Verify user is a school admin
+    // Verify user is an admin or school admin
     const { data: adminData } = await supabase
       .from('users')
       .select('role, school_id')
       .eq('id', effectiveUserId)
       .single();
 
-    if (!adminData || adminData.role !== 'school_admin') {
+    const isAdmin = adminData?.role === 'admin';
+    const isSchoolAdmin = adminData?.role === 'school_admin';
+
+    if (!adminData || (!isAdmin && !isSchoolAdmin)) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
@@ -51,9 +54,9 @@ export async function GET(
       return NextResponse.json({ error: 'Assistant not found' }, { status: 404 });
     }
 
-    // Verify the assistant belongs to the same school
+    // School admins can only view assistants from their school, admins can view all
     const school = Array.isArray(assistant.school) ? assistant.school[0] : assistant.school;
-    if (school?.id !== adminData.school_id) {
+    if (isSchoolAdmin && school?.id !== adminData.school_id) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
@@ -114,18 +117,21 @@ export async function PUT(
 
     const effectiveUserId = await getEffectiveUserId();
 
-    // Verify user is a school admin
+    // Verify user is an admin or school admin
     const { data: adminData } = await supabase
       .from('users')
       .select('role, school_id')
       .eq('id', effectiveUserId)
       .single();
 
-    if (!adminData || adminData.role !== 'school_admin') {
+    const isAdmin = adminData?.role === 'admin';
+    const isSchoolAdmin = adminData?.role === 'school_admin';
+
+    if (!adminData || (!isAdmin && !isSchoolAdmin)) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
-    // Get the assistant and verify they belong to the same school
+    // Get the assistant and verify permissions
     const { data: assistant } = await supabase
       .from('users')
       .select('id, school_id, approval_status')
@@ -137,7 +143,8 @@ export async function PUT(
       return NextResponse.json({ error: 'Assistant not found' }, { status: 404 });
     }
 
-    if (assistant.school_id !== adminData.school_id) {
+    // School admins can only modify assistants from their school, admins can modify all
+    if (isSchoolAdmin && assistant.school_id !== adminData.school_id) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 

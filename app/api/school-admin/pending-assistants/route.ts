@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { getEffectiveUserId } from '@/lib/auth';
 
-// GET - List pending assistant coaches for the school
+// GET - List pending assistant coaches for the school (or all schools for admins)
 export async function GET() {
   try {
     const supabase = await createClient();
@@ -14,23 +14,27 @@ export async function GET() {
 
     const effectiveUserId = await getEffectiveUserId();
 
-    // Verify user is a school admin and get their school
+    // Verify user is an admin or school admin
     const { data: adminData } = await supabase
       .from('users')
       .select('role, school_id')
       .eq('id', effectiveUserId)
       .single();
 
-    if (!adminData || adminData.role !== 'school_admin') {
+    const isAdmin = adminData?.role === 'admin';
+    const isSchoolAdmin = adminData?.role === 'school_admin';
+
+    if (!adminData || (!isAdmin && !isSchoolAdmin)) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
-    if (!adminData.school_id) {
+    // School admins need a school assigned
+    if (isSchoolAdmin && !adminData.school_id) {
       return NextResponse.json({ error: 'No school assigned' }, { status: 400 });
     }
 
-    // Get pending assistant coaches for this school
-    const { data: pendingAssistants, error } = await supabase
+    // Build query - admins see all, school admins see only their school
+    let query = supabase
       .from('users')
       .select(`
         id,
@@ -39,12 +43,18 @@ export async function GET() {
         last_name,
         approval_status,
         created_at,
-        school:school_id(name)
+        school:school_id(id, name)
       `)
-      .eq('school_id', adminData.school_id)
       .eq('role', 'assistant_coach')
       .eq('approval_status', 'pending')
       .order('created_at', { ascending: false });
+
+    // Filter by school for school admins
+    if (isSchoolAdmin) {
+      query = query.eq('school_id', adminData.school_id);
+    }
+
+    const { data: pendingAssistants, error } = await query;
 
     if (error) {
       console.error('Error fetching pending assistants:', error);
