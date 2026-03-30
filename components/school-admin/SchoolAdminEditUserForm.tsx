@@ -11,6 +11,7 @@ interface User {
   role: string;
   phone?: string;
   archived: boolean;
+  approval_status?: 'pending' | 'approved' | 'rejected';
 }
 
 interface SchoolAdminEditUserFormProps {
@@ -24,6 +25,7 @@ export default function SchoolAdminEditUserForm({ user, schoolId }: SchoolAdminE
   const [lastName, setLastName] = useState(user.last_name);
   const [phone, setPhone] = useState(user.phone || '');
   const [role, setRole] = useState<'coach' | 'assistant_coach' | 'parent' | 'school_admin'>(user.role as any);
+  const [approvalStatus, setApprovalStatus] = useState<'pending' | 'approved' | 'rejected'>(user.approval_status || 'approved');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const router = useRouter();
@@ -45,6 +47,7 @@ export default function SchoolAdminEditUserForm({ user, schoolId }: SchoolAdminE
           phone,
           role,
           school_id: schoolId,
+          approval_status: role === 'assistant_coach' ? approvalStatus : undefined,
         }),
       });
 
@@ -177,6 +180,28 @@ export default function SchoolAdminEditUserForm({ user, schoolId }: SchoolAdminE
               : 'User will remain assigned to your school'}
           </p>
         </div>
+
+        {role === 'assistant_coach' && (
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Approval Status
+            </label>
+            <select
+              value={approvalStatus}
+              onChange={(e) => setApprovalStatus(e.target.value as 'pending' | 'approved' | 'rejected')}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+            >
+              <option value="pending">Pending</option>
+              <option value="approved">Approved</option>
+              <option value="rejected">Rejected</option>
+            </select>
+            <p className="text-xs text-gray-500 mt-1">
+              {approvalStatus === 'pending' && 'Assistant is waiting for approval and has limited access'}
+              {approvalStatus === 'approved' && 'Assistant has full access to their dashboard'}
+              {approvalStatus === 'rejected' && 'Assistant has been rejected and cannot access the system'}
+            </p>
+          </div>
+        )}
 
         <div className="flex gap-3 pt-4">
           <button

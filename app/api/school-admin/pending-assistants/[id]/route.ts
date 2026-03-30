@@ -149,27 +149,47 @@ export async function PUT(
     }
 
     const body = await request.json();
-    const { action, reason } = body;
+    const { action, status, reason } = body;
 
-    if (!action || !['approve', 'reject'].includes(action)) {
-      return NextResponse.json({ error: 'Invalid action. Must be "approve" or "reject"' }, { status: 400 });
+    // Support both old action-based API and new status-based API
+    let newStatus: string;
+    if (status) {
+      // New API: directly set status
+      if (!['pending', 'approved', 'rejected'].includes(status)) {
+        return NextResponse.json({ error: 'Invalid status. Must be "pending", "approved", or "rejected"' }, { status: 400 });
+      }
+      newStatus = status;
+    } else if (action) {
+      // Legacy API: convert action to status
+      if (!['approve', 'reject'].includes(action)) {
+        return NextResponse.json({ error: 'Invalid action. Must be "approve" or "reject"' }, { status: 400 });
+      }
+      newStatus = action === 'approve' ? 'approved' : 'rejected';
+    } else {
+      return NextResponse.json({ error: 'Either status or action is required' }, { status: 400 });
     }
 
     const updateData: {
       approval_status: string;
       approved_by?: string | null;
-      approved_at?: string;
+      approved_at?: string | null;
       rejected_reason?: string | null;
     } = {
-      approval_status: action === 'approve' ? 'approved' : 'rejected',
+      approval_status: newStatus,
     };
 
-    if (action === 'approve') {
+    if (newStatus === 'approved') {
       updateData.approved_by = effectiveUserId || null;
       updateData.approved_at = new Date().toISOString();
       updateData.rejected_reason = null;
-    } else {
+    } else if (newStatus === 'rejected') {
       updateData.rejected_reason = reason || null;
+      // Keep approved_by/approved_at if previously approved, or clear if never approved
+    } else {
+      // pending - clear approval info
+      updateData.approved_by = null;
+      updateData.approved_at = null;
+      updateData.rejected_reason = null;
     }
 
     const { error: updateError } = await adminClient
@@ -188,11 +208,15 @@ export async function PUT(
       .update({ read_at: new Date().toISOString() })
       .eq('assistant_id', id);
 
+    const statusMessages: Record<string, string> = {
+      approved: 'Assistant coach has been approved',
+      rejected: 'Assistant coach application has been rejected',
+      pending: 'Assistant coach status has been set to pending',
+    };
+
     return NextResponse.json({
       success: true,
-      message: action === 'approve'
-        ? 'Assistant coach has been approved'
-        : 'Assistant coach application has been rejected',
+      message: statusMessages[newStatus] || 'Status updated successfully',
     });
   } catch (error: unknown) {
     console.error('Error updating assistant status:', error);

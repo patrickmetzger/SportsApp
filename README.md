@@ -57,7 +57,7 @@ A comprehensive sports management platform built with Next.js, TypeScript, Tailw
    ```
    NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
    NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
-   NEXT_PUBLIC_SITE_URL=http://localhost:3000
+   NEXT_PUBLIC_SITE_URL=https://sports-app-lime.vercel.app
    ```
 
 5. **Set up the database schema**

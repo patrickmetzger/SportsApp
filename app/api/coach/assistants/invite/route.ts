@@ -15,7 +15,8 @@ export async function POST(request: NextRequest) {
     }
 
     // Verify the user is a coach and get their school
-    const { data: coachData } = await supabase
+    // Use adminClient to bypass RLS (needed when admin is impersonating a coach)
+    const { data: coachData } = await adminClient
       .from('users')
       .select('role, school_id')
       .eq('id', effectiveUserId)

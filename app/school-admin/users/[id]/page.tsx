@@ -1,35 +1,44 @@
 import { requireRole, getEffectiveUserId } from '@/lib/auth';
 import { createClient } from '@/lib/supabase/server';
+import { createAdminClient } from '@/lib/supabase/admin';
 import { redirect } from 'next/navigation';
 import SchoolAdminEditUserForm from '@/components/school-admin/SchoolAdminEditUserForm';
 
 export default async function SchoolAdminEditUserPage({ params }: { params: Promise<{ id: string }> }) {
   try {
-    await requireRole('school_admin');
+    await requireRole(['school_admin', 'admin']);
     const supabase = await createClient();
+    const adminClient = createAdminClient();
 
     const { id } = await params;
 
     // Get the effective user ID (handles impersonation)
     const effectiveUserId = await getEffectiveUserId();
 
-    const { data: currentUserData } = await supabase
+    // Use adminClient to handle impersonation
+    const { data: currentUserData } = await adminClient
       .from('users')
-      .select('school_id')
+      .select('school_id, role')
       .eq('id', effectiveUserId)
       .single();
 
-    if (!currentUserData?.school_id) {
+    const isAdmin = currentUserData?.role === 'admin';
+
+    if (!currentUserData || (!isAdmin && !currentUserData.school_id)) {
       redirect('/school-admin');
     }
 
-    // Fetch the user to edit
-    const { data: userToEdit, error } = await supabase
+    // Fetch the user to edit - admins can edit any user, school admins only their school
+    let query = adminClient
       .from('users')
       .select('*')
-      .eq('id', id)
-      .eq('school_id', currentUserData.school_id) // Security: only same school
-      .single();
+      .eq('id', id);
+
+    if (!isAdmin && currentUserData.school_id) {
+      query = query.eq('school_id', currentUserData.school_id);
+    }
+
+    const { data: userToEdit, error } = await query.single();
 
     if (error || !userToEdit) {
       redirect('/school-admin/users');
@@ -49,7 +58,7 @@ export default async function SchoolAdminEditUserPage({ params }: { params: Prom
             </a>
             <h1 className="text-2xl font-bold text-gray-800 mt-2">Edit User</h1>
           </div>
-          <SchoolAdminEditUserForm user={userToEdit} schoolId={currentUserData.school_id} />
+          <SchoolAdminEditUserForm user={userToEdit} schoolId={userToEdit.school_id || currentUserData.school_id || ''} />
         </div>
       </div>
     );

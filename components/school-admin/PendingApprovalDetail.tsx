@@ -56,7 +56,9 @@ export default function PendingApprovalDetail({ assistant }: PendingApprovalDeta
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [showRejectModal, setShowRejectModal] = useState(false);
-  const [rejectReason, setRejectReason] = useState('');
+  const [showStatusModal, setShowStatusModal] = useState(false);
+  const [selectedStatus, setSelectedStatus] = useState(assistant.approval_status);
+  const [rejectReason, setRejectReason] = useState(assistant.rejected_reason || '');
   const [error, setError] = useState('');
 
   const handleApprove = async () => {
@@ -97,7 +99,7 @@ export default function PendingApprovalDetail({ assistant }: PendingApprovalDeta
       const res = await fetch(`/api/school-admin/pending-assistants/${assistant.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'reject', reason: rejectReason }),
+        body: JSON.stringify({ status: 'rejected', reason: rejectReason }),
       });
 
       const data = await res.json();
@@ -113,6 +115,44 @@ export default function PendingApprovalDetail({ assistant }: PendingApprovalDeta
     } finally {
       setLoading(false);
       setShowRejectModal(false);
+    }
+  };
+
+  const handleStatusChange = async () => {
+    if (selectedStatus === assistant.approval_status) {
+      setShowStatusModal(false);
+      return;
+    }
+
+    // If changing to rejected, show reject modal for reason
+    if (selectedStatus === 'rejected') {
+      setShowStatusModal(false);
+      setShowRejectModal(true);
+      return;
+    }
+
+    setLoading(true);
+    setError('');
+
+    try {
+      const res = await fetch(`/api/school-admin/pending-assistants/${assistant.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: selectedStatus }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error || 'Failed to update status');
+      }
+
+      router.refresh();
+      setShowStatusModal(false);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to update status');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -199,26 +239,41 @@ export default function PendingApprovalDetail({ assistant }: PendingApprovalDeta
         )}
 
         {/* Actions */}
-        {isPending && (
-          <div className="mt-6 pt-6 border-t border-gray-200 flex gap-4">
-            <button
-              onClick={handleApprove}
-              disabled={loading}
-              className="flex-1 md:flex-none bg-teal-600 text-white px-6 py-2 rounded-lg hover:bg-teal-700 transition disabled:opacity-50 flex items-center justify-center gap-2"
-            >
-              <CheckCircleIcon className="w-5 h-5" />
-              {loading ? 'Processing...' : 'Approve'}
-            </button>
-            <button
-              onClick={() => setShowRejectModal(true)}
-              disabled={loading}
-              className="flex-1 md:flex-none bg-white border border-red-300 text-red-600 px-6 py-2 rounded-lg hover:bg-red-50 transition disabled:opacity-50 flex items-center justify-center gap-2"
-            >
-              <XCircleIcon className="w-5 h-5" />
-              Reject
-            </button>
-          </div>
-        )}
+        <div className="mt-6 pt-6 border-t border-gray-200 flex flex-wrap gap-4">
+          {isPending && (
+            <>
+              <button
+                onClick={handleApprove}
+                disabled={loading}
+                className="flex-1 md:flex-none bg-teal-600 text-white px-6 py-2 rounded-lg hover:bg-teal-700 transition disabled:opacity-50 flex items-center justify-center gap-2"
+              >
+                <CheckCircleIcon className="w-5 h-5" />
+                {loading ? 'Processing...' : 'Approve'}
+              </button>
+              <button
+                onClick={() => setShowRejectModal(true)}
+                disabled={loading}
+                className="flex-1 md:flex-none bg-white border border-red-300 text-red-600 px-6 py-2 rounded-lg hover:bg-red-50 transition disabled:opacity-50 flex items-center justify-center gap-2"
+              >
+                <XCircleIcon className="w-5 h-5" />
+                Reject
+              </button>
+            </>
+          )}
+          <button
+            onClick={() => {
+              setSelectedStatus(assistant.approval_status);
+              setShowStatusModal(true);
+            }}
+            disabled={loading}
+            className="flex-1 md:flex-none bg-white border border-gray-300 text-gray-700 px-6 py-2 rounded-lg hover:bg-gray-50 transition disabled:opacity-50 flex items-center justify-center gap-2"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+            </svg>
+            Change Status
+          </button>
+        </div>
       </div>
 
       {/* Certifications Section */}
@@ -362,6 +417,51 @@ export default function PendingApprovalDetail({ assistant }: PendingApprovalDeta
                 className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition disabled:opacity-50"
               >
                 {loading ? 'Rejecting...' : 'Reject Application'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Change Status Modal */}
+      {showStatusModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-xl max-w-md w-full p-6">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">Change Status</h3>
+            <p className="text-gray-600 mb-4">
+              Select a new status for this assistant coach.
+            </p>
+
+            <div className="mb-4">
+              <label htmlFor="status-select" className="block text-sm font-medium text-gray-700 mb-1">
+                Status
+              </label>
+              <select
+                id="status-select"
+                value={selectedStatus}
+                onChange={(e) => setSelectedStatus(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+              >
+                <option value="pending">Pending</option>
+                <option value="approved">Approved</option>
+                <option value="rejected">Rejected</option>
+              </select>
+            </div>
+
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowStatusModal(false)}
+                disabled={loading}
+                className="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleStatusChange}
+                disabled={loading || selectedStatus === assistant.approval_status}
+                className="flex-1 px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition disabled:opacity-50"
+              >
+                {loading ? 'Updating...' : 'Update Status'}
               </button>
             </div>
           </div>

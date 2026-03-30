@@ -1,5 +1,6 @@
 import { requireRole } from '@/lib/auth';
 import { redirect } from 'next/navigation';
+import { createAdminClient } from '@/lib/supabase/admin';
 import {
   UsersIcon,
   AcademicCapIcon,
@@ -16,6 +17,15 @@ import {
 export default async function AdminDashboard() {
   try {
     await requireRole('admin');
+    const adminClient = createAdminClient();
+
+    // Fetch counts from the database
+    const [{ count: userCount }, { count: schoolCount }, { count: programCount }, { count: athleteCount }] = await Promise.all([
+      adminClient.from('users').select('*', { count: 'exact', head: true }),
+      adminClient.from('schools').select('*', { count: 'exact', head: true }),
+      adminClient.from('summer_programs').select('*', { count: 'exact', head: true }),
+      adminClient.from('program_registrations').select('*', { count: 'exact', head: true }),
+    ]);
 
     return (
       <div className="space-y-8">
@@ -31,7 +41,7 @@ export default async function AdminDashboard() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-slate-500">Total Users</p>
-                <p className="text-2xl font-bold text-slate-900 mt-1">2,847</p>
+                <p className="text-2xl font-bold text-slate-900 mt-1">{userCount ?? 0}</p>
               </div>
               <div className="w-12 h-12 bg-teal-50 rounded-xl flex items-center justify-center">
                 <UsersIcon className="w-6 h-6 text-teal-600" />
@@ -39,7 +49,7 @@ export default async function AdminDashboard() {
             </div>
             <div className="flex items-center gap-1 mt-3 text-sm">
               <ArrowTrendingUpIcon className="w-4 h-4 text-teal-500" />
-              <span className="text-teal-600 font-medium">12%</span>
+              <span className="text-teal-600 font-medium">&nbsp;</span>
               <span className="text-slate-400">vs last month</span>
             </div>
           </div>
@@ -48,7 +58,7 @@ export default async function AdminDashboard() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-slate-500">Active Schools</p>
-                <p className="text-2xl font-bold text-slate-900 mt-1">48</p>
+                <p className="text-2xl font-bold text-slate-900 mt-1">{schoolCount ?? 0}</p>
               </div>
               <div className="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center">
                 <AcademicCapIcon className="w-6 h-6 text-blue-600" />
@@ -56,7 +66,7 @@ export default async function AdminDashboard() {
             </div>
             <div className="flex items-center gap-1 mt-3 text-sm">
               <ArrowTrendingUpIcon className="w-4 h-4 text-teal-500" />
-              <span className="text-teal-600 font-medium">4</span>
+              <span className="text-teal-600 font-medium">&nbsp;</span>
               <span className="text-slate-400">new this month</span>
             </div>
           </div>
@@ -65,7 +75,7 @@ export default async function AdminDashboard() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-slate-500">Programs</p>
-                <p className="text-2xl font-bold text-slate-900 mt-1">156</p>
+                <p className="text-2xl font-bold text-slate-900 mt-1">{programCount ?? 0}</p>
               </div>
               <div className="w-12 h-12 bg-amber-50 rounded-xl flex items-center justify-center">
                 <TrophyIcon className="w-6 h-6 text-amber-600" />
@@ -80,7 +90,7 @@ export default async function AdminDashboard() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-slate-500">Active Athletes</p>
-                <p className="text-2xl font-bold text-slate-900 mt-1">1,892</p>
+                <p className="text-2xl font-bold text-slate-900 mt-1">{athleteCount ?? 0}</p>
               </div>
               <div className="w-12 h-12 bg-purple-50 rounded-xl flex items-center justify-center">
                 <UserGroupIcon className="w-6 h-6 text-purple-600" />
@@ -88,7 +98,7 @@ export default async function AdminDashboard() {
             </div>
             <div className="flex items-center gap-1 mt-3 text-sm">
               <ArrowTrendingUpIcon className="w-4 h-4 text-teal-500" />
-              <span className="text-teal-600 font-medium">8%</span>
+              <span className="text-teal-600 font-medium">&nbsp;</span>
               <span className="text-slate-400">vs last month</span>
             </div>
           </div>

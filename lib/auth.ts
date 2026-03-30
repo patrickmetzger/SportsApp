@@ -1,4 +1,5 @@
 import { createClient } from "./supabase/server";
+import { createAdminClient } from "./supabase/admin";
 import { UserRole } from "./types";
 import { cookies } from "next/headers";
 
@@ -40,14 +41,16 @@ export async function getEffectiveUserId(): Promise<string | null> {
 }
 
 export async function getUserRole(userId?: string): Promise<UserRole | null> {
-  const supabase = await createClient();
-
   // If no userId provided, use the effective user ID (handles impersonation)
   const effectiveUserId = userId || (await getEffectiveUserId());
 
   if (!effectiveUserId) return null;
 
-  const { data, error } = await supabase
+  // Check if we're impersonating - if so, use admin client to bypass RLS
+  const impersonating = await isImpersonating();
+  const client = impersonating ? createAdminClient() : await createClient();
+
+  const { data, error } = await client
     .from("users")
     .select("role, email")
     .eq("id", effectiveUserId)
