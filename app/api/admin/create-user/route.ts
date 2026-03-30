@@ -36,41 +36,41 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: `School is required for ${role === 'assistant_coach' ? 'assistant coaches' : role + 's'}` }, { status: 400 });
     }
 
-    // Create the user using Supabase Auth API
-    // Note: This requires the service role key for admin operations
-    const { data: newUser, error: signUpError } = await supabase.auth.signUp({
+    // Create the user using admin API (bypasses email rate limits)
+    const adminClient = createAdminClient();
+
+    const { data: adminUser, error: createError } = await adminClient.auth.admin.createUser({
       email,
       password,
-      options: {
-        data: {
-          first_name: firstName,
-          last_name: lastName,
-          role: role,
-        },
+      email_confirm: true,
+      user_metadata: {
+        first_name: firstName,
+        last_name: lastName,
+        role: role,
       },
     });
 
-    if (signUpError) {
-      return NextResponse.json({ error: signUpError.message }, { status: 400 });
+    if (createError) {
+      return NextResponse.json({ error: createError.message }, { status: 400 });
     }
 
-    // Create the user record using admin client to bypass RLS
-    if (newUser.user) {
-      const adminClient = createAdminClient();
+    const authUser = adminUser.user;
 
+    // Create the user record using admin client to bypass RLS
+    if (authUser) {
       // Wait a moment for any trigger to fire
       await new Promise(resolve => setTimeout(resolve, 500));
 
       const { data: userRecord } = await adminClient
         .from('users')
         .select('*')
-        .eq('id', newUser.user.id)
+        .eq('id', authUser.id)
         .single();
 
       if (!userRecord) {
         // If trigger didn't work, create manually
         await adminClient.from('users').insert({
-          id: newUser.user.id,
+          id: authUser.id,
           email,
           role,
           first_name: firstName,
@@ -82,13 +82,13 @@ export async function POST(request: NextRequest) {
         await adminClient
           .from('users')
           .update({ school_id, role, first_name: firstName, last_name: lastName })
-          .eq('id', newUser.user.id);
+          .eq('id', authUser.id);
       }
     }
 
     return NextResponse.json({
       success: true,
-      user: newUser.user
+      user: authUser,
     });
   } catch (error: any) {
     console.error('Error creating user:', error);
