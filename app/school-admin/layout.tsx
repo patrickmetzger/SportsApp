@@ -3,6 +3,8 @@ import { createClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import { schoolAdminNavigation, getRoleDisplayName } from '@/lib/navigation';
+import { generateCSSVariables } from '@/lib/colorPalette';
+import './school-admin.css';
 
 export default async function SchoolAdminLayout({
   children,
@@ -22,7 +24,7 @@ export default async function SchoolAdminLayout({
 
     const { data: userData } = await supabase
       .from('users')
-      .select('email, first_name, last_name, school_id, school:school_id(id, name, logo_url)')
+      .select('email, first_name, last_name, school_id, school:school_id(id, name, logo_url, primary_color, secondary_color)')
       .eq('id', effectiveUserId)
       .single();
 
@@ -57,19 +59,33 @@ export default async function SchoolAdminLayout({
       ? `${userData.first_name} ${userData.last_name}`
       : userData?.email || 'School Admin';
 
+    // Generate CSS variables from school colors
+    const cssVariables = school?.primary_color && school?.secondary_color
+      ? generateCSSVariables(school.primary_color, school.secondary_color)
+      : '';
+
     return (
-      <DashboardLayout
-        navigation={schoolAdminNavigation}
-        user={{
-          email: userData?.email || '',
-          name: userName,
-          role: getRoleDisplayName('school_admin'),
-        }}
-        schoolName={school?.name}
-        breadcrumbs={[{ label: 'Dashboard', href: '/school-admin' }]}
-      >
-        {children}
-      </DashboardLayout>
+      <div style={cssVariables ? { ...Object.fromEntries(
+        cssVariables.trim().split(';')
+          .filter(s => s.trim())
+          .map(s => {
+            const [key, value] = s.split(':').map(p => p.trim());
+            return [key, value];
+          })
+      )} as React.CSSProperties : undefined}>
+        <DashboardLayout
+          navigation={schoolAdminNavigation}
+          user={{
+            email: userData?.email || '',
+            name: userName,
+            role: getRoleDisplayName('school_admin'),
+          }}
+          schoolName={school?.name}
+          breadcrumbs={[{ label: 'Dashboard', href: '/school-admin' }]}
+        >
+          {children}
+        </DashboardLayout>
+      </div>
     );
   } catch (error) {
     console.error('School admin layout error:', error);
