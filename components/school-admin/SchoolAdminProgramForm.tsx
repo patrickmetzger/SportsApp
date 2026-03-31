@@ -198,7 +198,7 @@ export default function SchoolAdminProgramForm({
           <h2 className="text-xl font-bold text-gray-900 mb-4">Assign Coaches</h2>
 
           {coaches.length === 0 ? (
-            <p className="text-gray-600">No coaches available at your school. Create coach users first.</p>
+            <p className="text-gray-600">No coaches available at your school. Create a coach first.</p>
           ) : (
             <div className="space-y-2">
               {coaches.map((coach) => (
