@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
+import { createAdminClient } from '@/lib/supabase/admin';
 
 export async function POST(request: NextRequest) {
   try {
@@ -100,15 +101,16 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Associate coaches with the program
+    // Associate coaches with the program using admin client to bypass RLS
     if (coach_ids && coach_ids.length > 0) {
+      const adminClient = createAdminClient();
       const coachAssociations = coach_ids.map((coachId: string) => ({
         program_id: program.id,
         coach_id: coachId,
         role: 'coach',
       }));
 
-      const { error: coachError } = await supabase
+      const { error: coachError } = await adminClient
         .from('program_coaches')
         .insert(coachAssociations);
 

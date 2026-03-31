@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 
 interface Coach {
   id: string;
@@ -142,6 +143,7 @@ export default function SchoolAdminProgramForm({
               </label>
               <input
                 type="date"
+                title="The first date the program runs."
                 value={startDate}
                 onChange={(e) => setStartDate(e.target.value)}
                 required
@@ -155,6 +157,7 @@ export default function SchoolAdminProgramForm({
               </label>
               <input
                 type="date"
+                title="The last date the program runs. Must be after the start date."
                 value={endDate}
                 onChange={(e) => setEndDate(e.target.value)}
                 required
@@ -168,6 +171,7 @@ export default function SchoolAdminProgramForm({
               </label>
               <input
                 type="date"
+                title="The last date participants can register for the program. Must be before the start date."
                 value={deadline}
                 onChange={(e) => setDeadline(e.target.value)}
                 required
@@ -197,6 +201,10 @@ export default function SchoolAdminProgramForm({
         <div>
           <h2 className="text-xl font-bold text-gray-900 mb-4">Assign Coaches</h2>
 
+          <pre>
+            {JSON.stringify(program, null, 2)}
+          </pre>
+
           {coaches.length === 0 ? (
             <p className="text-gray-600">No coaches available at your school. Create a coach first.</p>
           ) : (
@@ -210,6 +218,7 @@ export default function SchoolAdminProgramForm({
                     type="checkbox"
                     checked={selectedCoachIds.includes(coach.id)}
                     onChange={() => toggleCoach(coach.id)}
+                    title={`Select ${coach.first_name} ${coach.last_name}`}
                     className="w-4 h-4 text-green-600 border-gray-300 rounded focus:ring-green-500"
                   />
                   <span className="ml-3 text-gray-900">
@@ -234,12 +243,12 @@ export default function SchoolAdminProgramForm({
           >
             {loading ? 'Saving...' : mode === 'create' ? 'Create Program' : 'Save Changes'}
           </button>
-          <a
+          <Link
             href="/school-admin/programs"
             className="flex-1 bg-gray-200 text-gray-700 py-3 rounded-lg hover:bg-gray-300 transition text-center font-semibold flex items-center justify-center"
           >
             Cancel
-          </a>
+          </Link>
         </div>
       </form>
     </div>
