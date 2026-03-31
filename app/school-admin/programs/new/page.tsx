@@ -1,5 +1,6 @@
 import { requireRole, getEffectiveUserId } from '@/lib/auth';
 import { createClient } from '@/lib/supabase/server';
+import { createAdminClient } from '@/lib/supabase/admin';
 import { redirect } from 'next/navigation';
 import SchoolAdminProgramForm from '@/components/school-admin/SchoolAdminProgramForm';
 
@@ -21,11 +22,12 @@ export default async function SchoolAdminNewProgramPage() {
       redirect('/school-admin');
     }
 
-    // Fetch coaches at this school for assignment
-    const { data: coaches } = await supabase
+    // Fetch coaches at this school for assignment (use admin client to bypass RLS)
+    const adminClient = createAdminClient();
+    const { data: coaches } = await adminClient
       .from('users')
       .select('id, first_name, last_name, email')
-      .eq('role', 'coach')
+      .in('role', ['coach', 'assistant_coach'])
       .eq('school_id', userData.school_id)
       .order('last_name');
 
