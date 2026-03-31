@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import ImageUpload from '@/components/admin/ImageUpload';
 
 interface Coach {
   id: string;
@@ -40,6 +41,8 @@ export default function SchoolAdminProgramForm({
     program?.registration_deadline ? program.registration_deadline.split('T')[0] : ''
   );
   const [cost, setCost] = useState(program?.cost?.toString() || '');
+  const [headerImageUrl, setHeaderImageUrl] = useState(program?.header_image_url || '');
+  const [programImageUrl, setProgramImageUrl] = useState(program?.program_image_url || '');
   const [selectedCoachIds, setSelectedCoachIds] = useState<string[]>(
     program?.program_coaches?.map((c: any) => c.coach_id) || []
   );
@@ -70,6 +73,8 @@ export default function SchoolAdminProgramForm({
           end_date: endDate,
           registration_deadline: deadline,
           cost: parseFloat(cost),
+          header_image_url: headerImageUrl,
+          program_image_url: programImageUrl,
           coach_ids: selectedCoachIds,
           school_id: schoolId,
           requirements: [],
@@ -197,13 +202,38 @@ export default function SchoolAdminProgramForm({
           </div>
         </div>
 
+        {/* Images */}
+        <div>
+          <h2 className="text-xl font-bold text-gray-900 mb-4">Images</h2>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Header Image
+              </label>
+              <ImageUpload
+                currentImageUrl={headerImageUrl}
+                onUploadComplete={setHeaderImageUrl}
+                folder="headers"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Program Card Image
+              </label>
+              <ImageUpload
+                currentImageUrl={programImageUrl}
+                onUploadComplete={setProgramImageUrl}
+                folder="programs"
+              />
+            </div>
+          </div>
+        </div>
+
         {/* Coaches */}
         <div>
           <h2 className="text-xl font-bold text-gray-900 mb-4">Assign Coaches</h2>
-
-          <pre>
-            {JSON.stringify(program, null, 2)}
-          </pre>
 
           {coaches.length === 0 ? (
             <p className="text-gray-600">No coaches available at your school. Create a coach first.</p>
