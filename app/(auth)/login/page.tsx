@@ -78,8 +78,8 @@ export default function LoginPage() {
               </div>
               <h2 className="text-2xl font-bold text-slate-900 mb-2">Check your inbox</h2>
               <p className="text-slate-500 mb-6">
-                We sent a magic link to{' '}
-                <span className="font-medium text-slate-700">{email}</span>
+                If <span className="font-medium text-slate-700">{email}</span> has an account,
+                we've sent a magic link. Check your inbox.
               </p>
               <button
                 onClick={() => { setSent(false); setEmail(''); }}
