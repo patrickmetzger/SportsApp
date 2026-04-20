@@ -17,6 +17,9 @@ CREATE POLICY "Anyone can view programs" ON summer_programs
 CREATE POLICY "Coaches can view their submitted programs" ON summer_programs
   FOR SELECT USING (submitted_by = auth.uid());
 
+-- Drop old coach INSERT policy from migration 15 (had no status check, allowing status bypass)
+DROP POLICY IF EXISTS "Coaches can create programs" ON summer_programs;
+
 -- Coaches can submit programs for their own school
 CREATE POLICY "Coaches can submit programs" ON summer_programs
   FOR INSERT WITH CHECK (
@@ -38,4 +41,17 @@ CREATE POLICY "Coaches can resubmit their programs" ON summer_programs
   ) WITH CHECK (
     status = 'pending'
     AND submitted_by = auth.uid()
+  );
+
+-- Update migration-15 assigned-programs SELECT policy to only show approved programs to assigned coaches
+-- (Coaches can still see their own submitted programs via the policy above, regardless of status)
+DROP POLICY IF EXISTS "Coaches can view their assigned programs" ON summer_programs;
+CREATE POLICY "Coaches can view their assigned programs" ON summer_programs
+  FOR SELECT USING (
+    EXISTS (
+      SELECT 1 FROM program_coaches
+      WHERE program_coaches.coach_id = auth.uid()
+        AND program_coaches.program_id = summer_programs.id
+    )
+    AND status = 'approved'
   );
