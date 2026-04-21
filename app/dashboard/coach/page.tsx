@@ -29,8 +29,8 @@ export default async function CoachDashboard() {
       .eq('id', effectiveUserId)
       .single();
 
-    // Fetch programs assigned to this coach
-    const { data: programsData } = await supabase
+    // Fetch programs assigned to this coach via program_coaches
+    const { data: assignedData } = await supabase
       .from('program_coaches')
       .select(`
         program_id,
@@ -42,12 +42,28 @@ export default async function CoachDashboard() {
           end_date,
           registration_deadline,
           cost,
-          header_image_url
+          header_image_url,
+          status,
+          rejection_reason,
+          submitted_by
         )
       `)
       .eq('coach_id', effectiveUserId);
 
-    const programs = programsData?.map(pc => pc.summer_programs).filter(Boolean) || [];
+    // Fetch programs submitted by this coach (catches pending/rejected not yet in program_coaches visible set)
+    const { data: submittedData } = await supabase
+      .from('summer_programs')
+      .select('id, name, description, start_date, end_date, registration_deadline, cost, header_image_url, status, rejection_reason, submitted_by')
+      .eq('submitted_by', effectiveUserId);
+
+    // Merge by ID — submitted version takes priority (has all status fields)
+    const assignedPrograms = (assignedData?.map(pc => pc.summer_programs).filter(Boolean) || []) as any[];
+    const submittedPrograms = submittedData || [];
+    const submittedIds = new Set(submittedPrograms.map((p: any) => p.id));
+    const programs = [
+      ...submittedPrograms,
+      ...assignedPrograms.filter((p: any) => !submittedIds.has(p.id)),
+    ];
 
     // Calculate program stats
     const now = new Date();
@@ -121,9 +137,12 @@ export default async function CoachDashboard() {
         <div id="programs">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-lg font-semibold text-slate-900">Your Programs</h2>
-            <span className="text-sm text-slate-500">
-              {programs.length} {programs.length === 1 ? 'program' : 'programs'} assigned
-            </span>
+            <a
+              href="/dashboard/coach/programs/new"
+              className="px-4 py-2 bg-teal-500 text-white text-sm font-medium rounded-lg hover:bg-teal-600 transition-colors"
+            >
+              + Submit Program
+            </a>
           </div>
           <CoachProgramsList programs={programs as any} />
         </div>
