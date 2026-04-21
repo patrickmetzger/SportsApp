@@ -16,6 +16,7 @@ interface ProgramFormProps {
   onSubmit: (data: any) => Promise<void>;
   loading: boolean;
   submitLabel: string;
+  schoolId?: string;
 }
 
 export default function ProgramForm({
@@ -23,6 +24,7 @@ export default function ProgramForm({
   onSubmit,
   loading,
   submitLabel,
+  schoolId,
 }: ProgramFormProps) {
   const [name, setName] = useState(program?.name || '');
   const [description, setDescription] = useState(program?.description || '');
@@ -54,14 +56,24 @@ export default function ProgramForm({
   const [genderRestriction, setGenderRestriction] = useState(program?.gender_restriction || 'any');
   const [eligibilityNotes, setEligibilityNotes] = useState(program?.eligibility_notes || '');
 
-  // Fetch available coaches
+  // Fetch available coaches, filtered by school if provided
   useEffect(() => {
     const fetchCoaches = async () => {
+      setLoadingCoaches(true);
       try {
-        const response = await fetch('/api/admin/coaches');
+        const url = schoolId
+          ? `/api/admin/coaches?school_id=${schoolId}`
+          : '/api/admin/coaches';
+        const response = await fetch(url);
         if (response.ok) {
           const data = await response.json();
           setCoaches(data.coaches || []);
+          // Clear selected coaches that don't belong to the new school
+          if (schoolId) {
+            setSelectedCoachIds(prev =>
+              prev.filter(id => (data.coaches || []).some((c: Coach) => c.id === id))
+            );
+          }
         }
       } catch (error) {
         console.error('Failed to fetch coaches:', error);
@@ -71,7 +83,7 @@ export default function ProgramForm({
     };
 
     fetchCoaches();
-  }, []);
+  }, [schoolId]);
 
   const toggleCoach = (coachId: string) => {
     setSelectedCoachIds(prev =>

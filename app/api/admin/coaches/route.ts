@@ -1,7 +1,7 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
     const supabase = await createClient();
 
@@ -46,6 +46,14 @@ export async function GET() {
     // School admins only see coaches at their school
     if (userData.role === 'school_admin' && userData.school_id) {
       query = query.eq('school_id', userData.school_id);
+    }
+
+    // Admins can filter by school via query param
+    if (userData.role === 'admin') {
+      const schoolIdParam = request.nextUrl.searchParams.get('school_id');
+      if (schoolIdParam) {
+        query = query.eq('school_id', schoolIdParam);
+      }
     }
 
     const { data: coaches, error } = await query.order('last_name');
