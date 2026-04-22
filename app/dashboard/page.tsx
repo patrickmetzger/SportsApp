@@ -1,11 +1,24 @@
 import { redirect } from 'next/navigation';
 import { getCurrentUser, getUserRole } from '@/lib/auth';
+import { createClient } from '@/lib/supabase/server';
 
 export default async function DashboardPage() {
   const user = await getCurrentUser();
 
   if (!user) {
     redirect('/login');
+  }
+
+  // If the user's profile is incomplete (empty first_name), send them to setup
+  const supabase = await createClient();
+  const { data: userData } = await supabase
+    .from('users')
+    .select('first_name')
+    .eq('id', user.id)
+    .single();
+
+  if (userData && !userData.first_name) {
+    redirect('/auth/setup');
   }
 
   // getUserRole now automatically handles impersonation
