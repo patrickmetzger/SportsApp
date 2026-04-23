@@ -6,17 +6,18 @@ import CoachProgramForm from '@/components/coach/CoachProgramForm';
 export default async function CoachEditProgramPage({
   params,
 }: {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }) {
   try {
     await requireRole('coach');
     const supabase = await createClient();
     const effectiveUserId = await getEffectiveUserId();
+    const { id } = await params;
 
     const { data: program } = await supabase
       .from('summer_programs')
       .select('*')
-      .eq('id', params.id)
+      .eq('id', id)
       .single();
 
     // Only allow editing if this coach submitted the program and it's pending/rejected
