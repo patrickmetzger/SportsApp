@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { NextRequest, NextResponse } from "next/server";
 import { resend } from "@/lib/resend";
 import { createNotification } from "@/lib/notifications";
@@ -132,8 +133,9 @@ export async function POST(request: NextRequest) {
       console.error("Failed to send email:", emailError);
     }
 
-    // Update communication status
-    await supabase
+    // Update communication status using admin client to bypass RLS
+    const adminClient = createAdminClient();
+    await adminClient
       .from("communications")
       .update({
         status: emailSent ? 'sent' : 'failed',

@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { NextRequest, NextResponse } from "next/server";
 import { resend } from "@/lib/resend";
 
@@ -165,9 +166,10 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Update communication status
+    // Update communication status using admin client to bypass RLS
     const status = emailErrors.length === 0 ? 'sent' : 'partial';
-    const { error: updateError } = await supabase
+    const adminClient = createAdminClient();
+    const { error: updateError } = await adminClient
       .from("communications")
       .update({
         status: status,
