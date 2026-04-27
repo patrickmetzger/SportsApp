@@ -113,7 +113,7 @@ export default function SendCommunicationForm({ currentUserRole, currentUserScho
   const allRecipients = [
     ...filteredCoaches.map((c) => ({ ...c, type: 'coach' as const })),
     ...filteredParents.map((p) => ({ ...p, type: 'parent' as const })),
-  ].sort((a, b) => a.last_name.localeCompare(b.last_name));
+  ].sort((a, b) => (a.last_name || '').localeCompare(b.last_name || ''));
 
   const handleRecipientTypeChange = (type: 'individual' | 'school_coaches' | 'school_parents' | 'all_coaches') => {
     setRecipientType(type);
