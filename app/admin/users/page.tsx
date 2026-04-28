@@ -9,20 +9,28 @@ export default async function UsersPage() {
     // Use admin client to bypass RLS and see all users
     const adminClient = createAdminClient();
 
-    // Fetch all users (excluding archived) with school information
-    const { data: users, error } = await adminClient
-      .from('users')
-      .select(`
-        *,
-        school:school_id (
-          id,
-          name,
-          city,
-          state
-        )
-      `)
-      .or('archived.eq.false,archived.is.null')
-      .order('created_at', { ascending: false });
+    const selectFields = `
+      *,
+      school:school_id (
+        id,
+        name,
+        city,
+        state
+      )
+    `;
+
+    const [{ data: users, error }, { data: archivedUsers }] = await Promise.all([
+      adminClient
+        .from('users')
+        .select(selectFields)
+        .or('archived.eq.false,archived.is.null')
+        .order('created_at', { ascending: false }),
+      adminClient
+        .from('users')
+        .select(selectFields)
+        .eq('archived', true)
+        .order('created_at', { ascending: false }),
+    ]);
 
     if (error) {
       console.error('Error fetching users:', error);
@@ -69,7 +77,7 @@ export default async function UsersPage() {
             </div>
 
             <div className="p-6">
-              <UsersPageClient initialUsers={users || []} />
+              <UsersPageClient initialUsers={users || []} archivedUsers={archivedUsers || []} />
             </div>
           </div>
         </main>
