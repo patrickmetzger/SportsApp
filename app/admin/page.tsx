@@ -8,8 +8,6 @@ import {
   ChatBubbleLeftRightIcon,
   ChartBarIcon,
   Cog6ToothIcon,
-  BuildingOfficeIcon,
-  CreditCardIcon,
   ArrowTrendingUpIcon,
   UserGroupIcon,
 } from '@heroicons/react/24/outline';
@@ -21,7 +19,7 @@ export default async function AdminDashboard() {
 
     // Fetch counts from the database
     const [{ count: userCount }, { count: schoolCount }, { count: programCount }, { count: athleteCount }] = await Promise.all([
-      adminClient.from('users').select('*', { count: 'exact', head: true }),
+      adminClient.from('users').select('*', { count: 'exact', head: true }).eq('archived', false),
       adminClient.from('schools').select('*', { count: 'exact', head: true }),
       adminClient.from('summer_programs').select('*', { count: 'exact', head: true }),
       adminClient.from('program_registrations').select('*', { count: 'exact', head: true }),
@@ -40,7 +38,7 @@ export default async function AdminDashboard() {
           <div className="bg-white rounded-xl p-6 shadow-card">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-slate-500">Total Users</p>
+                <p className="text-sm text-slate-500">Total Active Users</p>
                 <p className="text-2xl font-bold text-slate-900 mt-1">{userCount ?? 0}</p>
               </div>
               <div className="w-12 h-12 bg-teal-50 rounded-xl flex items-center justify-center">
