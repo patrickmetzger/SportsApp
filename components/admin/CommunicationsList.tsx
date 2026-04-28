@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 
 interface User {
   id: string;
@@ -19,6 +20,7 @@ interface Communication {
   message: string;
   delivery_method: string;
   status: string;
+  archived: boolean;
   sent_at?: string;
   created_at: string;
 }
@@ -28,7 +30,10 @@ interface CommunicationsListProps {
 }
 
 export default function CommunicationsList({ communications }: CommunicationsListProps) {
+  const router = useRouter();
   const [selectedCommunication, setSelectedCommunication] = useState<Communication | null>(null);
+  const [showArchived, setShowArchived] = useState(false);
+  const [archivingId, setArchivingId] = useState<string | null>(null);
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleString('en-US', {
@@ -83,6 +88,21 @@ export default function CommunicationsList({ communications }: CommunicationsLis
     );
   };
 
+  const handleArchive = async (id: string) => {
+    setArchivingId(id);
+    try {
+      const res = await fetch(`/api/admin/communications/${id}/archive`, { method: 'PATCH' });
+      if (res.ok) {
+        router.refresh();
+      }
+    } finally {
+      setArchivingId(null);
+    }
+  };
+
+  const visible = communications.filter((c) => showArchived || !c.archived);
+  const archivedCount = communications.filter((c) => c.archived).length;
+
   if (communications.length === 0) {
     return (
       <div className="text-center py-12 text-gray-500">
@@ -94,6 +114,20 @@ export default function CommunicationsList({ communications }: CommunicationsLis
 
   return (
     <>
+      <div className="flex justify-between items-center mb-4">
+        <p className="text-sm text-gray-500">
+          {visible.length} communication{visible.length !== 1 ? 's' : ''}
+          {!showArchived && archivedCount > 0 && ` · ${archivedCount} archived`}
+        </p>
+        {archivedCount > 0 && (
+          <button
+            onClick={() => setShowArchived((v) => !v)}
+            className="text-sm text-blue-600 hover:text-blue-800"
+          >
+            {showArchived ? 'Hide Archived' : 'Show Archived'}
+          </button>
+        )}
+      </div>
       <div className="overflow-x-auto">
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-50">
@@ -122,8 +156,8 @@ export default function CommunicationsList({ communications }: CommunicationsLis
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
-            {communications.map((comm) => (
-              <tr key={comm.id} className="hover:bg-gray-50">
+            {visible.map((comm) => (
+              <tr key={comm.id} className={`hover:bg-gray-50${comm.archived ? ' opacity-60' : ''}`}>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                   {comm.sent_at ? formatDate(comm.sent_at) : formatDate(comm.created_at)}
                 </td>
@@ -150,12 +184,26 @@ export default function CommunicationsList({ communications }: CommunicationsLis
                   {getStatusBadge(comm.status)}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm">
-                  <button
-                    onClick={() => setSelectedCommunication(comm)}
-                    className="text-blue-600 hover:text-blue-800 font-medium"
-                  >
-                    View Details
-                  </button>
+                  <div className="flex items-center gap-3">
+                    <button
+                      onClick={() => setSelectedCommunication(comm)}
+                      className="text-blue-600 hover:text-blue-800 font-medium"
+                    >
+                      View
+                    </button>
+                    {!comm.archived && (
+                      <button
+                        onClick={() => handleArchive(comm.id)}
+                        disabled={archivingId === comm.id}
+                        className="text-gray-400 hover:text-gray-600 font-medium disabled:opacity-50"
+                      >
+                        {archivingId === comm.id ? 'Archiving…' : 'Archive'}
+                      </button>
+                    )}
+                    {comm.archived && (
+                      <span className="text-xs text-gray-400 italic">Archived</span>
+                    )}
+                  </div>
                 </td>
               </tr>
             ))}
