@@ -1,22 +1,27 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
+import { getEffectiveUserId } from '@/lib/auth';
 
 export async function POST(request: NextRequest) {
   try {
     const supabase = await createClient();
 
-    // Verify the current user is a school admin
+    // Verify the current user is authenticated
     const { data: { user } } = await supabase.auth.getUser();
 
     if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { data: currentUserData } = await supabase
+    // Use effective user ID to handle impersonation correctly
+    const effectiveUserId = await getEffectiveUserId();
+    const adminClient = createAdminClient();
+
+    const { data: currentUserData } = await adminClient
       .from('users')
       .select('role, school_id')
-      .eq('id', user.id)
+      .eq('id', effectiveUserId)
       .single();
 
     if (!currentUserData || currentUserData.role !== 'school_admin' || !currentUserData.school_id) {
@@ -64,8 +69,6 @@ export async function POST(request: NextRequest) {
 
     // Create a pending user record with school_id using admin client to bypass RLS
     if (inviteData.user) {
-      const adminClient = createAdminClient();
-
       const { error: userInsertError } = await adminClient.from('users').upsert({
         id: inviteData.user.id,
         email,
