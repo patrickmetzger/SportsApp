@@ -6,7 +6,42 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { registrationSchema, type RegistrationFormData } from '@/lib/validation/programSchema';
 
-export default function RegistrationForm({ programId }: { programId: string }) {
+interface Program {
+  id: string;
+  min_grade?: number | null;
+  max_grade?: number | null;
+  min_age?: number | null;
+  max_age?: number | null;
+  gender_restriction?: string | null;
+}
+
+function getAgeFromDob(dob: string): number {
+  const today = new Date();
+  const birth = new Date(dob);
+  let age = today.getFullYear() - birth.getFullYear();
+  const m = today.getMonth() - birth.getMonth();
+  if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) age--;
+  return age;
+}
+
+function isChildEligible(child: any, program: Program): { eligible: boolean; reason?: string } {
+  if (program.min_grade != null && (child.grade == null || child.grade < program.min_grade))
+    return { eligible: false, reason: `Grade ${program.min_grade}+ required` };
+  if (program.max_grade != null && (child.grade == null || child.grade > program.max_grade))
+    return { eligible: false, reason: `Grade ${program.max_grade} or below required` };
+  if (child.date_of_birth) {
+    const age = getAgeFromDob(child.date_of_birth);
+    if (program.min_age != null && age < program.min_age)
+      return { eligible: false, reason: `Must be at least ${program.min_age} years old` };
+    if (program.max_age != null && age > program.max_age)
+      return { eligible: false, reason: `Must be ${program.max_age} or younger` };
+  }
+  if (program.gender_restriction && program.gender_restriction !== 'any' && child.gender && child.gender !== program.gender_restriction)
+    return { eligible: false, reason: `Program is for ${program.gender_restriction} students only` };
+  return { eligible: true };
+}
+
+export default function RegistrationForm({ programId, program }: { programId: string; program: Program }) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -17,6 +52,7 @@ export default function RegistrationForm({ programId }: { programId: string }) {
   const [isLoggedInParent, setIsLoggedInParent] = useState(false);
   const [loadingUser, setLoadingUser] = useState(true);
   const [children, setChildren] = useState<any[]>([]);
+  const [registeredStudentIds, setRegisteredStudentIds] = useState<Set<string>>(new Set());
   const [useExistingChild, setUseExistingChild] = useState(true);
   const [selectedChildId, setSelectedChildId] = useState('');
 
@@ -47,21 +83,39 @@ export default function RegistrationForm({ programId }: { programId: string }) {
             setValue('parentName', fullName);
             setValue('parentEmail', data.user.email);
 
-            // Fetch children
-            const childrenResponse = await fetch('/api/parent/children');
+            // Fetch children and already-registered student IDs in parallel
+            const [childrenResponse, registeredResponse] = await Promise.all([
+              fetch('/api/parent/children'),
+              fetch(`/api/programs/${programId}/registered-children`),
+            ]);
+
             if (childrenResponse.ok) {
               const childrenData = await childrenResponse.json();
-              if (childrenData.children && childrenData.children.length > 0) {
-                setChildren(childrenData.children);
-                // Auto-select first child
-                const firstChild = childrenData.children[0];
-                setSelectedChildId(firstChild.id);
-                setValue('studentName', `${firstChild.first_name} ${firstChild.last_name}`);
-                if (firstChild.student_id) {
-                  setValue('studentId', firstChild.student_id);
-                }
+              const allChildren: any[] = childrenData.children || [];
+              setChildren(allChildren);
+
+              // Build set of already-registered student_ids
+              const registered = new Set<string>();
+              if (registeredResponse.ok) {
+                const regData = await registeredResponse.json();
+                (regData.children || []).forEach((r: any) => {
+                  if (r.student_id) registered.add(r.student_id);
+                });
               }
-              // No children: keep useExistingChild true so we show the prompt
+              setRegisteredStudentIds(registered);
+
+              // Find first eligible, unregistered child to auto-select
+              const available = allChildren.filter((c) =>
+                !(c.student_id && registered.has(c.student_id)) &&
+                isChildEligible(c, program).eligible
+              );
+
+              if (available.length > 0) {
+                const first = available[0];
+                setSelectedChildId(first.id);
+                setValue('studentName', `${first.first_name} ${first.last_name}`);
+                if (first.student_id) setValue('studentId', first.student_id);
+              }
             }
           }
         }
@@ -203,6 +257,11 @@ export default function RegistrationForm({ programId }: { programId: string }) {
     );
   }
 
+  const availableChildren = children.filter((c) =>
+    !(c.student_id && registeredStudentIds.has(c.student_id)) &&
+    isChildEligible(c, program).eligible
+  );
+
   // Logged-in parent with no children — gate the form
   if (!loadingUser && isLoggedInParent && children.length === 0) {
     const returnTo = typeof window !== 'undefined' ? window.location.pathname : '';
@@ -222,6 +281,23 @@ export default function RegistrationForm({ programId }: { programId: string }) {
     );
   }
 
+  // Logged-in parent but no eligible/unregistered children
+  if (!loadingUser && isLoggedInParent && children.length > 0 && availableChildren.length === 0) {
+    const allRegistered = children.every((c) => c.student_id && registeredStudentIds.has(c.student_id));
+    return (
+      <div className="bg-gray-50 border border-gray-200 rounded-lg p-5 space-y-2">
+        <p className="text-sm font-semibold text-gray-900">
+          {allRegistered ? 'Already registered' : 'No eligible children'}
+        </p>
+        <p className="text-sm text-gray-600">
+          {allRegistered
+            ? 'All of your children are already registered for this program.'
+            : 'None of your children meet the eligibility requirements for this program.'}
+        </p>
+      </div>
+    );
+  }
+
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
       {error && (
@@ -230,8 +306,8 @@ export default function RegistrationForm({ programId }: { programId: string }) {
         </div>
       )}
 
-      {/* Child Selection - Only show if parent is logged in and has children */}
-      {isLoggedInParent && children.length > 0 && (
+      {/* Child Selection - Only show if parent is logged in and has eligible children */}
+      {isLoggedInParent && availableChildren.length > 0 && (
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
           <div className="flex items-center justify-between mb-3">
             <label className="text-sm font-medium text-gray-900">
@@ -242,7 +318,6 @@ export default function RegistrationForm({ programId }: { programId: string }) {
               onClick={() => {
                 setUseExistingChild(!useExistingChild);
                 if (useExistingChild) {
-                  // Switching to manual, clear fields
                   setValue('studentName', '');
                   setValue('studentId', '');
                 }
@@ -253,13 +328,13 @@ export default function RegistrationForm({ programId }: { programId: string }) {
             </button>
           </div>
 
-          {useExistingChild ? (
+          {useExistingChild && (
             <select
               value={selectedChildId}
               onChange={(e) => handleChildSelection(e.target.value)}
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
             >
-              {children.map((child) => (
+              {availableChildren.map((child) => (
                 <option key={child.id} value={child.id}>
                   {child.first_name} {child.last_name}
                   {child.student_id ? ` (${child.student_id})` : ''}
@@ -267,7 +342,7 @@ export default function RegistrationForm({ programId }: { programId: string }) {
                 </option>
               ))}
             </select>
-          ) : null}
+          )}
         </div>
       )}
 
@@ -279,9 +354,9 @@ export default function RegistrationForm({ programId }: { programId: string }) {
           id="studentName"
           type="text"
           {...register('studentName')}
-          readOnly={isLoggedInParent && children.length > 0 && useExistingChild}
+          readOnly={isLoggedInParent && availableChildren.length > 0 && useExistingChild}
           className={`w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-            isLoggedInParent && children.length > 0 && useExistingChild ? 'bg-gray-100 cursor-not-allowed' : ''
+            isLoggedInParent && availableChildren.length > 0 && useExistingChild ? 'bg-gray-100 cursor-not-allowed' : ''
           }`}
           placeholder="John Doe"
         />
@@ -299,9 +374,9 @@ export default function RegistrationForm({ programId }: { programId: string }) {
           type="text"
           {...register('studentId')}
           onBlur={validateStudentId}
-          readOnly={isLoggedInParent && children.length > 0 && useExistingChild}
+          readOnly={isLoggedInParent && availableChildren.length > 0 && useExistingChild}
           className={`w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-            isLoggedInParent && children.length > 0 && useExistingChild ? 'bg-gray-100 cursor-not-allowed' : ''
+            isLoggedInParent && availableChildren.length > 0 && useExistingChild ? 'bg-gray-100 cursor-not-allowed' : ''
           }`}
           placeholder="STU001"
         />

@@ -232,7 +232,9 @@ export default function ParentDashboardClient({
                     <div className="flex-1">
                       <div className="flex items-center gap-3 mb-2 flex-wrap">
                         <h3 className="text-lg font-semibold text-slate-900">
-                          {registration.summer_programs.name}
+                          <a href={`/programs/${registration.program_id}`} className="hover:underline">
+                            {registration.summer_programs.name}
+                          </a>
                         </h3>
                         <PaymentStatusBadge status={registration.payment_status as any} />
                         {isCancelled && (

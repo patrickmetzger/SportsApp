@@ -202,7 +202,7 @@ export default async function ProgramDetailPage({ params }: { params: Promise<{ 
                 <h3 className="text-lg font-semibold text-gray-900 mb-4">
                   Register Now
                 </h3>
-                <RegistrationForm programId={program.id} />
+                <RegistrationForm programId={program.id} program={program} />
               </div>
             )}
           </div>

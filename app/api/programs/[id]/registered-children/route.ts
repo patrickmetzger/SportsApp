@@ -16,12 +16,13 @@ export async function GET(
       return NextResponse.json({ children: [] });
     }
 
-    // Fetch registrations for this program where the parent is the current user
+    // Fetch active registrations for this program (exclude cancelled/refund_requested)
     const { data: registrations, error } = await supabase
       .from('program_registrations')
       .select('id, student_name, student_id')
       .eq('program_id', programId)
-      .eq('parent_user_id', user.id);
+      .eq('parent_user_id', user.id)
+      .not('status', 'in', '("cancelled","refund_requested")');
 
     if (error) {
       return NextResponse.json(
