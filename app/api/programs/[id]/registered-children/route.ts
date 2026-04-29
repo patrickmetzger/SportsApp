@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
+import { createAdminClient } from '@/lib/supabase/admin';
+import { getEffectiveUserId } from '@/lib/auth';
 
 export async function GET(
   request: NextRequest,
@@ -9,19 +11,20 @@ export async function GET(
     const supabase = await createClient();
     const { id: programId } = await params;
 
-    // Get current user
     const { data: { user } } = await supabase.auth.getUser();
-
     if (!user) {
       return NextResponse.json({ children: [] });
     }
 
+    const effectiveUserId = await getEffectiveUserId();
+
     // Fetch active registrations for this program (exclude cancelled/refund_requested)
-    const { data: registrations, error } = await supabase
+    const adminClient = createAdminClient();
+    const { data: registrations, error } = await adminClient
       .from('program_registrations')
       .select('id, student_name, student_id')
       .eq('program_id', programId)
-      .eq('parent_user_id', user.id)
+      .eq('parent_user_id', effectiveUserId)
       .not('status', 'in', '("cancelled","refund_requested")');
 
     if (error) {
