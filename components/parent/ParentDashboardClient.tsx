@@ -251,30 +251,32 @@ export default function ParentDashboardClient({
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-6">
-                      <div className="text-center">
-                        <p className="text-xs text-slate-400 mb-1">Due</p>
-                        <p className="text-lg font-semibold text-slate-900">
-                          ${Number(registration.amount_due || 0).toFixed(0)}
-                        </p>
+                    {!(isCancelled && amountPaid === 0) && (
+                      <div className="flex items-center gap-6">
+                        <div className="text-center">
+                          <p className="text-xs text-slate-400 mb-1">Due</p>
+                          <p className="text-lg font-semibold text-slate-900">
+                            ${Number(registration.amount_due || 0).toFixed(0)}
+                          </p>
+                        </div>
+                        <div className="text-center">
+                          <p className="text-xs text-slate-400 mb-1">Paid</p>
+                          <p className="text-lg font-semibold text-teal-600">
+                            ${amountPaid.toFixed(0)}
+                          </p>
+                        </div>
+                        <div className="text-center">
+                          <p className="text-xs text-slate-400 mb-1">Balance</p>
+                          <p className="text-lg font-semibold text-slate-900">
+                            ${(Number(registration.amount_due || 0) - amountPaid).toFixed(0)}
+                          </p>
+                        </div>
                       </div>
-                      <div className="text-center">
-                        <p className="text-xs text-slate-400 mb-1">Paid</p>
-                        <p className="text-lg font-semibold text-teal-600">
-                          ${amountPaid.toFixed(0)}
-                        </p>
-                      </div>
-                      <div className="text-center">
-                        <p className="text-xs text-slate-400 mb-1">Balance</p>
-                        <p className="text-lg font-semibold text-slate-900">
-                          ${(Number(registration.amount_due || 0) - amountPaid).toFixed(0)}
-                        </p>
-                      </div>
-                    </div>
+                    )}
                   </div>
 
                   <div className="mt-4 pt-4 border-t border-slate-100 flex items-center justify-between flex-wrap gap-3">
-                    {registration.payment_due_date && (
+                    {registration.payment_due_date && !(isCancelled && amountPaid === 0) && (
                       <p className="text-sm text-slate-500">
                         Payment Due: <span className="font-medium text-slate-700">{new Date(registration.payment_due_date).toLocaleDateString()}</span>
                       </p>
