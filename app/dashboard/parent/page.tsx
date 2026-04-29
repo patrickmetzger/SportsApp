@@ -33,10 +33,13 @@ export default async function ParentDashboard() {
       .eq('parent_user_id', effectiveUserId)
       .order('created_at', { ascending: false });
 
-    // Calculate payment summary
+    // Calculate payment summary — exclude cancelled/refunded registrations
+    const activeRegistrations = registrations?.filter(
+      (reg) => !['cancelled', 'refund_requested'].includes(reg.status)
+    ) || [];
     const paymentSummary = {
-      totalDue: registrations?.reduce((sum, reg) => sum + (Number(reg.amount_due) || 0), 0) || 0,
-      totalPaid: registrations?.reduce((sum, reg) => sum + (Number(reg.amount_paid) || 0), 0) || 0,
+      totalDue: activeRegistrations.reduce((sum, reg) => sum + (Number(reg.amount_due) || 0), 0),
+      totalPaid: activeRegistrations.reduce((sum, reg) => sum + (Number(reg.amount_paid) || 0), 0),
       outstanding: 0,
     };
     paymentSummary.outstanding = paymentSummary.totalDue - paymentSummary.totalPaid;
