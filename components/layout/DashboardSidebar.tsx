@@ -46,6 +46,7 @@ export interface NavItem {
   name: string;
   href: string;
   icon: string;
+  badge?: number;
   children?: { name: string; href: string }[];
 }
 
@@ -182,7 +183,12 @@ export default function DashboardSidebar({
                   }`}
                 >
                   <Icon className="w-5 h-5" />
-                  <span>{item.name}</span>
+                  <span className="flex-1">{item.name}</span>
+                  {item.badge != null && item.badge > 0 && (
+                    <span className="ml-auto min-w-[20px] h-5 px-1.5 bg-red-500 text-white text-xs font-bold rounded-full flex items-center justify-center">
+                      {item.badge > 99 ? '99+' : item.badge}
+                    </span>
+                  )}
                 </Link>
               )}
             </div>

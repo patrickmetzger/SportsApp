@@ -2,6 +2,7 @@ export interface NavItem {
   name: string;
   href: string;
   icon: string;
+  badge?: number;
   children?: { name: string; href: string }[];
 }
 

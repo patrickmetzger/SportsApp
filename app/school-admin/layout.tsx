@@ -1,8 +1,9 @@
 import { requireRole, getEffectiveUserId } from '@/lib/auth';
 import { createClient } from '@/lib/supabase/server';
+import { createAdminClient } from '@/lib/supabase/admin';
 import { redirect } from 'next/navigation';
 import DashboardLayout from '@/components/layout/DashboardLayout';
-import { schoolAdminNavigation, getRoleDisplayName } from '@/lib/navigation';
+import { schoolAdminNavigation, getRoleDisplayName, NavItem } from '@/lib/navigation';
 import { generateCSSVariables } from '@/lib/colorPalette';
 import './school-admin.css';
 
@@ -59,6 +60,32 @@ export default async function SchoolAdminLayout({
       ? `${userData.first_name} ${userData.last_name}`
       : userData?.email || 'School Admin';
 
+    // Fetch pending counts for badge
+    let pendingCount = 0;
+    if (userData.school_id) {
+      const adminClient = createAdminClient();
+      const [{ count: assistantCount }, { count: programCount }] = await Promise.all([
+        adminClient
+          .from('users')
+          .select('*', { count: 'exact', head: true })
+          .eq('school_id', userData.school_id)
+          .eq('role', 'assistant_coach')
+          .eq('approval_status', 'pending'),
+        adminClient
+          .from('summer_programs')
+          .select('*', { count: 'exact', head: true })
+          .eq('school_id', userData.school_id)
+          .eq('status', 'pending'),
+      ]);
+      pendingCount = (assistantCount || 0) + (programCount || 0);
+    }
+
+    const navigation: NavItem[] = schoolAdminNavigation.map((item) =>
+      item.href === '/school-admin/pending-approvals' && pendingCount > 0
+        ? { ...item, badge: pendingCount }
+        : item
+    );
+
     // Generate CSS variables from school colors
     const cssVariables = school?.primary_color && school?.secondary_color
       ? generateCSSVariables(school.primary_color, school.secondary_color)
@@ -74,7 +101,7 @@ export default async function SchoolAdminLayout({
           })
       )} as React.CSSProperties : undefined}>
         <DashboardLayout
-          navigation={schoolAdminNavigation}
+          navigation={navigation}
           user={{
             email: userData?.email || '',
             name: userName,
