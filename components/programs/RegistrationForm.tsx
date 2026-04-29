@@ -1,10 +1,11 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { registrationSchema, type RegistrationFormData } from '@/lib/validation/programSchema';
+import AddChildForm from '@/components/parent/AddChildForm';
 
 interface Program {
   id: string;
@@ -70,6 +71,45 @@ export default function RegistrationForm({ programId, program }: { programId: st
 
   const studentId = watch('studentId');
 
+  const fetchChildrenAndRegistrations = useCallback(async () => {
+    const [childrenResponse, registeredResponse] = await Promise.all([
+      fetch('/api/parent/children'),
+      fetch(`/api/programs/${programId}/registered-children`),
+    ]);
+
+    if (!childrenResponse.ok) return;
+
+    const childrenData = await childrenResponse.json();
+    const allChildren: any[] = childrenData.children || [];
+    setChildren(allChildren);
+
+    const registeredIds = new Set<string>();
+    const registeredNames = new Set<string>();
+    if (registeredResponse.ok) {
+      const regData = await registeredResponse.json();
+      (regData.children || []).forEach((r: any) => {
+        if (r.student_id) registeredIds.add(r.student_id);
+        if (r.student_name) registeredNames.add(r.student_name.trim().toLowerCase());
+      });
+    }
+    setRegisteredStudentIds(registeredIds);
+    setRegisteredStudentNames(registeredNames);
+
+    const available = allChildren.filter((c) => {
+      const alreadyReg =
+        (c.student_id && registeredIds.has(c.student_id)) ||
+        registeredNames.has(`${c.first_name} ${c.last_name}`.trim().toLowerCase());
+      return !alreadyReg && isChildEligible(c, program).eligible;
+    });
+
+    if (available.length > 0) {
+      const first = available[0];
+      setSelectedChildId(first.id);
+      setValue('studentName', `${first.first_name} ${first.last_name}`);
+      if (first.student_id) setValue('studentId', first.student_id);
+    }
+  }, [programId, program, setValue]);
+
   // Fetch current user and children if logged in as parent
   useEffect(() => {
     const fetchCurrentUser = async () => {
@@ -79,61 +119,21 @@ export default function RegistrationForm({ programId, program }: { programId: st
           const data = await response.json();
           if (data.user && data.user.role === 'parent') {
             setIsLoggedInParent(true);
-            // Pre-populate parent fields
             const fullName = `${data.user.first_name || ''} ${data.user.last_name || ''}`.trim();
             setValue('parentName', fullName);
             setValue('parentEmail', data.user.email);
-
-            // Fetch children and already-registered student IDs in parallel
-            const [childrenResponse, registeredResponse] = await Promise.all([
-              fetch('/api/parent/children'),
-              fetch(`/api/programs/${programId}/registered-children`),
-            ]);
-
-            if (childrenResponse.ok) {
-              const childrenData = await childrenResponse.json();
-              const allChildren: any[] = childrenData.children || [];
-              setChildren(allChildren);
-
-              // Build sets of already-registered student_ids and names
-              const registeredIds = new Set<string>();
-              const registeredNames = new Set<string>();
-              if (registeredResponse.ok) {
-                const regData = await registeredResponse.json();
-                (regData.children || []).forEach((r: any) => {
-                  if (r.student_id) registeredIds.add(r.student_id);
-                  if (r.student_name) registeredNames.add(r.student_name.trim().toLowerCase());
-                });
-              }
-              setRegisteredStudentIds(registeredIds);
-              setRegisteredStudentNames(registeredNames);
-
-              // Find first eligible, unregistered child to auto-select
-              const available = allChildren.filter((c) => {
-                const alreadyReg =
-                  (c.student_id && registeredIds.has(c.student_id)) ||
-                  registeredNames.has(`${c.first_name} ${c.last_name}`.trim().toLowerCase());
-                return !alreadyReg && isChildEligible(c, program).eligible;
-              });
-
-              if (available.length > 0) {
-                const first = available[0];
-                setSelectedChildId(first.id);
-                setValue('studentName', `${first.first_name} ${first.last_name}`);
-                if (first.student_id) setValue('studentId', first.student_id);
-              }
-            }
+            await fetchChildrenAndRegistrations();
           }
         }
       } catch (err) {
-        // User not logged in or error fetching, continue as guest
+        // not logged in or error — continue as guest
       } finally {
         setLoadingUser(false);
       }
     };
 
     fetchCurrentUser();
-  }, [setValue]);
+  }, [setValue, fetchChildrenAndRegistrations]);
 
   // Redirect to parent portal after successful registration
   useEffect(() => {
@@ -274,21 +274,35 @@ export default function RegistrationForm({ programId, program }: { programId: st
     (c) => !isAlreadyRegistered(c) && isChildEligible(c, program).eligible
   );
 
-  // Logged-in parent with no children — gate the form
-  if (!loadingUser && isLoggedInParent && children.length === 0) {
-    const returnTo = typeof window !== 'undefined' ? window.location.pathname : '';
+  // Still loading — show spinner
+  if (loadingUser) {
     return (
-      <div className="bg-amber-50 border border-amber-200 rounded-lg p-5 space-y-3">
-        <p className="text-sm font-semibold text-amber-900">Add a child first</p>
-        <p className="text-sm text-amber-700">
-          You need to add at least one child to your profile before registering for a program.
+      <div className="flex items-center justify-center py-10 text-slate-400">
+        <svg className="animate-spin w-6 h-6 mr-2" fill="none" viewBox="0 0 24 24">
+          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
+        </svg>
+        <span className="text-sm">Loading…</span>
+      </div>
+    );
+  }
+
+  // Logged-in parent with no children — show inline add child form
+  if (!loadingUser && isLoggedInParent && children.length === 0) {
+    return (
+      <div>
+        <p className="text-sm font-semibold text-slate-800 mb-1">Add a child first</p>
+        <p className="text-sm text-slate-500 mb-4">
+          Add a child to your profile to register for this program.
         </p>
-        <a
-          href={`/dashboard/parent?addChild=1&returnTo=${encodeURIComponent(returnTo)}`}
-          className="inline-block w-full text-center bg-amber-600 text-white py-2 px-4 rounded-lg hover:bg-amber-700 transition text-sm font-semibold"
-        >
-          Add a Child
-        </a>
+        <AddChildForm
+          onSuccess={async () => {
+            setLoadingUser(true);
+            await fetchChildrenAndRegistrations();
+            setLoadingUser(false);
+          }}
+          onCancel={() => {}}
+        />
       </div>
     );
   }
