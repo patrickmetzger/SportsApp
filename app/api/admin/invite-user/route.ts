@@ -67,6 +67,7 @@ export async function POST(request: NextRequest) {
         first_name: '',
         last_name: '',
         school_id: school_id || null,
+        approval_status: role === 'assistant_coach' ? 'pending' : null,
       });
 
       // If insert failed due to duplicate, update the existing record

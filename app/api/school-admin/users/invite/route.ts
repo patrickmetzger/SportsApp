@@ -76,6 +76,7 @@ export async function POST(request: NextRequest) {
         first_name: '',
         last_name: '',
         school_id: school_id,
+        approval_status: role === 'assistant_coach' ? 'pending' : null,
       }, {
         onConflict: 'id'
       });
