@@ -53,6 +53,7 @@ export default function RegistrationForm({ programId, program }: { programId: st
   const [loadingUser, setLoadingUser] = useState(true);
   const [children, setChildren] = useState<any[]>([]);
   const [registeredStudentIds, setRegisteredStudentIds] = useState<Set<string>>(new Set());
+  const [registeredStudentNames, setRegisteredStudentNames] = useState<Set<string>>(new Set());
   const [useExistingChild, setUseExistingChild] = useState(true);
   const [selectedChildId, setSelectedChildId] = useState('');
 
@@ -94,21 +95,26 @@ export default function RegistrationForm({ programId, program }: { programId: st
               const allChildren: any[] = childrenData.children || [];
               setChildren(allChildren);
 
-              // Build set of already-registered student_ids
-              const registered = new Set<string>();
+              // Build sets of already-registered student_ids and names
+              const registeredIds = new Set<string>();
+              const registeredNames = new Set<string>();
               if (registeredResponse.ok) {
                 const regData = await registeredResponse.json();
                 (regData.children || []).forEach((r: any) => {
-                  if (r.student_id) registered.add(r.student_id);
+                  if (r.student_id) registeredIds.add(r.student_id);
+                  if (r.student_name) registeredNames.add(r.student_name.trim().toLowerCase());
                 });
               }
-              setRegisteredStudentIds(registered);
+              setRegisteredStudentIds(registeredIds);
+              setRegisteredStudentNames(registeredNames);
 
               // Find first eligible, unregistered child to auto-select
-              const available = allChildren.filter((c) =>
-                !(c.student_id && registered.has(c.student_id)) &&
-                isChildEligible(c, program).eligible
-              );
+              const available = allChildren.filter((c) => {
+                const alreadyReg =
+                  (c.student_id && registeredIds.has(c.student_id)) ||
+                  registeredNames.has(`${c.first_name} ${c.last_name}`.trim().toLowerCase());
+                return !alreadyReg && isChildEligible(c, program).eligible;
+              });
 
               if (available.length > 0) {
                 const first = available[0];
@@ -257,9 +263,15 @@ export default function RegistrationForm({ programId, program }: { programId: st
     );
   }
 
-  const availableChildren = children.filter((c) =>
-    !(c.student_id && registeredStudentIds.has(c.student_id)) &&
-    isChildEligible(c, program).eligible
+  const isAlreadyRegistered = (c: any) => {
+    if (c.student_id && registeredStudentIds.has(c.student_id)) return true;
+    const fullName = `${c.first_name} ${c.last_name}`.trim().toLowerCase();
+    if (registeredStudentNames.has(fullName)) return true;
+    return false;
+  };
+
+  const availableChildren = children.filter(
+    (c) => !isAlreadyRegistered(c) && isChildEligible(c, program).eligible
   );
 
   // Logged-in parent with no children — gate the form
