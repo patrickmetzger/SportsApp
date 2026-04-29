@@ -126,13 +126,14 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Check for duplicate registration
+    // Check for duplicate registration (ignore cancelled/refund_requested)
     const { data: existingRegistration } = await supabase
       .from('program_registrations')
-      .select('*')
+      .select('id')
       .eq('program_id', programId)
       .eq('student_id', studentId)
-      .single();
+      .not('status', 'in', '("cancelled","refund_requested")')
+      .maybeSingle();
 
     if (existingRegistration) {
       return NextResponse.json(
