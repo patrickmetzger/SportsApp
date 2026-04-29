@@ -3,6 +3,7 @@ export interface NavItem {
   href: string;
   icon: string;
   badge?: number;
+  badgeColor?: string; // Tailwind bg class, e.g. 'bg-blue-500'
   children?: { name: string; href: string }[];
 }
 

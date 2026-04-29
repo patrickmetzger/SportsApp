@@ -82,7 +82,7 @@ export default async function SchoolAdminLayout({
 
     const navigation: NavItem[] = schoolAdminNavigation.map((item) =>
       item.href === '/school-admin/pending-approvals' && pendingCount > 0
-        ? { ...item, badge: pendingCount }
+        ? { ...item, badge: pendingCount, badgeColor: 'bg-amber-500' }
         : item
     );
 
