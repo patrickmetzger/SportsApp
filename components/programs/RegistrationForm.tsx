@@ -57,10 +57,8 @@ export default function RegistrationForm({ programId }: { programId: string }) {
                 if (firstChild.student_id) {
                   setValue('studentId', firstChild.student_id);
                 }
-              } else {
-                // No children, switch to manual entry
-                setUseExistingChild(false);
               }
+              // No children: keep useExistingChild true so we show the prompt
             }
           }
         }
@@ -182,6 +180,25 @@ export default function RegistrationForm({ programId }: { programId: string }) {
             </div>
           )}
         </div>
+      </div>
+    );
+  }
+
+  // Logged-in parent with no children — gate the form
+  if (!loadingUser && isLoggedInParent && children.length === 0) {
+    const returnTo = typeof window !== 'undefined' ? window.location.pathname : '';
+    return (
+      <div className="bg-amber-50 border border-amber-200 rounded-lg p-5 space-y-3">
+        <p className="text-sm font-semibold text-amber-900">Add a child first</p>
+        <p className="text-sm text-amber-700">
+          You need to add at least one child to your profile before registering for a program.
+        </p>
+        <a
+          href={`/dashboard/parent?addChild=1&returnTo=${encodeURIComponent(returnTo)}`}
+          className="inline-block w-full text-center bg-amber-600 text-white py-2 px-4 rounded-lg hover:bg-amber-700 transition text-sm font-semibold"
+        >
+          Add a Child
+        </a>
       </div>
     );
   }

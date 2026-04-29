@@ -1,6 +1,7 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useSearchParams, useRouter } from 'next/navigation';
 import { CreditCardIcon, UserGroupIcon, CalendarIcon, ExclamationTriangleIcon } from '@heroicons/react/24/outline';
 import PaymentStatusBadge from './PaymentStatusBadge';
 import ChildrenList from './ChildrenList';
@@ -52,7 +53,11 @@ export default function ParentDashboardClient({
   initialChildren,
   paymentSummary,
 }: ParentDashboardClientProps) {
-  const [showAddChild, setShowAddChild] = useState(false);
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const returnTo = searchParams.get('returnTo');
+
+  const [showAddChild, setShowAddChild] = useState(searchParams.get('addChild') === '1');
   const [children, setChildren] = useState(initialChildren);
 
   const refreshChildren = async () => {
@@ -70,6 +75,9 @@ export default function ParentDashboardClient({
   const handleAddChildSuccess = () => {
     setShowAddChild(false);
     refreshChildren();
+    if (returnTo) {
+      router.push(returnTo);
+    }
   };
 
   return (

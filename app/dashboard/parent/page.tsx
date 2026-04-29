@@ -1,6 +1,7 @@
 import { requireRole, getEffectiveUserId } from '@/lib/auth';
 import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
+import { Suspense } from 'react';
 import ParentDashboardClient from '@/components/parent/ParentDashboardClient';
 
 export default async function ParentDashboard() {
@@ -48,11 +49,13 @@ export default async function ParentDashboard() {
           <p className="text-slate-500 mt-1">Manage your registrations and children</p>
         </div>
 
-        <ParentDashboardClient
-          initialRegistrations={registrations || []}
-          initialChildren={children || []}
-          paymentSummary={paymentSummary}
-        />
+        <Suspense fallback={null}>
+          <ParentDashboardClient
+            initialRegistrations={registrations || []}
+            initialChildren={children || []}
+            paymentSummary={paymentSummary}
+          />
+        </Suspense>
       </div>
     );
   } catch (error) {
