@@ -309,17 +309,41 @@ export default function RegistrationForm({ programId, program }: { programId: st
 
   // Logged-in parent but no eligible/unregistered children
   if (!loadingUser && isLoggedInParent && children.length > 0 && availableChildren.length === 0) {
-    const allRegistered = children.every((c) => c.student_id && registeredStudentIds.has(c.student_id));
+    const registeredChildren = children.filter((c) => isAlreadyRegistered(c));
+    const ineligibleChildren = children.filter(
+      (c) => !isAlreadyRegistered(c) && !isChildEligible(c, program).eligible
+    );
+
     return (
-      <div className="bg-gray-50 border border-gray-200 rounded-lg p-5 space-y-2">
-        <p className="text-sm font-semibold text-gray-900">
-          {allRegistered ? 'Already registered' : 'No eligible children'}
-        </p>
-        <p className="text-sm text-gray-600">
-          {allRegistered
-            ? 'All of your children are already registered for this program.'
-            : 'None of your children meet the eligibility requirements for this program.'}
-        </p>
+      <div className="bg-gray-50 border border-gray-200 rounded-lg p-5 space-y-3">
+        {registeredChildren.length > 0 && (
+          <div>
+            <p className="text-sm font-semibold text-gray-900 mb-1">Already registered</p>
+            <ul className="space-y-1">
+              {registeredChildren.map((c) => (
+                <li key={c.id} className="text-sm text-gray-600 flex items-center gap-2">
+                  <span className="w-1.5 h-1.5 rounded-full bg-teal-500 inline-block" />
+                  {c.first_name} {c.last_name}
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+        {ineligibleChildren.length > 0 && (
+          <div>
+            <p className="text-sm font-semibold text-gray-900 mb-1">Not eligible</p>
+            <ul className="space-y-1">
+              {ineligibleChildren.map((c) => (
+                <li key={c.id} className="text-sm text-gray-600 flex items-center gap-2">
+                  <span className="w-1.5 h-1.5 rounded-full bg-slate-400 inline-block" />
+                  {c.first_name} {c.last_name}
+                  {' — '}
+                  <span className="text-gray-400">{isChildEligible(c, program).reason}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
       </div>
     );
   }
