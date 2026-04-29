@@ -1,15 +1,18 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
+import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { registrationSchema, type RegistrationFormData } from '@/lib/validation/programSchema';
 
 export default function RegistrationForm({ programId }: { programId: string }) {
+  const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
   const [parentAccountCreated, setParentAccountCreated] = useState(false);
+  const [countdown, setCountdown] = useState(5);
   const [validatingStudent, setValidatingStudent] = useState(false);
   const [isLoggedInParent, setIsLoggedInParent] = useState(false);
   const [loadingUser, setLoadingUser] = useState(true);
@@ -71,6 +74,17 @@ export default function RegistrationForm({ programId }: { programId: string }) {
 
     fetchCurrentUser();
   }, [setValue]);
+
+  // Redirect to parent portal after successful registration
+  useEffect(() => {
+    if (!success || !isLoggedInParent) return;
+    if (countdown <= 0) {
+      router.push('/dashboard/parent');
+      return;
+    }
+    const timer = setTimeout(() => setCountdown((c) => c - 1), 1000);
+    return () => clearTimeout(timer);
+  }, [success, isLoggedInParent, countdown, router]);
 
   // Handle child selection
   const handleChildSelection = (childId: string) => {
@@ -178,6 +192,11 @@ export default function RegistrationForm({ programId }: { programId: string }) {
                 Check your inbox to complete your account setup and track your registrations.
               </p>
             </div>
+          )}
+          {isLoggedInParent && (
+            <p className="text-green-600 text-sm mt-3">
+              Redirecting to your portal in {countdown}s…
+            </p>
           )}
         </div>
       </div>
