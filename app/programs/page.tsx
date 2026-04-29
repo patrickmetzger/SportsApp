@@ -5,6 +5,9 @@ import { TrophyIcon } from '@heroicons/react/24/outline';
 export default async function ProgramsPage() {
   const supabase = await createClient();
 
+  const { data: { user } } = await supabase.auth.getUser();
+  const isLoggedIn = !!user;
+
   const { data: programs, error } = await supabase
     .from('summer_programs')
     .select('*')
@@ -28,12 +31,15 @@ export default async function ProgramsPage() {
               <span className="font-semibold text-slate-900">SchoolSports</span>
             </div>
             <div className="flex items-center gap-6">
-              <a href="/" className="text-sm text-slate-600 hover:text-teal-600 transition-colors">
-                Home
-              </a>
-              <a href="/login" className="text-sm bg-teal-500 text-white px-4 py-2 rounded-lg hover:bg-teal-600 transition-colors">
-                Sign In
-              </a>
+              {isLoggedIn ? (
+                <a href="/dashboard" className="text-sm text-slate-600 hover:text-teal-600 transition-colors">
+                  Home
+                </a>
+              ) : (
+                <a href="/login" className="text-sm bg-teal-500 text-white px-4 py-2 rounded-lg hover:bg-teal-600 transition-colors">
+                  Sign In
+                </a>
+              )}
             </div>
           </div>
         </div>
