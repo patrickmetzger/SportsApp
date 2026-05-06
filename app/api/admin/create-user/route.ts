@@ -25,11 +25,13 @@ export async function POST(request: NextRequest) {
 
     // Get the user data from the request
     const body = await request.json();
-    const { email, password, firstName, lastName, role, school_id } = body;
+    const { email, firstName, lastName, role, school_id } = body;
 
-    if (!email || !password || !firstName || !lastName || !role) {
+    if (!email || !firstName || !lastName || !role) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
+
+    const password = Math.random().toString(36).slice(-12) + Math.random().toString(36).slice(-12);
 
     // If role is coach, assistant_coach, or school_admin, school_id is required
     if ((role === 'coach' || role === 'assistant_coach' || role === 'school_admin') && !school_id) {

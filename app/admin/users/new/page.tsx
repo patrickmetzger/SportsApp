@@ -5,7 +5,6 @@ import { useRouter } from 'next/navigation';
 
 export default function NewUserPage() {
   const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [role, setRole] = useState<'student' | 'parent' | 'coach' | 'assistant_coach' | 'school_admin'>('parent');
@@ -42,7 +41,6 @@ export default function NewUserPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           email,
-          password,
           firstName,
           lastName,
           role,
@@ -131,22 +129,6 @@ export default function NewUserPage() {
                 required
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
-            </div>
-
-            <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
-                Password
-              </label>
-              <input
-                id="password"
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                minLength={6}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              />
-              <p className="text-xs text-gray-500 mt-1">Minimum 6 characters</p>
             </div>
 
             <div>
