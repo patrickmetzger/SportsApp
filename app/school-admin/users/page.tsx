@@ -4,12 +4,18 @@ import { createAdminClient } from '@/lib/supabase/admin';
 import { redirect } from 'next/navigation';
 import SchoolAdminUsersClient from '@/components/school-admin/SchoolAdminUsersClient';
 
-export default async function SchoolAdminUsersPage() {
+export default async function SchoolAdminUsersPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ role?: string }>;
+}) {
   try {
     await requireRole('school_admin');
     const supabase = await createClient();
     // Use admin client to bypass RLS for fetching users
     const adminClient = createAdminClient();
+
+    const { role: initialRole } = await searchParams;
 
     // Get the effective user ID (handles impersonation)
     const effectiveUserId = await getEffectiveUserId();
@@ -72,7 +78,7 @@ export default async function SchoolAdminUsersPage() {
           </div>
 
           <div className="p-6">
-            <SchoolAdminUsersClient initialUsers={users || []} />
+            <SchoolAdminUsersClient initialUsers={users || []} initialRole={initialRole ?? ''} />
           </div>
         </div>
       </div>

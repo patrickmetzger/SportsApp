@@ -157,66 +157,73 @@ export default async function SchoolAdminDashboard() {
 
         {/* Stats Grid */}
         <div className="grid grid-cols-2 lg:grid-cols-5 gap-6">
-          <div className="bg-white rounded-xl p-6 shadow-card">
+          <a href="/school-admin/users?role=coach" className="bg-white rounded-xl p-6 shadow-card hover:shadow-card-hover transition-shadow group">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-slate-500">Coaches</p>
-                <p className="text-3xl font-bold text-slate-900 mt-1">{coachesCount.count || 0}</p>
+                <p className="text-2xl font-bold text-slate-900 mt-1">{coachesCount.count || 0}</p>
               </div>
-              <div className="w-12 h-12 bg-teal-50 rounded-xl flex items-center justify-center">
-                <UsersIcon className="w-6 h-6 text-teal-600" />
+              <div className="w-12 h-12 bg-teal-50 group-hover:bg-teal-500 rounded-xl flex items-center justify-center transition-colors">
+                <UsersIcon className="w-6 h-6 text-teal-600 group-hover:text-white transition-colors" />
               </div>
             </div>
-          </div>
+            <p className="text-sm text-teal-600 group-hover:text-teal-700 font-medium mt-3 transition-colors">View coaches →</p>
+          </a>
 
-          <div className="bg-white rounded-xl p-6 shadow-card">
+          <a href="/school-admin/users?role=parent" className="bg-white rounded-xl p-6 shadow-card hover:shadow-card-hover transition-shadow group">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-slate-500">Parents</p>
-                <p className="text-3xl font-bold text-slate-900 mt-1">{parentsCount.count || 0}</p>
+                <p className="text-2xl font-bold text-slate-900 mt-1">{parentsCount.count || 0}</p>
               </div>
-              <div className="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center">
-                <UserGroupIcon className="w-6 h-6 text-blue-600" />
+              <div className="w-12 h-12 bg-blue-50 group-hover:bg-blue-500 rounded-xl flex items-center justify-center transition-colors">
+                <UserGroupIcon className="w-6 h-6 text-blue-600 group-hover:text-white transition-colors" />
               </div>
             </div>
-          </div>
+            <p className="text-sm text-blue-600 group-hover:text-blue-700 font-medium mt-3 transition-colors">View parents →</p>
+          </a>
 
-          <div className="bg-white rounded-xl p-6 shadow-card">
+          <a href="/school-admin/programs" className="bg-white rounded-xl p-6 shadow-card hover:shadow-card-hover transition-shadow group">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-slate-500">Programs</p>
-                <p className="text-3xl font-bold text-slate-900 mt-1">{programsCount.count || 0}</p>
+                <p className="text-2xl font-bold text-slate-900 mt-1">{programsCount.count || 0}</p>
               </div>
-              <div className="w-12 h-12 bg-amber-50 rounded-xl flex items-center justify-center">
-                <TrophyIcon className="w-6 h-6 text-amber-600" />
+              <div className="w-12 h-12 bg-amber-50 group-hover:bg-amber-500 rounded-xl flex items-center justify-center transition-colors">
+                <TrophyIcon className="w-6 h-6 text-amber-600 group-hover:text-white transition-colors" />
               </div>
             </div>
-          </div>
+            <p className="text-sm text-amber-600 group-hover:text-amber-700 font-medium mt-3 transition-colors">View programs →</p>
+          </a>
 
-          <div className="bg-white rounded-xl p-6 shadow-card">
+          <a href="/school-admin/communications" className="bg-white rounded-xl p-6 shadow-card hover:shadow-card-hover transition-shadow group">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-slate-500">Messages</p>
-                <p className="text-3xl font-bold text-slate-900 mt-1">{communicationsCount.count || 0}</p>
+                <p className="text-2xl font-bold text-slate-900 mt-1">{communicationsCount.count || 0}</p>
               </div>
-              <div className="w-12 h-12 bg-purple-50 rounded-xl flex items-center justify-center">
-                <ChatBubbleLeftRightIcon className="w-6 h-6 text-purple-600" />
+              <div className="w-12 h-12 bg-purple-50 group-hover:bg-purple-500 rounded-xl flex items-center justify-center transition-colors">
+                <ChatBubbleLeftRightIcon className="w-6 h-6 text-purple-600 group-hover:text-white transition-colors" />
               </div>
             </div>
-          </div>
+            <p className="text-sm text-purple-600 group-hover:text-purple-700 font-medium mt-3 transition-colors">View messages →</p>
+          </a>
 
-          <a href="/school-admin/pending-approvals" className="bg-white rounded-xl p-6 shadow-card hover:shadow-card-hover transition-shadow">
+          <a href="/school-admin/pending-approvals" className="bg-white rounded-xl p-6 shadow-card hover:shadow-card-hover transition-shadow group">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-slate-500">Pending</p>
-                <p className={`text-3xl font-bold mt-1 ${(pendingApprovalsCount.count || 0) > 0 ? 'text-amber-600' : 'text-slate-900'}`}>
+                <p className={`text-2xl font-bold mt-1 ${(pendingApprovalsCount.count || 0) > 0 ? 'text-amber-600' : 'text-slate-900'}`}>
                   {pendingApprovalsCount.count || 0}
                 </p>
               </div>
-              <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${(pendingApprovalsCount.count || 0) > 0 ? 'bg-amber-50' : 'bg-slate-50'}`}>
-                <ClockIcon className={`w-6 h-6 ${(pendingApprovalsCount.count || 0) > 0 ? 'text-amber-600' : 'text-slate-400'}`} />
+              <div className={`w-12 h-12 rounded-xl flex items-center justify-center transition-colors ${(pendingApprovalsCount.count || 0) > 0 ? 'bg-amber-50 group-hover:bg-amber-500' : 'bg-slate-50 group-hover:bg-slate-400'}`}>
+                <ClockIcon className={`w-6 h-6 transition-colors group-hover:text-white ${(pendingApprovalsCount.count || 0) > 0 ? 'text-amber-600' : 'text-slate-400'}`} />
               </div>
             </div>
+            <p className={`text-sm font-medium mt-3 transition-colors ${(pendingApprovalsCount.count || 0) > 0 ? 'text-amber-600 group-hover:text-amber-700' : 'text-slate-400 group-hover:text-slate-500'}`}>
+              View pending →
+            </p>
           </a>
         </div>
 

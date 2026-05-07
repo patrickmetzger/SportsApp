@@ -9,11 +9,12 @@ interface FilterState {
 
 interface SchoolAdminUserFiltersProps {
   onFilterChange: (filters: FilterState) => void;
+  initialRole?: string;
 }
 
-export default function SchoolAdminUserFilters({ onFilterChange }: SchoolAdminUserFiltersProps) {
+export default function SchoolAdminUserFilters({ onFilterChange, initialRole = '' }: SchoolAdminUserFiltersProps) {
   const [search, setSearch] = useState('');
-  const [role, setRole] = useState('');
+  const [role, setRole] = useState(initialRole);
 
   useEffect(() => {
     onFilterChange({ search, role });

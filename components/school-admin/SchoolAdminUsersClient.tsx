@@ -17,12 +17,13 @@ interface User {
 
 interface SchoolAdminUsersClientProps {
   initialUsers: User[];
+  initialRole?: string;
 }
 
-export default function SchoolAdminUsersClient({ initialUsers }: SchoolAdminUsersClientProps) {
+export default function SchoolAdminUsersClient({ initialUsers, initialRole = '' }: SchoolAdminUsersClientProps) {
   const [filters, setFilters] = useState({
     search: '',
-    role: '',
+    role: initialRole,
   });
 
   const filteredUsers = useMemo(() => {
@@ -46,7 +47,7 @@ export default function SchoolAdminUsersClient({ initialUsers }: SchoolAdminUser
 
   return (
     <div>
-      <SchoolAdminUserFilters onFilterChange={setFilters} />
+      <SchoolAdminUserFilters onFilterChange={setFilters} initialRole={initialRole} />
 
       <div className="mb-4 text-sm text-gray-600">
         Showing {filteredUsers.length} of {initialUsers.length} users
