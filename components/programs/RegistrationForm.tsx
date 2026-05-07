@@ -201,6 +201,7 @@ export default function RegistrationForm({ programId, program }: { programId: st
         body: JSON.stringify({
           programId,
           ...data,
+          parentChildId: isLoggedInParent && selectedChildId ? selectedChildId : undefined,
         }),
       });
 

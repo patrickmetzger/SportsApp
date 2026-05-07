@@ -13,6 +13,7 @@ export const adminNavigation: NavItem[] = [
   { name: 'User Management', href: '/admin/users', icon: 'UsersIcon' },
   { name: 'Schools', href: '/admin/schools', icon: 'AcademicCapIcon' },
   { name: 'Programs', href: '/admin/programs', icon: 'TrophyIcon' },
+  { name: 'Students', href: '/admin/students', icon: 'UserGroupIcon' },
   {
     name: 'Certifications',
     href: '/admin/certifications',
@@ -36,6 +37,7 @@ export const schoolAdminNavigation: NavItem[] = [
     icon: 'AcademicCapIcon',
     children: [
       { name: 'Programs', href: '/school-admin/programs' },
+      { name: 'Students', href: '/school-admin/students' },
       { name: 'Attendance', href: '/school-admin/attendance' },
       { name: 'Sessions', href: '/school-admin/sessions' },
     ]

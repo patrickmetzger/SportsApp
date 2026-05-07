@@ -7,7 +7,7 @@ export async function POST(request: NextRequest) {
   try {
     const supabase = await createClient();
     const body = await request.json();
-    const { programId, studentName, studentId, parentName, parentEmail, parentPhone } = body;
+    const { programId, studentName, studentId, parentName, parentEmail, parentPhone, parentChildId } = body;
 
     // Validate input
     const validation = registrationSchema.safeParse({
@@ -198,6 +198,7 @@ export async function POST(request: NextRequest) {
         parent_email: parentEmail,
         parent_phone: parentPhone,
         parent_user_id: parentUserId,
+        parent_child_id: parentChildId || null,
         status: 'pending',
         payment_status: 'pending',
         amount_due: program.cost || 0,
