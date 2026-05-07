@@ -55,8 +55,15 @@ export default function SchoolAdminProgramForm({
     );
   };
 
+  const dateError = (() => {
+    if (startDate && endDate && endDate < startDate) return 'End date must be after start date.';
+    if (startDate && deadline && deadline > startDate) return 'Registration deadline must be on or before the start date.';
+    return null;
+  })();
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (dateError) return;
     setError('');
     setLoading(true);
 
@@ -141,6 +148,12 @@ export default function SchoolAdminProgramForm({
         <div>
           <h2 className="text-xl font-bold text-gray-900 mb-4">Dates & Pricing</h2>
 
+          {dateError && (
+            <div className="mb-4 bg-amber-50 border border-amber-200 text-amber-800 text-sm px-4 py-3 rounded-lg">
+              {dateError}
+            </div>
+          )}
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -148,9 +161,11 @@ export default function SchoolAdminProgramForm({
               </label>
               <input
                 type="date"
-                title="The first date the program runs."
                 value={startDate}
-                onChange={(e) => setStartDate(e.target.value)}
+                onChange={(e) => {
+                  setStartDate(e.target.value);
+                  if (endDate && e.target.value && endDate < e.target.value) setEndDate('');
+                }}
                 required
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
               />
@@ -162,11 +177,13 @@ export default function SchoolAdminProgramForm({
               </label>
               <input
                 type="date"
-                title="The last date the program runs. Must be after the start date."
                 value={endDate}
+                min={startDate || undefined}
                 onChange={(e) => setEndDate(e.target.value)}
                 required
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent ${
+                  startDate && endDate && endDate < startDate ? 'border-red-400 bg-red-50' : 'border-gray-300'
+                }`}
               />
             </div>
 
@@ -176,8 +193,8 @@ export default function SchoolAdminProgramForm({
               </label>
               <input
                 type="date"
-                title="The last date participants can register for the program. Must be before the start date."
                 value={deadline}
+                max={startDate || undefined}
                 onChange={(e) => setDeadline(e.target.value)}
                 required
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
@@ -268,7 +285,7 @@ export default function SchoolAdminProgramForm({
         <div className="flex gap-3 pt-4">
           <button
             type="submit"
-            disabled={loading}
+            disabled={loading || !!dateError}
             className="flex-1 school-btn-primary py-3 rounded-lg disabled:bg-gray-400 transition font-semibold"
           >
             {loading ? 'Saving...' : mode === 'create' ? 'Create Program' : 'Save Changes'}

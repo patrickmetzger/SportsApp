@@ -142,6 +142,40 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Check for schedule conflicts if a linked child record exists
+    if (parentChildId) {
+      const { data: existingRegs } = await supabase
+        .from('program_registrations')
+        .select('id, summer_programs(name, start_date, end_date)')
+        .eq('parent_child_id', parentChildId)
+        .neq('program_id', programId)
+        .not('status', 'in', '("cancelled","refund_requested")');
+
+      const newStart = new Date(program.start_date);
+      const newEnd = new Date(program.end_date);
+
+      const conflicting = (existingRegs || []).find((reg: any) => {
+        const p = Array.isArray(reg.summer_programs) ? reg.summer_programs[0] : reg.summer_programs;
+        if (!p) return false;
+        const existStart = new Date(p.start_date);
+        const existEnd = new Date(p.end_date);
+        return newStart <= existEnd && newEnd >= existStart;
+      });
+
+      if (conflicting) {
+        const p = Array.isArray(conflicting.summer_programs) ? conflicting.summer_programs[0] : conflicting.summer_programs;
+        const conflictName = p?.name || 'another program';
+        const conflictStart = p ? new Date(p.start_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '';
+        const conflictEnd = p ? new Date(p.end_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '';
+        return NextResponse.json(
+          {
+            error: `Schedule conflict: ${studentName} is already registered for "${conflictName}" (${conflictStart} – ${conflictEnd}), which overlaps with this program.`,
+          },
+          { status: 400 }
+        );
+      }
+    }
+
     // Check if parent user already exists
     const { data: existingParent } = await supabase
       .from('users')

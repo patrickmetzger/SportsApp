@@ -9,6 +9,8 @@ import AddChildForm from '@/components/parent/AddChildForm';
 
 interface Program {
   id: string;
+  start_date: string;
+  end_date: string;
   min_grade?: number | null;
   max_grade?: number | null;
   min_age?: number | null;
@@ -56,6 +58,8 @@ export default function RegistrationForm({ programId, program }: { programId: st
   const [registeredChildIds, setRegisteredChildIds] = useState<Set<string>>(new Set());
   const [registeredStudentIds, setRegisteredStudentIds] = useState<Set<string>>(new Set());
   const [registeredStudentNames, setRegisteredStudentNames] = useState<Set<string>>(new Set());
+  // Maps child UUID → conflicting program name for schedule overlap
+  const [conflictsByChildId, setConflictsByChildId] = useState<Map<string, string>>(new Map());
   const [useExistingChild, setUseExistingChild] = useState(true);
   const [selectedChildId, setSelectedChildId] = useState('');
 
@@ -73,9 +77,10 @@ export default function RegistrationForm({ programId, program }: { programId: st
   const studentId = watch('studentId');
 
   const fetchChildrenAndRegistrations = useCallback(async () => {
-    const [childrenResponse, registeredResponse] = await Promise.all([
+    const [childrenResponse, registeredResponse, allRegsResponse] = await Promise.all([
       fetch('/api/parent/children'),
       fetch(`/api/programs/${programId}/registered-children`),
+      fetch('/api/parent/registrations'),
     ]);
 
     if (!childrenResponse.ok) return;
@@ -99,12 +104,31 @@ export default function RegistrationForm({ programId, program }: { programId: st
     setRegisteredStudentIds(registeredIds);
     setRegisteredStudentNames(registeredNames);
 
+    // Build schedule conflict map: childId → conflicting program name
+    const conflicts = new Map<string, string>();
+    if (allRegsResponse.ok) {
+      const allRegsData = await allRegsResponse.json();
+      const newStart = new Date(program.start_date);
+      const newEnd = new Date(program.end_date);
+      (allRegsData.registrations || []).forEach((reg: any) => {
+        if (!reg.parent_child_id) return;
+        const p = Array.isArray(reg.summer_programs) ? reg.summer_programs[0] : reg.summer_programs;
+        if (!p || p.id === programId) return;
+        const existStart = new Date(p.start_date);
+        const existEnd = new Date(p.end_date);
+        if (newStart <= existEnd && newEnd >= existStart && !conflicts.has(reg.parent_child_id)) {
+          conflicts.set(reg.parent_child_id, p.name);
+        }
+      });
+    }
+    setConflictsByChildId(conflicts);
+
     const available = allChildren.filter((c) => {
       const alreadyReg =
         childIds.has(c.id) ||
         (c.student_id && registeredIds.has(c.student_id)) ||
         registeredNames.has(`${c.first_name} ${c.last_name}`.trim().toLowerCase());
-      return !alreadyReg && isChildEligible(c, program).eligible;
+      return !alreadyReg && !conflicts.has(c.id) && isChildEligible(c, program).eligible;
     });
 
     if (available.length > 0) {
@@ -278,7 +302,7 @@ export default function RegistrationForm({ programId, program }: { programId: st
   };
 
   const availableChildren = children.filter(
-    (c) => !isAlreadyRegistered(c) && isChildEligible(c, program).eligible
+    (c) => !isAlreadyRegistered(c) && !conflictsByChildId.has(c.id) && isChildEligible(c, program).eligible
   );
 
   // Still loading — show spinner
@@ -314,23 +338,45 @@ export default function RegistrationForm({ programId, program }: { programId: st
     );
   }
 
-  // Logged-in parent but no eligible/unregistered children
+  // Logged-in parent but no eligible/unregistered/conflict-free children
   if (!loadingUser && isLoggedInParent && children.length > 0 && availableChildren.length === 0) {
     const registeredChildren = children.filter((c) => isAlreadyRegistered(c));
+    const conflictChildren = children.filter(
+      (c) => !isAlreadyRegistered(c) && conflictsByChildId.has(c.id)
+    );
     const ineligibleChildren = children.filter(
-      (c) => !isAlreadyRegistered(c) && !isChildEligible(c, program).eligible
+      (c) => !isAlreadyRegistered(c) && !conflictsByChildId.has(c.id) && !isChildEligible(c, program).eligible
     );
 
     return (
-      <div className="bg-gray-50 border border-gray-200 rounded-lg p-5 space-y-3">
+      <div className="bg-gray-50 border border-gray-200 rounded-lg p-5 space-y-4">
         {registeredChildren.length > 0 && (
           <div>
             <p className="text-sm font-semibold text-gray-900 mb-1">Already registered</p>
             <ul className="space-y-1">
               {registeredChildren.map((c) => (
                 <li key={c.id} className="text-sm text-gray-600 flex items-center gap-2">
-                  <span className="w-1.5 h-1.5 rounded-full bg-teal-500 inline-block" />
+                  <span className="w-1.5 h-1.5 rounded-full bg-teal-500 inline-block flex-shrink-0" />
                   {c.first_name} {c.last_name}
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+        {conflictChildren.length > 0 && (
+          <div>
+            <p className="text-sm font-semibold text-gray-900 mb-1">Schedule conflict</p>
+            <ul className="space-y-1.5">
+              {conflictChildren.map((c) => (
+                <li key={c.id} className="text-sm text-gray-600">
+                  <div className="flex items-start gap-2">
+                    <span className="w-1.5 h-1.5 rounded-full bg-amber-400 inline-block flex-shrink-0 mt-1.5" />
+                    <span>
+                      <span className="font-medium">{c.first_name} {c.last_name}</span>
+                      {' — '}
+                      already registered for <span className="font-medium">"{conflictsByChildId.get(c.id)}"</span>, which overlaps with this program's dates.
+                    </span>
+                  </div>
                 </li>
               ))}
             </ul>
@@ -342,7 +388,7 @@ export default function RegistrationForm({ programId, program }: { programId: st
             <ul className="space-y-1">
               {ineligibleChildren.map((c) => (
                 <li key={c.id} className="text-sm text-gray-600 flex items-center gap-2">
-                  <span className="w-1.5 h-1.5 rounded-full bg-slate-400 inline-block" />
+                  <span className="w-1.5 h-1.5 rounded-full bg-slate-400 inline-block flex-shrink-0" />
                   {c.first_name} {c.last_name}
                   {' — '}
                   <span className="text-gray-400">{isChildEligible(c, program).reason}</span>

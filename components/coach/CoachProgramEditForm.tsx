@@ -50,12 +50,24 @@ export default function CoachProgramEditForm({ program, coachId }: CoachProgramE
     eligibility_notes: program.eligibility_notes || '',
   });
 
+  const dateError = (() => {
+    if (formData.start_date && formData.end_date && formData.end_date < formData.start_date)
+      return 'End date must be after start date.';
+    if (formData.start_date && formData.registration_deadline && formData.registration_deadline > formData.start_date)
+      return 'Registration deadline must be on or before the start date.';
+    return null;
+  })();
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: name === 'cost' ? parseFloat(value) || 0 : value
-    }));
+    setFormData(prev => {
+      const next = { ...prev, [name]: name === 'cost' ? parseFloat(value) || 0 : value };
+      // Clear end_date if start_date is pushed past it
+      if (name === 'start_date' && prev.end_date && value && prev.end_date < value) {
+        next.end_date = '';
+      }
+      return next;
+    });
   };
 
   const handleImageUpload = (field: 'header_image_url' | 'program_image_url') => (url: string) => {
@@ -67,23 +79,11 @@ export default function CoachProgramEditForm({ program, coachId }: CoachProgramE
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (dateError) return;
     setError('');
     setLoading(true);
 
     try {
-      // Validate dates
-      const startDate = new Date(formData.start_date);
-      const endDate = new Date(formData.end_date);
-      const deadline = new Date(formData.registration_deadline);
-
-      if (endDate < startDate) {
-        throw new Error('End date must be after start date');
-      }
-
-      if (deadline > startDate) {
-        throw new Error('Registration deadline must be before start date');
-      }
-
       const response = await fetch('/api/coach/programs/update', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
@@ -162,6 +162,11 @@ export default function CoachProgramEditForm({ program, coachId }: CoachProgramE
       </div>
 
       {/* Dates */}
+      {dateError && (
+        <div className="bg-amber-50 border border-amber-200 text-amber-800 text-sm px-4 py-3 rounded-lg">
+          {dateError}
+        </div>
+      )}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div>
           <label htmlFor="start_date" className="block text-sm font-medium text-gray-700 mb-2">
@@ -187,9 +192,14 @@ export default function CoachProgramEditForm({ program, coachId }: CoachProgramE
             id="end_date"
             name="end_date"
             value={formData.end_date}
+            min={formData.start_date || undefined}
             onChange={handleChange}
             required
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+              formData.start_date && formData.end_date && formData.end_date < formData.start_date
+                ? 'border-red-400 bg-red-50'
+                : 'border-gray-300'
+            }`}
           />
         </div>
 
@@ -202,6 +212,7 @@ export default function CoachProgramEditForm({ program, coachId }: CoachProgramE
             id="registration_deadline"
             name="registration_deadline"
             value={formData.registration_deadline}
+            max={formData.start_date || undefined}
             onChange={handleChange}
             required
             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
@@ -374,7 +385,7 @@ export default function CoachProgramEditForm({ program, coachId }: CoachProgramE
       <div className="flex gap-3 pt-4 border-t">
         <button
           type="submit"
-          disabled={loading}
+          disabled={loading || !!dateError}
           className="flex-1 school-branded-btn-primary py-3 rounded-lg font-medium disabled:opacity-50"
         >
           {loading ? 'Saving...' : 'Save Changes'}
