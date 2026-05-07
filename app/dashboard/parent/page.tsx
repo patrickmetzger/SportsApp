@@ -1,6 +1,7 @@
 import { requireRole, getEffectiveUserId } from '@/lib/auth';
 import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
+import { createAdminClient } from '@/lib/supabase/admin';
 import { Suspense } from 'react';
 import ParentDashboardClient from '@/components/parent/ParentDashboardClient';
 
@@ -33,6 +34,31 @@ export default async function ParentDashboard() {
       .select('*')
       .eq('parent_user_id', effectiveUserId)
       .order('created_at', { ascending: false });
+
+    // Backfill parent_child_id for any registrations that predate migration 27.
+    // Match by student_id first (exact), then by name (case-insensitive).
+    const unlinked = (registrations || []).filter((r) => !r.parent_child_id);
+    if (unlinked.length > 0 && (children || []).length > 0) {
+      const adminClient = createAdminClient();
+      for (const reg of unlinked) {
+        const match =
+          (children || []).find(
+            (c) => c.student_id && c.student_id === reg.student_id
+          ) ||
+          (children || []).find(
+            (c) =>
+              `${c.first_name} ${c.last_name}`.trim().toLowerCase() ===
+              reg.student_name?.trim().toLowerCase()
+          );
+        if (match) {
+          await adminClient
+            .from('program_registrations')
+            .update({ parent_child_id: match.id })
+            .eq('id', reg.id);
+          reg.parent_child_id = match.id; // update in-memory so UI reflects it immediately
+        }
+      }
+    }
 
     // Calculate payment summary — exclude cancelled/refunded registrations
     const activeRegistrations = registrations?.filter(

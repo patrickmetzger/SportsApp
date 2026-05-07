@@ -174,31 +174,45 @@ function RegistrationsByChild({
   onRefundRequest: (id: string, amount: number) => void;
 }) {
   const childMap = new Map(children.map((c) => [c.id, c]));
+  // Also build a name → child map for fallback matching
+  const childByName = new Map(
+    children.map((c) => [`${c.first_name} ${c.last_name}`.trim().toLowerCase(), c])
+  );
 
-  // Group by parent_child_id; unmatched → '__other__'
-  const groups = new Map<string, Registration[]>();
+  // Group by child UUID when possible; fall back to student_name as the key
+  const groups = new Map<string, { label: string; regs: Registration[] }>();
   for (const reg of registrations) {
-    const key = reg.parent_child_id && childMap.has(reg.parent_child_id)
-      ? reg.parent_child_id
-      : '__other__';
-    if (!groups.has(key)) groups.set(key, []);
-    groups.get(key)!.push(reg);
+    let key: string;
+    let label: string;
+
+    if (reg.parent_child_id && childMap.has(reg.parent_child_id)) {
+      // Directly linked
+      key = reg.parent_child_id;
+      const c = childMap.get(reg.parent_child_id)!;
+      label = `${c.first_name} ${c.last_name}`;
+    } else {
+      // Try name-based fallback so we still group under the correct child
+      const nameLower = reg.student_name?.trim().toLowerCase() || '';
+      const matched = childByName.get(nameLower);
+      key = matched ? matched.id : `name:${reg.student_name?.trim() || 'Unknown'}`;
+      label = matched
+        ? `${matched.first_name} ${matched.last_name}`
+        : (reg.student_name?.trim() || 'Unknown Student');
+    }
+
+    if (!groups.has(key)) groups.set(key, { label, regs: [] });
+    groups.get(key)!.regs.push(reg);
   }
 
-  // Order: known children first (in their list order), then ungrouped
-  const orderedKeys = [
-    ...children.map((c) => c.id).filter((id) => groups.has(id)),
-    ...(groups.has('__other__') ? ['__other__'] : []),
-  ];
+  // Order: known children first (in their profile order), then any remaining by student name
+  const knownChildKeys = children.map((c) => c.id).filter((id) => groups.has(id));
+  const remainingKeys = [...groups.keys()].filter((k) => !knownChildKeys.includes(k));
+  const orderedKeys = [...knownChildKeys, ...remainingKeys];
 
   return (
     <div className="space-y-8">
       {orderedKeys.map((key) => {
-        const child = key !== '__other__' ? childMap.get(key) : null;
-        const label = child
-          ? `${child.first_name} ${child.last_name}`
-          : 'Other Registrations';
-        const regs = groups.get(key)!;
+        const { label, regs } = groups.get(key)!;
 
         return (
           <div key={key}>
@@ -226,6 +240,7 @@ function RegistrationsByChild({
     </div>
   );
 }
+
 
 export default function ParentDashboardClient({
   initialRegistrations,
