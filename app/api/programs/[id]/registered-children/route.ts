@@ -22,7 +22,7 @@ export async function GET(
     const adminClient = createAdminClient();
     const { data: registrations, error } = await adminClient
       .from('program_registrations')
-      .select('id, student_name, student_id')
+      .select('id, student_name, student_id, parent_child_id')
       .eq('program_id', programId)
       .eq('parent_user_id', effectiveUserId)
       .not('status', 'in', '("cancelled","refund_requested")');

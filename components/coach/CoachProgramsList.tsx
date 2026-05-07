@@ -1,6 +1,7 @@
 'use client';
 
 import { ClipboardDocumentListIcon, CalendarIcon } from '@heroicons/react/24/outline';
+import ProgramImagePlaceholder from '@/components/programs/ProgramImagePlaceholder';
 
 interface Program {
   id: string;
@@ -87,87 +88,86 @@ export default function CoachProgramsList({ programs }: CoachProgramsListProps) 
   };
 
   return (
-    <div className="space-y-4">
+    <div className="flex flex-wrap gap-6">
       {programs.map((program) => {
         const isPendingOrRejected = program.status === 'pending' || program.status === 'rejected';
         return (
           <div
             key={program.id}
-            className="bg-white rounded-xl p-6 shadow-card hover:shadow-card-hover transition-shadow"
+            className="bg-white rounded-xl shadow-card hover:shadow-card-hover transition-shadow flex flex-col w-full sm:w-[calc(50%-12px)] lg:w-[calc(33.333%-16px)]"
           >
-            <div className="flex flex-col lg:flex-row lg:items-start gap-6">
-              {program.header_image_url && (
-                <img
-                  src={program.header_image_url}
-                  alt={program.name}
-                  className="w-full lg:w-40 h-32 object-cover rounded-lg flex-shrink-0"
-                />
+            {/* Header image */}
+            {program.header_image_url ? (
+              <img
+                src={program.header_image_url}
+                alt={program.name}
+                className="w-full h-40 object-cover rounded-t-xl flex-shrink-0"
+              />
+            ) : (
+              <ProgramImagePlaceholder className="w-full h-40 rounded-t-xl flex-shrink-0" />
+            )}
+
+            <div className="flex flex-col flex-1 p-5">
+              {/* Title + badges */}
+              <div className="flex items-start gap-2 flex-wrap mb-1">
+                <h3 className="text-base font-semibold text-slate-900 flex-1">{program.name}</h3>
+              </div>
+              <div className="flex items-center gap-2 flex-wrap mb-3">
+                {getApprovalBadge(program.status)}
+                {!isPendingOrRejected && getTimelineBadge(program.start_date, program.end_date)}
+              </div>
+
+              <p className="text-sm text-slate-500 line-clamp-2 mb-3">
+                {program.description || 'No description available'}
+              </p>
+
+              {program.status === 'rejected' && program.rejection_reason && (
+                <div className="mb-3 p-3 bg-red-50 border border-red-200 rounded-lg">
+                  <p className="text-xs font-medium text-red-800">Rejection reason:</p>
+                  <p className="text-sm text-red-700 mt-0.5">{program.rejection_reason}</p>
+                </div>
               )}
 
-              <div className="flex-1">
-                <div className="flex items-start justify-between mb-3">
-                  <div>
-                    <div className="flex items-center gap-2 flex-wrap mb-1">
-                      <h3 className="text-lg font-semibold text-slate-900">{program.name}</h3>
-                      {getApprovalBadge(program.status)}
-                      {!isPendingOrRejected && getTimelineBadge(program.start_date, program.end_date)}
-                    </div>
-                    <p className="text-sm text-slate-500 line-clamp-2">
-                      {program.description || 'No description available'}
-                    </p>
-                  </div>
+              {/* Dates + cost */}
+              <div className="flex flex-wrap items-center gap-3 text-sm text-slate-500 mb-4">
+                <div className="flex items-center gap-1.5">
+                  <CalendarIcon className="w-4 h-4 flex-shrink-0" />
+                  <span>{formatDate(program.start_date)} – {formatDate(program.end_date)}</span>
                 </div>
+                <span className="font-medium text-slate-900">${Number(program.cost).toFixed(0)}</span>
+              </div>
 
-                {program.status === 'rejected' && program.rejection_reason && (
-                  <div className="mb-3 p-3 bg-red-50 border border-red-200 rounded-lg">
-                    <p className="text-xs font-medium text-red-800">Rejection reason:</p>
-                    <p className="text-sm text-red-700 mt-0.5">{program.rejection_reason}</p>
-                  </div>
+              {/* Actions — pushed to bottom */}
+              <div className="flex flex-wrap gap-2 mt-auto">
+                {!isPendingOrRejected && (
+                  <a
+                    href={`/programs/${program.id}`}
+                    className="px-3 py-1.5 bg-teal-500 text-white text-sm font-medium rounded-lg hover:bg-teal-600 transition-colors"
+                  >
+                    View Details
+                  </a>
                 )}
-
-                <div className="flex flex-wrap items-center gap-4 text-sm text-slate-500 mb-4">
-                  <div className="flex items-center gap-1.5">
-                    <CalendarIcon className="w-4 h-4" />
-                    <span>{formatDate(program.start_date)} - {formatDate(program.end_date)}</span>
-                  </div>
-                  <div className="font-medium text-slate-900">
-                    ${Number(program.cost).toFixed(0)}
-                  </div>
-                </div>
-
-                <div className="flex flex-wrap gap-3">
-                  {!isPendingOrRejected && (
-                    <a
-                      href={`/programs/${program.id}`}
-                      className="px-4 py-2 bg-teal-500 text-white text-sm font-medium rounded-lg hover:bg-teal-600 transition-colors"
-                    >
-                      View Details
-                    </a>
-                  )}
-                  {program.status === 'rejected' && (
-                    <a
-                      href={`/dashboard/coach/programs/${program.id}/edit`}
-                      className="px-4 py-2 bg-teal-500 text-white text-sm font-medium rounded-lg hover:bg-teal-600 transition-colors"
-                    >
-                      Edit & Resubmit
-                    </a>
-                  )}
-                  {program.status === 'pending' && (
-                    <span className="px-4 py-2 bg-slate-100 text-slate-500 text-sm font-medium rounded-lg">
-                      Pending Review
-                    </span>
-                  )}
-                  {!isPendingOrRejected && (
-                    <button
-                      className="px-4 py-2 bg-white border border-slate-200 text-slate-700 text-sm font-medium rounded-lg hover:bg-slate-50 transition-colors"
-                      onClick={() => {
-                        console.log('Manage registrations for:', program.id);
-                      }}
-                    >
-                      Registrations
-                    </button>
-                  )}
-                </div>
+                {program.status === 'rejected' && (
+                  <a
+                    href={`/dashboard/coach/programs/${program.id}/edit`}
+                    className="px-3 py-1.5 bg-teal-500 text-white text-sm font-medium rounded-lg hover:bg-teal-600 transition-colors"
+                  >
+                    Edit & Resubmit
+                  </a>
+                )}
+                {program.status === 'pending' && (
+                  <span className="px-3 py-1.5 bg-slate-100 text-slate-500 text-sm font-medium rounded-lg">
+                    Pending Review
+                  </span>
+                )}
+                {!isPendingOrRejected && (
+                  <a
+                    href={`/dashboard/coach/attendance?program=${program.id}`}
+                    className="px-3 py-1.5 bg-white border border-slate-200 text-slate-700 text-sm font-medium rounded-lg hover:bg-slate-50 transition-colors"
+                  >
+                    Registrations
+                  </a>
+                )}
               </div>
             </div>
           </div>

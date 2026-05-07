@@ -1,5 +1,6 @@
-import { requireRole, getEffectiveUserId } from '@/lib/auth';
+import { requireRole, getEffectiveUserId, isImpersonating } from '@/lib/auth';
 import { createClient } from '@/lib/supabase/server';
+import { createAdminClient } from '@/lib/supabase/admin';
 import { redirect } from 'next/navigation';
 import {
   ClockIcon,
@@ -14,7 +15,11 @@ export default async function PendingStatusPage() {
     const supabase = await createClient();
     const effectiveUserId = await getEffectiveUserId();
 
-    const { data: userData } = await supabase
+    // Use adminClient when impersonating so RLS doesn't block reading the impersonated user's data
+    const impersonating = await isImpersonating();
+    const userClient = impersonating ? createAdminClient() : supabase;
+
+    const { data: userData } = await userClient
       .from('users')
       .select(`
         approval_status,
@@ -180,7 +185,8 @@ export default async function PendingStatusPage() {
         )}
       </div>
     );
-  } catch (error) {
+  } catch (error: any) {
+    if (error?.digest?.startsWith?.('NEXT_REDIRECT')) throw error;
     redirect('/login');
   }
 }

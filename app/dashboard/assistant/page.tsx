@@ -1,6 +1,7 @@
-import { requireRole, getEffectiveUserId } from '@/lib/auth';
+import { requireRole, getEffectiveUserId, isImpersonating } from '@/lib/auth';
 import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
+import { createAdminClient } from '@/lib/supabase/admin';
 import AssistantProgramsList from '@/components/assistant/AssistantProgramsList';
 import {
   ClipboardDocumentListIcon,
@@ -16,8 +17,12 @@ export default async function AssistantCoachDashboard() {
 
     const effectiveUserId = await getEffectiveUserId();
 
+    // Use adminClient when impersonating so RLS doesn't block reading the impersonated user's data
+    const impersonating = await isImpersonating();
+    const userClient = impersonating ? createAdminClient() : supabase;
+
     // Fetch assistant coach's info including approval status
-    const { data: userData } = await supabase
+    const { data: userData } = await userClient
       .from('users')
       .select('first_name, approval_status')
       .eq('id', effectiveUserId)
@@ -227,7 +232,8 @@ export default async function AssistantCoachDashboard() {
         )}
       </div>
     );
-  } catch (error) {
+  } catch (error: any) {
+    if (error?.digest?.startsWith?.('NEXT_REDIRECT')) throw error;
     redirect('/login');
   }
 }

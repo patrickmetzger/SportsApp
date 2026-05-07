@@ -1,6 +1,7 @@
 import { requireRole, getEffectiveUserId } from '@/lib/auth';
 import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
+import { createAdminClient } from '@/lib/supabase/admin';
 import CoachProgramsList from '@/components/coach/CoachProgramsList';
 import CertificationStatusAlert from '@/components/coach/CertificationStatusAlert';
 import CertificationNotificationTrigger from '@/components/coach/CertificationNotificationTrigger';
@@ -19,6 +20,7 @@ export default async function CoachDashboard() {
   try {
     await requireRole('coach');
     const supabase = await createClient();
+    const adminClient = createAdminClient();
 
     const effectiveUserId = await getEffectiveUserId();
 
@@ -29,8 +31,9 @@ export default async function CoachDashboard() {
       .eq('id', effectiveUserId)
       .single();
 
-    // Fetch programs assigned to this coach via program_coaches
-    const { data: assignedData } = await supabase
+    // Use adminClient to bypass RLS — coaches may not have read access to program_coaches
+    // via the regular client depending on RLS policy; we filter strictly by their own ID.
+    const { data: assignedData } = await adminClient
       .from('program_coaches')
       .select(`
         program_id,
@@ -51,7 +54,7 @@ export default async function CoachDashboard() {
       .eq('coach_id', effectiveUserId);
 
     // Fetch programs submitted by this coach (catches pending/rejected not yet in program_coaches visible set)
-    const { data: submittedData } = await supabase
+    const { data: submittedData } = await adminClient
       .from('summer_programs')
       .select('id, name, description, start_date, end_date, registration_deadline, cost, header_image_url, status, rejection_reason, submitted_by')
       .eq('submitted_by', effectiveUserId);
@@ -233,7 +236,8 @@ export default async function CoachDashboard() {
         </div>
       </div>
     );
-  } catch (error) {
+  } catch (error: any) {
+    if (error?.digest?.startsWith?.('NEXT_REDIRECT')) throw error;
     redirect('/login');
   }
 }

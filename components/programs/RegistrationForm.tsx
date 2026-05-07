@@ -53,6 +53,7 @@ export default function RegistrationForm({ programId, program }: { programId: st
   const [isLoggedInParent, setIsLoggedInParent] = useState(false);
   const [loadingUser, setLoadingUser] = useState(true);
   const [children, setChildren] = useState<any[]>([]);
+  const [registeredChildIds, setRegisteredChildIds] = useState<Set<string>>(new Set());
   const [registeredStudentIds, setRegisteredStudentIds] = useState<Set<string>>(new Set());
   const [registeredStudentNames, setRegisteredStudentNames] = useState<Set<string>>(new Set());
   const [useExistingChild, setUseExistingChild] = useState(true);
@@ -83,20 +84,24 @@ export default function RegistrationForm({ programId, program }: { programId: st
     const allChildren: any[] = childrenData.children || [];
     setChildren(allChildren);
 
+    const childIds = new Set<string>();
     const registeredIds = new Set<string>();
     const registeredNames = new Set<string>();
     if (registeredResponse.ok) {
       const regData = await registeredResponse.json();
       (regData.children || []).forEach((r: any) => {
+        if (r.parent_child_id) childIds.add(r.parent_child_id);
         if (r.student_id) registeredIds.add(r.student_id);
         if (r.student_name) registeredNames.add(r.student_name.trim().toLowerCase());
       });
     }
+    setRegisteredChildIds(childIds);
     setRegisteredStudentIds(registeredIds);
     setRegisteredStudentNames(registeredNames);
 
     const available = allChildren.filter((c) => {
       const alreadyReg =
+        childIds.has(c.id) ||
         (c.student_id && registeredIds.has(c.student_id)) ||
         registeredNames.has(`${c.first_name} ${c.last_name}`.trim().toLowerCase());
       return !alreadyReg && isChildEligible(c, program).eligible;
@@ -265,6 +270,7 @@ export default function RegistrationForm({ programId, program }: { programId: st
   }
 
   const isAlreadyRegistered = (c: any) => {
+    if (registeredChildIds.has(c.id)) return true;
     if (c.student_id && registeredStudentIds.has(c.student_id)) return true;
     const fullName = `${c.first_name} ${c.last_name}`.trim().toLowerCase();
     if (registeredStudentNames.has(fullName)) return true;

@@ -20,7 +20,8 @@ export default async function ParentDashboard() {
           id,
           name,
           start_date,
-          end_date
+          end_date,
+          header_image_url
         )
       `)
       .eq('parent_user_id', effectiveUserId)

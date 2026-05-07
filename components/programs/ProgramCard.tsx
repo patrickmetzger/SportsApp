@@ -2,6 +2,7 @@
 
 import Image from 'next/image';
 import { CalendarIcon, ClockIcon } from '@heroicons/react/24/outline';
+import ProgramImagePlaceholder from './ProgramImagePlaceholder';
 
 interface Program {
   id: string;
@@ -44,11 +45,7 @@ export default function ProgramCard({ program }: { program: Program }) {
           />
         </div>
       ) : (
-        <div className="aspect-[16/9] w-full bg-gradient-to-br from-navy-900 to-navy-800 flex items-center justify-center">
-          <span className="text-teal-400 text-5xl font-bold">
-            {program.name.charAt(0)}
-          </span>
-        </div>
+        <ProgramImagePlaceholder className="aspect-[16/9] w-full" />
       )}
 
       {/* Content */}

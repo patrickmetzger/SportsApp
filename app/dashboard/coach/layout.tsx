@@ -1,6 +1,7 @@
-import { requireRole, getEffectiveUserId } from '@/lib/auth';
+import { requireRole, getEffectiveUserId, isImpersonating } from '@/lib/auth';
 import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
+import { createAdminClient } from '@/lib/supabase/admin';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import { coachNavigation, getRoleDisplayName } from '@/lib/navigation';
 
@@ -11,7 +12,6 @@ export default async function CoachLayout({
 }) {
   try {
     await requireRole('coach');
-    const supabase = await createClient();
 
     const effectiveUserId = await getEffectiveUserId();
 
@@ -19,7 +19,10 @@ export default async function CoachLayout({
       redirect('/login');
     }
 
-    const { data: userData } = await supabase
+    const impersonating = await isImpersonating();
+    const client = impersonating ? createAdminClient() : await createClient();
+
+    const { data: userData } = await client
       .from('users')
       .select('email, first_name, last_name, school:school_id(name)')
       .eq('id', effectiveUserId)
@@ -44,7 +47,8 @@ export default async function CoachLayout({
         {children}
       </DashboardLayout>
     );
-  } catch (error) {
+  } catch (error: any) {
+    if (error?.digest?.startsWith?.('NEXT_REDIRECT')) throw error;
     redirect('/login');
   }
 }

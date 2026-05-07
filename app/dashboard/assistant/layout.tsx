@@ -1,7 +1,8 @@
-import { requireRole, getEffectiveUserId } from '@/lib/auth';
+import { requireRole, getEffectiveUserId, isImpersonating } from '@/lib/auth';
 import { redirect } from 'next/navigation';
 import { headers } from 'next/headers';
 import { createClient } from '@/lib/supabase/server';
+import { createAdminClient } from '@/lib/supabase/admin';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import { assistantCoachNavigation, pendingAssistantNavigation, getRoleDisplayName } from '@/lib/navigation';
 
@@ -12,7 +13,6 @@ export default async function AssistantCoachLayout({
 }) {
   try {
     await requireRole('assistant_coach');
-    const supabase = await createClient();
 
     const effectiveUserId = await getEffectiveUserId();
 
@@ -20,7 +20,11 @@ export default async function AssistantCoachLayout({
       redirect('/login');
     }
 
-    const { data: userData } = await supabase
+    // Use adminClient when impersonating so RLS doesn't block reading the impersonated user's data
+    const impersonating = await isImpersonating();
+    const client = impersonating ? createAdminClient() : await createClient();
+
+    const { data: userData } = await client
       .from('users')
       .select('email, first_name, last_name, approval_status, school:school_id(name)')
       .eq('id', effectiveUserId)
@@ -73,7 +77,10 @@ export default async function AssistantCoachLayout({
         {children}
       </DashboardLayout>
     );
-  } catch (error) {
+  } catch (error: any) {
+    // Re-throw Next.js redirect errors — calling redirect() inside a try block throws
+    // internally, and swallowing it here causes an infinite loop
+    if (error?.digest?.startsWith?.('NEXT_REDIRECT')) throw error;
     redirect('/login');
   }
 }

@@ -1,17 +1,19 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
-import { CreditCardIcon, UserGroupIcon, CalendarIcon, ExclamationTriangleIcon } from '@heroicons/react/24/outline';
+import { CreditCardIcon, CalendarIcon, ExclamationTriangleIcon, UserCircleIcon } from '@heroicons/react/24/outline';
 import PaymentStatusBadge from './PaymentStatusBadge';
 import ChildrenList from './ChildrenList';
 import AddChildForm from './AddChildForm';
+import ProgramImagePlaceholder from '@/components/programs/ProgramImagePlaceholder';
 
 interface Registration {
   id: string;
   program_id: string;
   student_name: string;
   student_id: string;
+  parent_child_id?: string | null;
   status: string;
   payment_status: string;
   amount_due: number;
@@ -23,6 +25,7 @@ interface Registration {
     name: string;
     start_date: string;
     end_date: string;
+    header_image_url?: string | null;
   };
 }
 
@@ -46,6 +49,182 @@ interface ParentDashboardClientProps {
   initialRegistrations: Registration[];
   initialChildren: Child[];
   paymentSummary: PaymentSummary;
+}
+
+// --- Registration card ---
+function RegistrationCard({
+  registration,
+  cancellingId,
+  onCancel,
+  onRefundRequest,
+}: {
+  registration: Registration;
+  cancellingId: string | null;
+  onCancel: (id: string) => void;
+  onRefundRequest: (id: string, amount: number) => void;
+}) {
+  const amountPaid = Number(registration.amount_paid || 0);
+  const amountDue = Number(registration.amount_due || 0);
+  const balance = amountDue - amountPaid;
+  const isCancelled = registration.status === 'cancelled';
+  const isRefundRequested = registration.status === 'refund_requested';
+  const canCancel = !isCancelled && !isRefundRequested;
+  const prog = registration.summer_programs;
+
+  return (
+    <div className={`bg-white rounded-xl shadow-card hover:shadow-card-hover transition-shadow flex flex-col w-full sm:w-[calc(50%-12px)] lg:w-[calc(33.333%-16px)] ${isCancelled || isRefundRequested ? 'opacity-60' : ''}`}>
+      {/* Header image */}
+      {prog.header_image_url ? (
+        <img
+          src={prog.header_image_url}
+          alt={prog.name}
+          className="w-full h-36 object-cover rounded-t-xl flex-shrink-0"
+        />
+      ) : (
+        <ProgramImagePlaceholder className="w-full h-36 rounded-t-xl flex-shrink-0" />
+      )}
+
+      <div className="flex flex-col flex-1 p-5">
+        {/* Title + badges */}
+        <h3 className="text-base font-semibold text-slate-900 mb-2">
+          <a href={`/programs/${registration.program_id}`} className="hover:text-teal-600 transition-colors">
+            {prog.name}
+          </a>
+        </h3>
+
+        <div className="flex flex-wrap gap-1.5 mb-3">
+          <PaymentStatusBadge status={registration.payment_status as any} />
+          {isCancelled && (
+            <span className="px-2 py-0.5 text-xs font-semibold bg-slate-100 text-slate-600 rounded-full">Cancelled</span>
+          )}
+          {isRefundRequested && (
+            <span className="px-2 py-0.5 text-xs font-semibold bg-amber-100 text-amber-700 rounded-full">Refund Requested</span>
+          )}
+        </div>
+
+        <div className="flex items-center gap-1.5 text-sm text-slate-500 mb-4">
+          <CalendarIcon className="w-4 h-4 flex-shrink-0" />
+          <span>
+            {new Date(prog.start_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+            {' – '}
+            {new Date(prog.end_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+          </span>
+        </div>
+
+        {/* Amounts */}
+        {!(isCancelled && amountPaid === 0) && (
+          <div className="flex gap-4 mb-4">
+            <div>
+              <p className="text-xs text-slate-400">Due</p>
+              <p className="text-sm font-semibold text-slate-900">${amountDue.toFixed(0)}</p>
+            </div>
+            <div>
+              <p className="text-xs text-slate-400">Paid</p>
+              <p className="text-sm font-semibold text-teal-600">${amountPaid.toFixed(0)}</p>
+            </div>
+            <div>
+              <p className="text-xs text-slate-400">Balance</p>
+              <p className={`text-sm font-semibold ${balance > 0 ? 'text-amber-600' : 'text-slate-900'}`}>${balance.toFixed(0)}</p>
+            </div>
+          </div>
+        )}
+
+        {/* Actions */}
+        <div className="mt-auto pt-3 border-t border-slate-100">
+          {canCancel ? (
+            amountPaid === 0 ? (
+              <button
+                onClick={() => onCancel(registration.id)}
+                disabled={cancellingId === registration.id}
+                className="text-sm text-red-500 hover:text-red-700 font-medium disabled:opacity-50"
+              >
+                {cancellingId === registration.id ? 'Cancelling…' : 'Cancel Registration'}
+              </button>
+            ) : (
+              <button
+                onClick={() => onRefundRequest(registration.id, amountPaid)}
+                className="text-sm text-amber-600 hover:text-amber-800 font-medium"
+              >
+                Request Refund
+              </button>
+            )
+          ) : (
+            <span className="text-sm text-slate-400">
+              {isCancelled ? 'Registration cancelled' : 'Refund pending review'}
+            </span>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// --- Grouped registrations by child ---
+function RegistrationsByChild({
+  registrations,
+  children,
+  cancellingId,
+  onCancel,
+  onRefundRequest,
+}: {
+  registrations: Registration[];
+  children: Child[];
+  cancellingId: string | null;
+  onCancel: (id: string) => void;
+  onRefundRequest: (id: string, amount: number) => void;
+}) {
+  const childMap = new Map(children.map((c) => [c.id, c]));
+
+  // Group by parent_child_id; unmatched → '__other__'
+  const groups = new Map<string, Registration[]>();
+  for (const reg of registrations) {
+    const key = reg.parent_child_id && childMap.has(reg.parent_child_id)
+      ? reg.parent_child_id
+      : '__other__';
+    if (!groups.has(key)) groups.set(key, []);
+    groups.get(key)!.push(reg);
+  }
+
+  // Order: known children first (in their list order), then ungrouped
+  const orderedKeys = [
+    ...children.map((c) => c.id).filter((id) => groups.has(id)),
+    ...(groups.has('__other__') ? ['__other__'] : []),
+  ];
+
+  return (
+    <div className="space-y-8">
+      {orderedKeys.map((key) => {
+        const child = key !== '__other__' ? childMap.get(key) : null;
+        const label = child
+          ? `${child.first_name} ${child.last_name}`
+          : 'Other Registrations';
+        const regs = groups.get(key)!;
+
+        return (
+          <div key={key}>
+            <div className="flex items-center gap-2 mb-4">
+              <div className="w-7 h-7 bg-teal-100 rounded-full flex items-center justify-center">
+                <UserCircleIcon className="w-4 h-4 text-teal-600" />
+              </div>
+              <h3 className="text-base font-semibold text-slate-800">{label}</h3>
+              <span className="text-sm text-slate-400">({regs.length} program{regs.length !== 1 ? 's' : ''})</span>
+            </div>
+            <div className="flex flex-wrap gap-6">
+              {regs.map((reg) => (
+                <RegistrationCard
+                  key={reg.id}
+                  registration={reg}
+                  cancellingId={cancellingId}
+                  onCancel={onCancel}
+                  onRefundRequest={onRefundRequest}
+                />
+              ))}
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
 }
 
 export default function ParentDashboardClient({
@@ -216,102 +395,17 @@ export default function ParentDashboardClient({
             </a>
           </div>
         ) : (
-          <div className="space-y-4">
-            {registrations.map((registration) => {
-              const amountPaid = Number(registration.amount_paid || 0);
-              const isCancelled = registration.status === 'cancelled';
-              const isRefundRequested = registration.status === 'refund_requested';
-              const canCancel = !isCancelled && !isRefundRequested;
-
-              return (
-                <div
-                  key={registration.id}
-                  className={`bg-white rounded-xl p-6 shadow-card ${isCancelled || isRefundRequested ? 'opacity-60' : ''}`}
-                >
-                  <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-3 mb-2 flex-wrap">
-                        <h3 className="text-lg font-semibold text-slate-900">
-                          <a href={`/programs/${registration.program_id}`} className="hover:underline">
-                            {registration.summer_programs.name}
-                          </a>
-                        </h3>
-                        <PaymentStatusBadge status={registration.payment_status as any} />
-                        {isCancelled && (
-                          <span className="px-2 py-0.5 text-xs font-semibold bg-slate-100 text-slate-600 rounded-full">Cancelled</span>
-                        )}
-                        {isRefundRequested && (
-                          <span className="px-2 py-0.5 text-xs font-semibold bg-amber-100 text-amber-700 rounded-full">Refund Requested</span>
-                        )}
-                      </div>
-                      <div className="space-y-1 text-sm text-slate-500">
-                        <p>Student: {registration.student_name} ({registration.student_id})</p>
-                        <p>
-                          {new Date(registration.summer_programs.start_date).toLocaleDateString()} -{' '}
-                          {new Date(registration.summer_programs.end_date).toLocaleDateString()}
-                        </p>
-                      </div>
-                    </div>
-
-                    {!(isCancelled && amountPaid === 0) && (
-                      <div className="flex items-center gap-6">
-                        <div className="text-center">
-                          <p className="text-xs text-slate-400 mb-1">Due</p>
-                          <p className="text-lg font-semibold text-slate-900">
-                            ${Number(registration.amount_due || 0).toFixed(0)}
-                          </p>
-                        </div>
-                        <div className="text-center">
-                          <p className="text-xs text-slate-400 mb-1">Paid</p>
-                          <p className="text-lg font-semibold text-teal-600">
-                            ${amountPaid.toFixed(0)}
-                          </p>
-                        </div>
-                        <div className="text-center">
-                          <p className="text-xs text-slate-400 mb-1">Balance</p>
-                          <p className="text-lg font-semibold text-slate-900">
-                            ${(Number(registration.amount_due || 0) - amountPaid).toFixed(0)}
-                          </p>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="mt-4 pt-4 border-t border-slate-100 flex items-center justify-between flex-wrap gap-3">
-                    {registration.payment_due_date && !(isCancelled && amountPaid === 0) && (
-                      <p className="text-sm text-slate-500">
-                        Payment Due: <span className="font-medium text-slate-700">{new Date(registration.payment_due_date).toLocaleDateString()}</span>
-                      </p>
-                    )}
-                    {canCancel && (
-                      <div className="ml-auto">
-                        {amountPaid === 0 ? (
-                          <button
-                            onClick={() => handleCancel(registration.id)}
-                            disabled={cancellingId === registration.id}
-                            className="text-sm text-red-500 hover:text-red-700 font-medium disabled:opacity-50"
-                          >
-                            {cancellingId === registration.id ? 'Cancelling…' : 'Cancel Registration'}
-                          </button>
-                        ) : (
-                          <button
-                            onClick={() => {
-                              setRefundModal({ id: registration.id, amount: amountPaid });
-                              setRefundReason('');
-                              setActionError('');
-                            }}
-                            className="text-sm text-amber-600 hover:text-amber-800 font-medium"
-                          >
-                            Request Refund
-                          </button>
-                        )}
-                      </div>
-                    )}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
+          <RegistrationsByChild
+            registrations={registrations}
+            children={children}
+            cancellingId={cancellingId}
+            onCancel={handleCancel}
+            onRefundRequest={(id, amount) => {
+              setRefundModal({ id, amount });
+              setRefundReason('');
+              setActionError('');
+            }}
+          />
         )}
       </div>
 
