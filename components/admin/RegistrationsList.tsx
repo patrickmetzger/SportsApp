@@ -140,9 +140,9 @@ export default function RegistrationsList({
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                   {new Date(reg.created_at).toLocaleDateString()}
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
+                <td className="px-6 py-4 text-sm font-medium">
                   {reg.status === 'pending' && (
-                    <>
+                    <div className="flex flex-wrap gap-x-3 gap-y-1">
                       <button
                         onClick={() => updateStatus(reg.id, 'approved')}
                         className="text-green-600 hover:text-green-900"
@@ -155,7 +155,7 @@ export default function RegistrationsList({
                       >
                         Reject
                       </button>
-                    </>
+                    </div>
                   )}
                 </td>
               </tr>

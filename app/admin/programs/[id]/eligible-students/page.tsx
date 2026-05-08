@@ -85,7 +85,7 @@ export default async function EligibleStudentsPage({ params }: { params: Promise
       <div className="min-h-screen bg-gray-50">
         <nav className="bg-white shadow-sm border-b">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex justify-between h-16 items-center">
+            <div className="flex min-h-16 py-3 items-center flex-wrap">
               <Link href="/admin/programs" className="text-blue-600 hover:text-blue-800">
                 ← Back to Programs
               </Link>

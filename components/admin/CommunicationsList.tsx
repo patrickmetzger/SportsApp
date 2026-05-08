@@ -114,7 +114,7 @@ export default function CommunicationsList({ communications }: CommunicationsLis
 
   return (
     <>
-      <div className="flex justify-between items-center mb-4">
+      <div className="flex flex-wrap items-start justify-between gap-3 mb-4">
         <p className="text-sm text-gray-500">
           {visible.length} communication{visible.length !== 1 ? 's' : ''}
           {!showArchived && archivedCount > 0 && ` · ${archivedCount} archived`}
@@ -158,7 +158,7 @@ export default function CommunicationsList({ communications }: CommunicationsLis
           <tbody className="bg-white divide-y divide-gray-200">
             {visible.map((comm) => (
               <tr key={comm.id} className={`hover:bg-gray-50${comm.archived ? ' opacity-60' : ''}`}>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                <td className="px-6 py-4 text-sm text-gray-900">
                   {comm.sent_at ? formatDate(comm.sent_at) : formatDate(comm.created_at)}
                 </td>
                 <td className="px-6 py-4 text-sm text-gray-900">
@@ -183,8 +183,8 @@ export default function CommunicationsList({ communications }: CommunicationsLis
                 <td className="px-6 py-4 whitespace-nowrap text-sm">
                   {getStatusBadge(comm.status)}
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm">
-                  <div className="flex items-center gap-3">
+                <td className="px-6 py-4 text-sm">
+                  <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
                     <button
                       onClick={() => setSelectedCommunication(comm)}
                       className="text-blue-600 hover:text-blue-800 font-medium"

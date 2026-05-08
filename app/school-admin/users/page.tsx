@@ -54,14 +54,14 @@ export default async function SchoolAdminUsersPage({
     return (
       <div className="p-8">
         <div className="bg-white rounded-lg shadow">
-          <div className="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
+          <div className="px-6 py-4 border-b border-gray-200 flex flex-wrap items-start justify-between gap-3">
             <div>
               <h2 className="text-lg font-semibold text-gray-800">User Management</h2>
               <p className="text-sm text-gray-600 mt-1">
                 Manage coaches, parents, and school admins at your school
               </p>
             </div>
-            <div className="flex gap-3">
+            <div className="flex flex-wrap gap-2">
               <a
                 href="/school-admin/users/invite"
                 className="school-btn-primary px-4 py-2 rounded-lg"

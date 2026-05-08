@@ -138,30 +138,32 @@ export default function CertificationTypesList({
                     <span className="text-sm text-gray-500">No</span>
                   )}
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                  {canEdit(type) && (
-                    <a
-                      href={isSchoolAdmin
-                        ? `/school-admin/certification-types/${type.id}/edit`
-                        : `/admin/certification-types/${type.id}/edit`
-                      }
-                      className="text-blue-600 hover:text-blue-900 mr-4"
-                    >
-                      Edit
-                    </a>
-                  )}
-                  {canDelete(type) && (
-                    <button
-                      onClick={() => handleDelete(type.id, isGlobal)}
-                      disabled={deleting === type.id}
-                      className="text-red-600 hover:text-red-900 disabled:opacity-50"
-                    >
-                      {deleting === type.id ? 'Deleting...' : 'Delete'}
-                    </button>
-                  )}
-                  {!canEdit(type) && !canDelete(type) && (
-                    <span className="text-gray-400 text-xs">Read only</span>
-                  )}
+                <td className="px-6 py-4 text-sm font-medium">
+                  <div className="flex flex-wrap gap-x-3 gap-y-1 justify-end">
+                    {canEdit(type) && (
+                      <a
+                        href={isSchoolAdmin
+                          ? `/school-admin/certification-types/${type.id}/edit`
+                          : `/admin/certification-types/${type.id}/edit`
+                        }
+                        className="text-blue-600 hover:text-blue-900"
+                      >
+                        Edit
+                      </a>
+                    )}
+                    {canDelete(type) && (
+                      <button
+                        onClick={() => handleDelete(type.id, isGlobal)}
+                        disabled={deleting === type.id}
+                        className="text-red-600 hover:text-red-900 disabled:opacity-50"
+                      >
+                        {deleting === type.id ? 'Deleting...' : 'Delete'}
+                      </button>
+                    )}
+                    {!canEdit(type) && !canDelete(type) && (
+                      <span className="text-gray-400 text-xs">Read only</span>
+                    )}
+                  </div>
                 </td>
               </tr>
             );

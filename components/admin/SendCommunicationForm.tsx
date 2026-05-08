@@ -311,7 +311,7 @@ export default function SendCommunicationForm({ currentUserRole, currentUserScho
         {/* Individual Recipient Selection */}
         {recipientType === 'individual' && (
           <div>
-            <div className="flex justify-between items-center mb-2">
+            <div className="flex flex-wrap items-start justify-between gap-3 mb-2">
               <label className="block text-sm font-medium text-gray-700">
                 Select Recipients * ({selectedRecipientIds.length} selected)
               </label>

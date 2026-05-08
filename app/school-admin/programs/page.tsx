@@ -34,7 +34,7 @@ export default async function SchoolAdminProgramsPage() {
     return (
       <div className="p-8">
         <div className="bg-white rounded-lg shadow">
-          <div className="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
+          <div className="px-6 py-4 border-b border-gray-200 flex flex-wrap items-start justify-between gap-3">
             <div>
               <h2 className="text-lg font-semibold text-gray-800">Program Management</h2>
               <p className="text-sm text-gray-600 mt-1">
@@ -43,7 +43,7 @@ export default async function SchoolAdminProgramsPage() {
             </div>
             <a
               href="/school-admin/programs/new"
-              className="school-btn-primary px-4 py-2 rounded-lg"
+              className="school-btn-primary px-4 py-2 rounded-lg shrink-0"
             >
               + Create Program
             </a>

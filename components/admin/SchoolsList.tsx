@@ -152,7 +152,7 @@ export default function SchoolsList({ schools }: { schools: School[] }) {
         />
       )}
 
-      <div className="flex justify-between items-center mb-6">
+      <div className="flex flex-wrap items-start justify-between gap-3 mb-6">
         <h2 className="text-2xl font-bold text-gray-900">Schools</h2>
         <button
           onClick={() => {
@@ -171,7 +171,7 @@ export default function SchoolsList({ schools }: { schools: School[] }) {
               notes: '',
             });
           }}
-          className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition font-semibold"
+          className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition font-semibold shrink-0"
         >
           Add School
         </button>
@@ -361,7 +361,7 @@ export default function SchoolsList({ schools }: { schools: School[] }) {
       )}
 
       {/* Schools Table */}
-      <div className="bg-white rounded-lg shadow overflow-hidden">
+      <div className="bg-white rounded-lg shadow overflow-x-auto">
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-50">
             <tr>
@@ -409,25 +409,27 @@ export default function SchoolsList({ schools }: { schools: School[] }) {
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="text-sm text-gray-900">{school.athletic_director_name || '-'}</div>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-3">
-                    <button
-                      onClick={() => setAssigningSchool(school)}
-                      className="text-green-600 hover:text-green-900"
-                    >
-                      Assign Coaches
-                    </button>
-                    <button
-                      onClick={() => handleEdit(school)}
-                      className="text-blue-600 hover:text-blue-900"
-                    >
-                      Edit
-                    </button>
-                    <button
-                      onClick={() => handleDelete(school.id, school.name)}
-                      className="text-red-600 hover:text-red-900"
-                    >
-                      Delete
-                    </button>
+                  <td className="px-6 py-4 text-sm font-medium">
+                    <div className="flex flex-wrap gap-x-3 gap-y-1">
+                      <button
+                        onClick={() => setAssigningSchool(school)}
+                        className="text-green-600 hover:text-green-900"
+                      >
+                        Assign Coaches
+                      </button>
+                      <button
+                        onClick={() => handleEdit(school)}
+                        className="text-blue-600 hover:text-blue-900"
+                      >
+                        Edit
+                      </button>
+                      <button
+                        onClick={() => handleDelete(school.id, school.name)}
+                        className="text-red-600 hover:text-red-900"
+                      >
+                        Delete
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))

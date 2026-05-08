@@ -45,7 +45,7 @@ export default async function SchoolAdminCommunicationsPage() {
       <div className="min-h-screen bg-gray-50">
         <nav className="bg-white shadow-sm border-b-2 border-green-600">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex justify-between h-16 items-center">
+            <div className="flex min-h-16 py-3 items-center flex-wrap">
               <div className="flex items-center gap-4">
                 <a href="/school-admin" className="text-green-600 hover:text-green-800">
                   ← Back to Dashboard
@@ -58,7 +58,7 @@ export default async function SchoolAdminCommunicationsPage() {
 
         <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="bg-white rounded-lg shadow">
-            <div className="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
+            <div className="px-6 py-4 border-b border-gray-200 flex flex-wrap items-start justify-between gap-3">
               <div>
                 <h2 className="text-lg font-semibold text-gray-800">Communication History</h2>
                 <p className="text-sm text-gray-600 mt-1">
@@ -67,7 +67,7 @@ export default async function SchoolAdminCommunicationsPage() {
               </div>
               <a
                 href="/school-admin/communications/send"
-                className="school-btn-primary px-4 py-2 rounded-lg"
+                className="school-btn-primary px-4 py-2 rounded-lg shrink-0"
               >
                 + Send Communication
               </a>

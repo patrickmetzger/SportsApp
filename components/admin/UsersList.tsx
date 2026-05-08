@@ -132,28 +132,30 @@ export default function UsersList({ users }: UsersListProps) {
               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                 {new Date(user.created_at).toLocaleDateString()}
               </td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                <form action="/api/admin/impersonate" method="POST" className="inline">
-                  <input type="hidden" name="userId" value={user.id} />
-                  <button
-                    type="submit"
-                    className="text-blue-600 hover:text-blue-900 mr-4"
-                  >
-                    Impersonate
-                  </button>
-                </form>
-                <a href={`/admin/users/${user.id}/edit`} className="text-gray-600 hover:text-gray-900 mr-4">
-                  Edit
-                </a>
-                <form action="/api/admin/archive-user" method="POST" className="inline" onSubmit={handleArchive}>
-                  <input type="hidden" name="userId" value={user.id} />
-                  <button
-                    type="submit"
-                    className="text-orange-600 hover:text-orange-900"
-                  >
-                    Archive
-                  </button>
-                </form>
+              <td className="px-6 py-4 text-sm font-medium">
+                <div className="flex flex-wrap gap-x-3 gap-y-1">
+                  <form action="/api/admin/impersonate" method="POST" className="inline">
+                    <input type="hidden" name="userId" value={user.id} />
+                    <button
+                      type="submit"
+                      className="text-blue-600 hover:text-blue-900"
+                    >
+                      Impersonate
+                    </button>
+                  </form>
+                  <a href={`/admin/users/${user.id}/edit`} className="text-gray-600 hover:text-gray-900">
+                    Edit
+                  </a>
+                  <form action="/api/admin/archive-user" method="POST" className="inline" onSubmit={handleArchive}>
+                    <input type="hidden" name="userId" value={user.id} />
+                    <button
+                      type="submit"
+                      className="text-orange-600 hover:text-orange-900"
+                    >
+                      Archive
+                    </button>
+                  </form>
+                </div>
               </td>
             </tr>
           ))}

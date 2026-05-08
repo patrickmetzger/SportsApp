@@ -24,7 +24,7 @@ export default async function AdminCertificationTypesPage() {
       <div className="min-h-screen bg-gray-50">
         <nav className="bg-white shadow-sm border-b-2 border-blue-600">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex justify-between h-16 items-center">
+            <div className="flex min-h-16 py-3 items-center flex-wrap">
               <div className="flex items-center gap-4">
                 <a href="/admin" className="text-blue-600 hover:text-blue-800">
                   &larr; Back to Admin
@@ -39,7 +39,7 @@ export default async function AdminCertificationTypesPage() {
 
         <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="bg-white rounded-lg shadow">
-            <div className="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
+            <div className="px-6 py-4 border-b border-gray-200 flex flex-wrap items-start justify-between gap-3">
               <div>
                 <h2 className="text-lg font-semibold text-gray-800">
                   All Certification Types
@@ -50,7 +50,7 @@ export default async function AdminCertificationTypesPage() {
               </div>
               <a
                 href="/admin/certification-types/new"
-                className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition"
+                className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition shrink-0"
               >
                 + Create Global Type
               </a>

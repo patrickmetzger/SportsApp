@@ -70,7 +70,7 @@ export default function ProgramRegistrationsClient({
   return (
     <div>
       <div className="mb-8">
-        <div className="flex justify-between items-center">
+        <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
             <h1 className="text-3xl font-bold text-gray-900 mb-2">
               {programName} - Registrations
@@ -81,7 +81,7 @@ export default function ProgramRegistrationsClient({
           </div>
           <button
             onClick={() => setShowAddForm(true)}
-            className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition font-semibold"
+            className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition font-semibold shrink-0"
           >
             Add Registration
           </button>
@@ -209,19 +209,21 @@ export default function ProgramRegistrationsClient({
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                     {new Date(reg.created_at).toLocaleDateString()}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-3">
-                    <button
-                      onClick={() => setEditingRegistration(reg)}
-                      className="text-blue-600 hover:text-blue-900"
-                    >
-                      Edit
-                    </button>
-                    <button
-                      onClick={() => handleDelete(reg.id, reg.student_name)}
-                      className="text-red-600 hover:text-red-900"
-                    >
-                      Delete
-                    </button>
+                  <td className="px-6 py-4 text-sm font-medium">
+                    <div className="flex flex-wrap gap-x-3 gap-y-1">
+                      <button
+                        onClick={() => setEditingRegistration(reg)}
+                        className="text-blue-600 hover:text-blue-900"
+                      >
+                        Edit
+                      </button>
+                      <button
+                        onClick={() => handleDelete(reg.id, reg.student_name)}
+                        className="text-red-600 hover:text-red-900"
+                      >
+                        Delete
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))

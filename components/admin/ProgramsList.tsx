@@ -77,39 +77,41 @@ export default function ProgramsList({ programs }: { programs: Program[] | null 
               <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-900">
                 ${program.cost.toFixed(2)}
               </td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-3">
-                <a
-                  href={`/programs/${program.id}`}
-                  className="text-blue-600 hover:text-blue-900"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  View
-                </a>
-                <a
-                  href={`/admin/programs/${program.id}/registrations`}
-                  className="text-green-600 hover:text-green-900"
-                >
-                  Registrations
-                </a>
-                <a
-                  href={`/admin/programs/${program.id}/eligible-students`}
-                  className="text-purple-600 hover:text-purple-900"
-                >
-                  Eligible
-                </a>
-                <a
-                  href={`/admin/programs/${program.id}/edit`}
-                  className="text-gray-600 hover:text-gray-900"
-                >
-                  Edit
-                </a>
-                <button
-                  onClick={() => handleDelete(program.id, program.name)}
-                  className="text-red-600 hover:text-red-900"
-                >
-                  Delete
-                </button>
+              <td className="px-6 py-4 text-sm font-medium">
+                <div className="flex flex-wrap gap-x-3 gap-y-1">
+                  <a
+                    href={`/programs/${program.id}`}
+                    className="text-blue-600 hover:text-blue-900"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    View
+                  </a>
+                  <a
+                    href={`/admin/programs/${program.id}/registrations`}
+                    className="text-green-600 hover:text-green-900"
+                  >
+                    Registrations
+                  </a>
+                  <a
+                    href={`/admin/programs/${program.id}/eligible-students`}
+                    className="text-purple-600 hover:text-purple-900"
+                  >
+                    Eligible
+                  </a>
+                  <a
+                    href={`/admin/programs/${program.id}/edit`}
+                    className="text-gray-600 hover:text-gray-900"
+                  >
+                    Edit
+                  </a>
+                  <button
+                    onClick={() => handleDelete(program.id, program.name)}
+                    className="text-red-600 hover:text-red-900"
+                  >
+                    Delete
+                  </button>
+                </div>
               </td>
             </tr>
           ))}
