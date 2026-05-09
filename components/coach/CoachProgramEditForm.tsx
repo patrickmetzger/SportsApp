@@ -82,18 +82,18 @@ export default function CoachProgramEditForm({ program, coachId }: CoachProgramE
     fetchCerts();
   }, [program.id]);
 
+  // Certs locked by admin are hidden — they're always required and can't be changed
+  const editableCertTypes = certTypes.filter(
+    (ct) => !certRequirements.find((r) => r.certification_type_id === ct.id && r.locked_by_admin)
+  );
+
   const getCertReq = (certTypeId: string) =>
     certRequirements.find((r) => r.certification_type_id === certTypeId);
 
-  const toggleCert = (certTypeId: string, locked: boolean) => {
-    if (locked) return;
+  const toggleCert = (certTypeId: string) => {
     setCertRequirements((prev) => {
       const existing = prev.find((r) => r.certification_type_id === certTypeId);
-      if (existing) {
-        // Remove it
-        return prev.filter((r) => r.certification_type_id !== certTypeId);
-      }
-      // Add it as required by default
+      if (existing) return prev.filter((r) => r.certification_type_id !== certTypeId);
       return [...prev, { certification_type_id: certTypeId, is_required: true, locked_by_admin: false }];
     });
   };
@@ -104,6 +104,37 @@ export default function CoachProgramEditForm({ program, coachId }: CoachProgramE
         r.certification_type_id === certTypeId ? { ...r, is_required: !r.is_required } : r
       )
     );
+  };
+
+  // Add new cert type inline
+  const [newCertName, setNewCertName] = useState('');
+  const [addingCert, setAddingCert] = useState(false);
+  const [newCertError, setNewCertError] = useState('');
+
+  const handleAddCertType = async () => {
+    if (!newCertName.trim()) return;
+    setAddingCert(true);
+    setNewCertError('');
+    try {
+      const res = await fetch('/api/coach/certification-types', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: newCertName.trim() }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Failed to create certification type');
+      // Add to list and auto-select as required
+      setCertTypes((prev) => [...prev, data.certificationTypes].sort((a, b) => a.name.localeCompare(b.name)));
+      setCertRequirements((prev) => [
+        ...prev,
+        { certification_type_id: data.certificationTypes.id, is_required: true, locked_by_admin: false },
+      ]);
+      setNewCertName('');
+    } catch (err: any) {
+      setNewCertError(err.message);
+    } finally {
+      setAddingCert(false);
+    }
   };
 
   const [formData, setFormData] = useState({
@@ -443,42 +474,36 @@ export default function CoachProgramEditForm({ program, coachId }: CoachProgramE
       <div className="border-t pt-6">
         <h2 className="text-lg font-semibold text-gray-900 mb-1">Certification Requirements</h2>
         <p className="text-sm text-gray-500 mb-4">
-          Select certifications coaches must hold to be assigned to this program.
+          Select certifications coaches must hold to be assigned to this program. Click the badge to toggle between Required and Recommended.
         </p>
 
         {loadingCerts ? (
           <p className="text-sm text-gray-500">Loading certifications...</p>
-        ) : certTypes.length === 0 ? (
-          <p className="text-sm text-gray-500">No certification types available for your school.</p>
         ) : (
           <div className="space-y-2">
-            {certTypes.map((ct) => {
+            {editableCertTypes.length === 0 && (
+              <p className="text-sm text-gray-500">No certification types available — add one below.</p>
+            )}
+            {editableCertTypes.map((ct) => {
               const req = getCertReq(ct.id);
               const isSelected = !!req;
-              const isLocked = req?.locked_by_admin ?? false;
 
               return (
                 <div
                   key={ct.id}
-                  className={`flex items-center justify-between p-3 border rounded-lg ${
-                    isLocked ? 'bg-slate-50 border-slate-200' : 'border-gray-200 hover:bg-gray-50'
-                  }`}
+                  className="flex items-center justify-between p-3 border border-gray-200 rounded-lg hover:bg-gray-50"
                 >
                   <label className="flex items-center gap-3 flex-1 cursor-pointer">
                     <input
                       type="checkbox"
                       checked={isSelected}
-                      disabled={isLocked}
-                      onChange={() => toggleCert(ct.id, isLocked)}
-                      className="w-4 h-4 text-teal-600 border-gray-300 rounded focus:ring-teal-500 disabled:opacity-60"
+                      onChange={() => toggleCert(ct.id)}
+                      className="w-4 h-4 text-teal-600 border-gray-300 rounded focus:ring-teal-500"
                     />
                     <div>
                       <span className="text-sm font-medium text-gray-900">{ct.name}</span>
                       {ct.description && (
                         <p className="text-xs text-gray-500">{ct.description}</p>
-                      )}
-                      {isLocked && (
-                        <span className="text-xs text-slate-500 italic">Set by admin — cannot be removed</span>
                       )}
                     </div>
                   </label>
@@ -486,13 +511,12 @@ export default function CoachProgramEditForm({ program, coachId }: CoachProgramE
                   {isSelected && (
                     <button
                       type="button"
-                      disabled={isLocked}
                       onClick={() => toggleRequired(ct.id)}
                       className={`ml-4 px-2.5 py-1 text-xs font-medium rounded-full transition ${
                         req?.is_required
                           ? 'bg-red-100 text-red-700 hover:bg-red-200'
                           : 'bg-amber-100 text-amber-700 hover:bg-amber-200'
-                      } disabled:opacity-60 disabled:cursor-default`}
+                      }`}
                     >
                       {req?.is_required ? 'Required' : 'Recommended'}
                     </button>
@@ -500,6 +524,32 @@ export default function CoachProgramEditForm({ program, coachId }: CoachProgramE
                 </div>
               );
             })}
+
+            {/* Add new certification type */}
+            <div className="mt-4 pt-4 border-t border-gray-100">
+              <p className="text-xs font-medium text-gray-500 mb-2">Don't see the certification you need?</p>
+              {newCertError && (
+                <p className="text-xs text-red-600 mb-2">{newCertError}</p>
+              )}
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={newCertName}
+                  onChange={(e) => setNewCertName(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), handleAddCertType())}
+                  placeholder="New certification name..."
+                  className="flex-1 px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                />
+                <button
+                  type="button"
+                  onClick={handleAddCertType}
+                  disabled={addingCert || !newCertName.trim()}
+                  className="px-4 py-2 text-sm font-medium bg-teal-500 text-white rounded-lg hover:bg-teal-600 disabled:opacity-50 transition"
+                >
+                  {addingCert ? 'Adding...' : 'Add'}
+                </button>
+              </div>
+            </div>
           </div>
         )}
       </div>
