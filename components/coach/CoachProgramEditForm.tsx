@@ -82,14 +82,12 @@ export default function CoachProgramEditForm({ program, coachId }: CoachProgramE
     fetchCerts();
   }, [program.id]);
 
-  // Hide a cert if it's already required and admin-managed (either locked on this program,
-  // or a global cert that's already been added to this program's requirements).
-  const editableCertTypes = certTypes.filter((ct) => {
+  // A cert is read-only if it's admin-locked on this program, or it's a global cert
+  // that's already been added to this program's requirements.
+  const isCertReadOnly = (ct: CertificationType) => {
     const req = certRequirements.find((r) => r.certification_type_id === ct.id);
-    if (req?.locked_by_admin) return false;           // Admin locked it on this program
-    if (ct.school_id === null && req) return false;   // Global cert already on this program
-    return true;
-  });
+    return req?.locked_by_admin || (ct.school_id === null && !!req);
+  };
 
   const getCertReq = (certTypeId: string) =>
     certRequirements.find((r) => r.certification_type_id === certTypeId);
@@ -485,29 +483,36 @@ export default function CoachProgramEditForm({ program, coachId }: CoachProgramE
           <p className="text-sm text-gray-500">Loading certifications...</p>
         ) : (
           <div className="space-y-2">
-            {editableCertTypes.length === 0 && (
+            {certTypes.length === 0 && (
               <p className="text-sm text-gray-500">No certification types available — add one below.</p>
             )}
-            {editableCertTypes.map((ct) => {
+            {certTypes.map((ct) => {
               const req = getCertReq(ct.id);
               const isSelected = !!req;
+              const readOnly = isCertReadOnly(ct);
 
               return (
                 <div
                   key={ct.id}
-                  className="flex items-center justify-between p-3 border border-gray-200 rounded-lg hover:bg-gray-50"
+                  className={`flex items-center justify-between p-3 border rounded-lg ${
+                    readOnly ? 'bg-slate-50 border-slate-200' : 'border-gray-200 hover:bg-gray-50'
+                  }`}
                 >
-                  <label className="flex items-center gap-3 flex-1 cursor-pointer">
+                  <label className={`flex items-center gap-3 flex-1 ${readOnly ? 'cursor-default' : 'cursor-pointer'}`}>
                     <input
                       type="checkbox"
                       checked={isSelected}
-                      onChange={() => toggleCert(ct.id)}
-                      className="w-4 h-4 text-teal-600 border-gray-300 rounded focus:ring-teal-500"
+                      disabled={readOnly}
+                      onChange={() => !readOnly && toggleCert(ct.id)}
+                      className="w-4 h-4 text-teal-600 border-gray-300 rounded focus:ring-teal-500 disabled:opacity-60"
                     />
                     <div>
                       <span className="text-sm font-medium text-gray-900">{ct.name}</span>
                       {ct.description && (
                         <p className="text-xs text-gray-500">{ct.description}</p>
+                      )}
+                      {readOnly && (
+                        <p className="text-xs text-slate-400 italic">Managed by admin</p>
                       )}
                     </div>
                   </label>
@@ -515,12 +520,13 @@ export default function CoachProgramEditForm({ program, coachId }: CoachProgramE
                   {isSelected && (
                     <button
                       type="button"
-                      onClick={() => toggleRequired(ct.id)}
+                      disabled={readOnly}
+                      onClick={() => !readOnly && toggleRequired(ct.id)}
                       className={`ml-4 px-2.5 py-1 text-xs font-medium rounded-full transition ${
                         req?.is_required
                           ? 'bg-red-100 text-red-700 hover:bg-red-200'
                           : 'bg-amber-100 text-amber-700 hover:bg-amber-200'
-                      }`}
+                      } disabled:opacity-60 disabled:cursor-default`}
                     >
                       {req?.is_required ? 'Required' : 'Recommended'}
                     </button>
