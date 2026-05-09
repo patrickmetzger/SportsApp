@@ -1,4 +1,4 @@
-import { requireRole, getEffectiveUserId, isImpersonating } from '@/lib/auth';
+import { requireRole, getEffectiveUserId, isImpersonating, getUserRoles } from '@/lib/auth';
 import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
@@ -33,6 +33,8 @@ export default async function CoachLayout({
       ? `${userData.first_name} ${userData.last_name}`
       : userData?.email || 'Coach';
 
+    const allRoles = await getUserRoles(effectiveUserId);
+
     return (
       <DashboardLayout
         navigation={coachNavigation}
@@ -40,6 +42,7 @@ export default async function CoachLayout({
           email: userData?.email || '',
           name: userName,
           role: getRoleDisplayName('coach'),
+          allRoles,
         }}
         schoolName={school?.name}
         breadcrumbs={[{ label: 'Dashboard', href: '/dashboard/coach' }]}

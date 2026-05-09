@@ -40,6 +40,42 @@ export async function getEffectiveUserId(): Promise<string | null> {
   return user?.id || null;
 }
 
+/**
+ * Returns all roles held by the given user (from user_roles junction table).
+ * Falls back to the single users.role column if the table doesn't exist yet.
+ */
+export async function getUserRoles(userId?: string): Promise<UserRole[]> {
+  const effectiveUserId = userId || (await getEffectiveUserId());
+  if (!effectiveUserId) return [];
+
+  const impersonating = await isImpersonating();
+  const client = impersonating ? createAdminClient() : await createClient();
+
+  const { data, error } = await client
+    .from("user_roles")
+    .select("role")
+    .eq("user_id", effectiveUserId);
+
+  if (!error && data && data.length > 0) {
+    return data.map((r) => r.role as UserRole);
+  }
+
+  // Fallback: read from the legacy single-role column
+  const { data: userData } = await client
+    .from("users")
+    .select("role")
+    .eq("id", effectiveUserId)
+    .single();
+
+  return userData?.role ? [userData.role as UserRole] : [];
+}
+
+/**
+ * Returns the active role for the current session.
+ * Priority order:
+ *   1. active_role cookie (set when user manually switches roles)
+ *   2. users.role column (the user's primary / default role)
+ */
 export async function getUserRole(userId?: string): Promise<UserRole | null> {
   // If no userId provided, use the effective user ID (handles impersonation)
   const effectiveUserId = userId || (await getEffectiveUserId());
@@ -50,31 +86,40 @@ export async function getUserRole(userId?: string): Promise<UserRole | null> {
   const impersonating = await isImpersonating();
   const client = impersonating ? createAdminClient() : await createClient();
 
+  // 1. Check active_role cookie — only relevant for the actual authenticated user,
+  //    not when looking up a specific userId or during impersonation.
+  if (!userId && !impersonating) {
+    const cookieStore = await cookies();
+    const activeRole = cookieStore.get("active_role")?.value as UserRole | undefined;
+
+    if (activeRole) {
+      // Validate the cookie role is actually held by this user
+      const roles = await getUserRoles(effectiveUserId);
+      if (roles.includes(activeRole)) {
+        return activeRole;
+      }
+      // Cookie is stale — fall through to DB lookup
+    }
+  }
+
+  // 2. Read primary role from users table
   const { data, error } = await client
     .from("users")
     .select("role, email")
     .eq("id", effectiveUserId)
     .single();
 
-  // If role found in database, return it
   if (!error && data?.role) {
     return data.role as UserRole;
   }
 
-  // If user exists but has no role, log the issue
   if (!error && data && !data.role) {
     console.log("User exists in DB but has NULL role:", data.email);
   }
 
-  // If there's an error (RLS blocking, not found, etc.), log it
   if (error) {
     console.log("Error fetching user role:", error.code, error.message);
   }
-
-  // Note: We intentionally do NOT fall back to auth metadata here because:
-  // 1. It can get out of sync with the database (causing wrong redirects)
-  // 2. During impersonation, auth metadata would return the admin's role, not the impersonated user's
-  // The database is the source of truth for roles.
 
   console.log("No role found in database for user:", effectiveUserId);
   return null;

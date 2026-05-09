@@ -1,5 +1,6 @@
 import { redirect } from 'next/navigation';
-import { getCurrentUser, getUserRole } from '@/lib/auth';
+import { cookies } from 'next/headers';
+import { getCurrentUser, getUserRole, getUserRoles } from '@/lib/auth';
 import { createClient } from '@/lib/supabase/server';
 
 export default async function DashboardPage() {
@@ -23,6 +24,19 @@ export default async function DashboardPage() {
 
   // getUserRole now automatically handles impersonation
   const role = await getUserRole();
+
+  // Multi-role: if the user holds more than one role and hasn't chosen one yet,
+  // send them to the role picker (only for the real user, not during impersonation).
+  const cookieList = await cookies();
+  const hasActiveRole = !!cookieList.get('active_role')?.value;
+  const hasImpersonation = !!cookieList.get('impersonated_user_id')?.value;
+
+  if (!hasActiveRole && !hasImpersonation && role) {
+    const roles = await getUserRoles();
+    if (roles.length > 1) {
+      redirect('/login/role-picker');
+    }
+  }
 
   console.log('Dashboard - User:', user.email, 'Role:', user);
 

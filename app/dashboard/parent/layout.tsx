@@ -1,4 +1,4 @@
-import { requireRole, getEffectiveUserId } from '@/lib/auth';
+import { requireRole, getEffectiveUserId, getUserRoles } from '@/lib/auth';
 import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import DashboardLayout from '@/components/layout/DashboardLayout';
@@ -30,6 +30,8 @@ export default async function ParentLayout({
       ? `${userData.first_name} ${userData.last_name}`
       : userData?.email || 'Parent';
 
+    const allRoles = await getUserRoles(effectiveUserId);
+
     return (
       <DashboardLayout
         navigation={parentNavigation}
@@ -37,6 +39,7 @@ export default async function ParentLayout({
           email: userData?.email || '',
           name: userName,
           role: getRoleDisplayName('parent'),
+          allRoles,
         }}
         schoolName={school?.name}
         breadcrumbs={[{ label: 'Dashboard', href: '/dashboard/parent' }]}

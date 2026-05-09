@@ -2,7 +2,8 @@
 
 import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
-import { Bars3Icon, BellIcon, ChevronRightIcon, CheckIcon } from '@heroicons/react/24/outline';
+import { useRouter } from 'next/navigation';
+import { Bars3Icon, BellIcon, ChevronRightIcon, CheckIcon, ChevronDownIcon } from '@heroicons/react/24/outline';
 import {
   ExclamationTriangleIcon,
   ChatBubbleLeftIcon,
@@ -27,10 +28,20 @@ interface Notification {
   created_at: string;
 }
 
+const ROLE_LABELS: Record<string, string> = {
+  admin: 'Administrator',
+  school_admin: 'School Admin',
+  coach: 'Coach',
+  assistant_coach: 'Asst. Coach',
+  parent: 'Parent',
+  student: 'Student',
+};
+
 interface DashboardHeaderProps {
   breadcrumbs: Breadcrumb[];
   userName: string;
   userRole: string;
+  userAllRoles?: string[];
   onMenuToggle: () => void;
 }
 
@@ -64,13 +75,49 @@ export default function DashboardHeader({
   breadcrumbs,
   userName,
   userRole,
+  userAllRoles,
   onMenuToggle,
 }: DashboardHeaderProps) {
+  const router = useRouter();
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [isOpen, setIsOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const [roleMenuOpen, setRoleMenuOpen] = useState(false);
+  const [switchingRole, setSwitchingRole] = useState(false);
+  const roleMenuRef = useRef<HTMLDivElement>(null);
+
+  const otherRoles = (userAllRoles || []).filter((r) => r !== userRole);
+
+  const switchRole = async (role: string) => {
+    setSwitchingRole(true);
+    setRoleMenuOpen(false);
+    try {
+      const res = await fetch('/api/auth/switch-role', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ role }),
+      });
+      if (res.ok) {
+        router.push('/dashboard');
+        router.refresh();
+      }
+    } finally {
+      setSwitchingRole(false);
+    }
+  };
+
+  // Close role menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (roleMenuRef.current && !roleMenuRef.current.contains(event.target as Node)) {
+        setRoleMenuOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   const getUserInitials = () => {
     if (userName) {
@@ -294,14 +341,45 @@ export default function DashboardHeader({
             )}
           </div>
 
-          {/* User dropdown */}
+          {/* Role switcher — only shown for multi-role users */}
+          {otherRoles.length > 0 && (
+            <div className="relative" ref={roleMenuRef}>
+              <button
+                onClick={() => setRoleMenuOpen((v) => !v)}
+                disabled={switchingRole}
+                className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-teal-700 bg-teal-50 border border-teal-200 rounded-lg hover:bg-teal-100 transition disabled:opacity-60"
+              >
+                {ROLE_LABELS[userRole] ?? userRole}
+                <ChevronDownIcon className="w-3.5 h-3.5" />
+              </button>
+
+              {roleMenuOpen && (
+                <div className="absolute right-0 mt-2 w-44 bg-white rounded-xl shadow-lg border border-slate-200 overflow-hidden z-50">
+                  <div className="px-3 py-2 text-xs font-semibold text-slate-400 uppercase tracking-wide border-b border-slate-100">
+                    Switch role
+                  </div>
+                  {otherRoles.map((role) => (
+                    <button
+                      key={role}
+                      onClick={() => switchRole(role)}
+                      className="w-full px-4 py-2.5 text-sm text-left text-slate-700 hover:bg-slate-50 transition"
+                    >
+                      {ROLE_LABELS[role] ?? role}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* User info */}
           <div className="flex items-center gap-3 pl-4 border-l border-slate-200">
             <div className="w-9 h-9 bg-teal-500 rounded-full flex items-center justify-center">
               <span className="text-white font-semibold text-sm">{getUserInitials()}</span>
             </div>
             <div className="hidden md:block">
               <p className="text-sm font-medium text-slate-900">{userName}</p>
-              <p className="text-xs text-slate-500">{userRole}</p>
+              <p className="text-xs text-slate-500">{ROLE_LABELS[userRole] ?? userRole}</p>
             </div>
           </div>
         </div>

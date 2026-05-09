@@ -13,6 +13,7 @@ interface UserInfo {
   email: string;
   name: string;
   role: string;
+  allRoles?: string[];
 }
 
 interface DashboardLayoutProps {
@@ -52,6 +53,7 @@ export default function DashboardLayout({
           breadcrumbs={breadcrumbs}
           userName={user.name}
           userRole={user.role}
+          userAllRoles={user.allRoles}
           onMenuToggle={() => setSidebarOpen(true)}
         />
 

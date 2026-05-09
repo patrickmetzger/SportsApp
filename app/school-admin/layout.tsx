@@ -1,4 +1,4 @@
-import { requireRole, getEffectiveUserId } from '@/lib/auth';
+import { requireRole, getEffectiveUserId, getUserRoles } from '@/lib/auth';
 import { createClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { redirect } from 'next/navigation';
@@ -60,6 +60,8 @@ export default async function SchoolAdminLayout({
       ? `${userData.first_name} ${userData.last_name}`
       : userData?.email || 'School Admin';
 
+    const allRoles = await getUserRoles(effectiveUserId);
+
     // Fetch pending counts for badge
     let pendingCount = 0;
     if (userData.school_id) {
@@ -106,6 +108,7 @@ export default async function SchoolAdminLayout({
             email: userData?.email || '',
             name: userName,
             role: getRoleDisplayName('school_admin'),
+            allRoles,
           }}
           schoolName={school?.name}
           breadcrumbs={[{ label: 'Dashboard', href: '/school-admin' }]}

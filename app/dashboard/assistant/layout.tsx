@@ -1,4 +1,4 @@
-import { requireRole, getEffectiveUserId, isImpersonating } from '@/lib/auth';
+import { requireRole, getEffectiveUserId, isImpersonating, getUserRoles } from '@/lib/auth';
 import { redirect } from 'next/navigation';
 import { headers } from 'next/headers';
 import { createClient } from '@/lib/supabase/server';
@@ -53,6 +53,8 @@ export default async function AssistantCoachLayout({
       }
     }
 
+    const allRoles = await getUserRoles(effectiveUserId);
+
     // Use pending navigation if not approved
     const navigation = (isPending || isRejected) ? pendingAssistantNavigation : assistantCoachNavigation;
 
@@ -70,6 +72,7 @@ export default async function AssistantCoachLayout({
           email: userData?.email || '',
           name: userName,
           role: roleDisplay,
+          allRoles,
         }}
         schoolName={school?.name}
         breadcrumbs={[{ label: 'Dashboard', href: isPending || isRejected ? '/dashboard/assistant/pending' : '/dashboard/assistant' }]}

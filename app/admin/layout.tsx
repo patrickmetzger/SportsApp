@@ -1,4 +1,4 @@
-import { requireRole } from '@/lib/auth';
+import { requireRole, getUserRoles } from '@/lib/auth';
 import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
@@ -24,6 +24,8 @@ export default async function AdminLayout({
       ? `${userData.first_name} ${userData.last_name}`
       : userData?.email || 'Admin';
 
+    const allRoles = await getUserRoles(user.id);
+
     // Fetch pending count for badge
     const adminClient = createAdminClient();
     const { count: pendingCount } = await adminClient
@@ -45,6 +47,7 @@ export default async function AdminLayout({
           email: userData?.email || user.email || '',
           name: userName,
           role: getRoleDisplayName('admin'),
+          allRoles,
         }}
         breadcrumbs={[{ label: 'Dashboard', href: '/admin' }]}
       >
