@@ -82,9 +82,12 @@ export default function CoachProgramEditForm({ program, coachId }: CoachProgramE
     fetchCerts();
   }, [program.id]);
 
-  // Certs locked by admin are hidden — they're always required and can't be changed
+  // Hide global certs (school_id === null) — admins manage those, coaches can't touch them.
+  // Also hide any cert the admin has explicitly locked on this program.
   const editableCertTypes = certTypes.filter(
-    (ct) => !certRequirements.find((r) => r.certification_type_id === ct.id && r.locked_by_admin)
+    (ct) =>
+      ct.school_id !== null &&
+      !certRequirements.find((r) => r.certification_type_id === ct.id && r.locked_by_admin)
   );
 
   const getCertReq = (certTypeId: string) =>
