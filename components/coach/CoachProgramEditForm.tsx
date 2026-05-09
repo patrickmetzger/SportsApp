@@ -82,13 +82,14 @@ export default function CoachProgramEditForm({ program, coachId }: CoachProgramE
     fetchCerts();
   }, [program.id]);
 
-  // Hide global certs (school_id === null) — admins manage those, coaches can't touch them.
-  // Also hide any cert the admin has explicitly locked on this program.
-  const editableCertTypes = certTypes.filter(
-    (ct) =>
-      ct.school_id !== null &&
-      !certRequirements.find((r) => r.certification_type_id === ct.id && r.locked_by_admin)
-  );
+  // Hide a cert if it's already required and admin-managed (either locked on this program,
+  // or a global cert that's already been added to this program's requirements).
+  const editableCertTypes = certTypes.filter((ct) => {
+    const req = certRequirements.find((r) => r.certification_type_id === ct.id);
+    if (req?.locked_by_admin) return false;           // Admin locked it on this program
+    if (ct.school_id === null && req) return false;   // Global cert already on this program
+    return true;
+  });
 
   const getCertReq = (certTypeId: string) =>
     certRequirements.find((r) => r.certification_type_id === certTypeId);
