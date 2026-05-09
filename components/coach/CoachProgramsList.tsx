@@ -121,12 +121,6 @@ export default function CoachProgramsList({ programs }: CoachProgramsListProps) 
                 {program.description || 'No description available'}
               </p>
 
-              {program.status === 'rejected' && program.rejection_reason && (
-                <div className="mb-3 p-3 bg-red-50 border border-red-200 rounded-lg">
-                  <p className="text-xs font-medium text-red-800">Rejection reason:</p>
-                  <p className="text-sm text-red-700 mt-0.5">{program.rejection_reason}</p>
-                </div>
-              )}
 
               {/* Dates + cost */}
               <div className="flex flex-wrap items-center gap-3 text-sm text-slate-500 mb-4">
