@@ -132,44 +132,38 @@ export default function CoachProgramsList({ programs }: CoachProgramsListProps) 
               </div>
 
               {/* Actions — pushed to bottom */}
-              <div className="flex flex-wrap gap-2 mt-auto">
-                {!isPendingOrRejected && (
-                  <a
-                    href={`/programs/${program.id}`}
-                    className="px-3 py-1.5 bg-teal-500 text-white text-sm font-medium rounded-lg hover:bg-teal-600 transition-colors"
-                  >
-                    View Details
-                  </a>
-                )}
-                {!isPendingOrRejected && (
-                  <a
-                    href={`/dashboard/coach/programs/${program.id}/edit`}
-                    className="px-3 py-1.5 bg-white border border-slate-200 text-slate-700 text-sm font-medium rounded-lg hover:bg-slate-50 transition-colors"
-                  >
-                    Edit
-                  </a>
-                )}
-                {program.status === 'rejected' && (
-                  <a
-                    href={`/dashboard/coach/programs/${program.id}/edit`}
-                    className="px-3 py-1.5 bg-teal-500 text-white text-sm font-medium rounded-lg hover:bg-teal-600 transition-colors"
-                  >
-                    Edit & Resubmit
-                  </a>
-                )}
-                {program.status === 'pending' && (
-                  <span className="px-3 py-1.5 bg-slate-100 text-slate-500 text-sm font-medium rounded-lg">
-                    Pending Review
-                  </span>
-                )}
+              <div className="flex flex-col gap-2 mt-auto">
                 {!isPendingOrRejected && (
                   <a
                     href={`/dashboard/coach/attendance?program=${program.id}`}
-                    className="px-3 py-1.5 bg-white border border-slate-200 text-slate-700 text-sm font-medium rounded-lg hover:bg-slate-50 transition-colors"
+                    className="w-full text-center px-3 py-2 bg-teal-500 text-white text-sm font-medium rounded-lg hover:bg-teal-600 transition-colors"
                   >
-                    Registrations
+                    Take Attendance
                   </a>
                 )}
+                <div className="flex flex-wrap gap-2">
+                  {!isPendingOrRejected && (
+                    <a
+                      href={`/programs/${program.id}`}
+                      className="px-3 py-1.5 bg-white border border-slate-200 text-slate-700 text-sm font-medium rounded-lg hover:bg-slate-50 transition-colors"
+                    >
+                      View Details
+                    </a>
+                  )}
+                  {!isPendingOrRejected && (
+                    <a
+                      href={`/dashboard/coach/programs/${program.id}/edit`}
+                      className="px-3 py-1.5 bg-white border border-slate-200 text-slate-700 text-sm font-medium rounded-lg hover:bg-slate-50 transition-colors"
+                    >
+                      Edit
+                    </a>
+                  )}
+                  {program.status === 'pending' && (
+                    <span className="px-3 py-1.5 bg-slate-100 text-slate-500 text-sm font-medium rounded-lg">
+                      Pending Review
+                    </span>
+                  )}
+                </div>
               </div>
             </div>
           </div>

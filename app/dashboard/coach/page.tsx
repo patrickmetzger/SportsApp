@@ -14,6 +14,7 @@ import {
   ExclamationTriangleIcon,
 } from '@heroicons/react/24/outline';
 
+
 export default async function CoachDashboard() {
   try {
     await requireRole('coach');
@@ -171,25 +172,6 @@ export default async function CoachDashboard() {
         <div>
           <h2 className="text-lg font-semibold text-slate-900 mb-4">Quick Actions</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <a
-              href="/dashboard/coach/attendance"
-              className="bg-white rounded-xl p-6 shadow-card hover:shadow-card-hover transition-shadow group"
-            >
-              <div className="flex items-start gap-4">
-                <div className="w-12 h-12 bg-teal-500 rounded-xl flex items-center justify-center flex-shrink-0">
-                  <ClipboardDocumentListIcon className="w-6 h-6 text-white" />
-                </div>
-                <div className="flex-1">
-                  <h3 className="font-semibold text-slate-900 group-hover:text-teal-600 transition-colors">
-                    Take Attendance
-                  </h3>
-                  <p className="text-sm text-slate-500 mt-1">
-                    Mark daily attendance for active programs
-                  </p>
-                </div>
-              </div>
-            </a>
-
             <div className="bg-white rounded-xl p-6 shadow-card opacity-60">
               <div className="flex items-start gap-4">
                 <div className="w-12 h-12 bg-slate-200 rounded-xl flex items-center justify-center flex-shrink-0">
