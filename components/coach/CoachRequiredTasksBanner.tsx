@@ -39,6 +39,7 @@ export default function CoachRequiredTasksBanner() {
 
   const hasCertIssues = certSummary && !certSummary.isCompliant;
   const isOnDashboard = pathname === '/dashboard/coach';
+  const isOnCertsPage = pathname.startsWith('/dashboard/coach/certifications');
 
   // Nothing to show, or we're on the dashboard where tasks are already displayed inline
   if (isOnDashboard || (rejectedPrograms.length === 0 && !hasCertIssues)) return null;
@@ -78,12 +79,14 @@ export default function CoachRequiredTasksBanner() {
                 : `${certSummary!.totalExpiringCerts} certification${certSummary!.totalExpiringCerts !== 1 ? 's' : ''} expiring soon`}
             </span>
           </div>
-          <a
-            href="/dashboard/coach/certifications"
-            className="flex-shrink-0 px-3 py-1.5 bg-amber-600 text-white text-xs font-medium rounded-lg hover:bg-amber-700 transition-colors"
-          >
-            View Certs
-          </a>
+          {!isOnCertsPage && (
+            <a
+              href="/dashboard/coach/certifications"
+              className="flex-shrink-0 px-3 py-1.5 bg-amber-600 text-white text-xs font-medium rounded-lg hover:bg-amber-700 transition-colors"
+            >
+              View Certs
+            </a>
+          )}
         </div>
       )}
     </div>
