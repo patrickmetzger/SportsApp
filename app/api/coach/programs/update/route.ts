@@ -1,28 +1,21 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
-import { getEffectiveUserId } from '@/lib/auth';
+import { createAdminClient } from '@/lib/supabase/admin';
+import { getEffectiveUserId, getUserRole } from '@/lib/auth';
 
 export async function PUT(request: NextRequest) {
   try {
-    const supabase = await createClient();
-
-    // Get the effective user ID (handles impersonation)
     const effectiveUserId = await getEffectiveUserId();
-
     if (!effectiveUserId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Verify the user is a coach
-    const { data: userData } = await supabase
-      .from('users')
-      .select('role')
-      .eq('id', effectiveUserId)
-      .single();
-
-    if (userData?.role !== 'coach') {
+    const role = await getUserRole();
+    if (role !== 'coach') {
       return NextResponse.json({ error: 'Forbidden: Only coaches can update programs' }, { status: 403 });
     }
+
+    const supabase = await createClient();
 
     // Get program data from request
     const body = await request.json();
@@ -48,10 +41,11 @@ export async function PUT(request: NextRequest) {
       return NextResponse.json({ error: 'Program ID is required' }, { status: 400 });
     }
 
-    // Verify the program exists and coach has access (either created it or is assigned)
-    const { data: program } = await supabase
+    // Verify the program exists and coach has access (either submitted it or is assigned)
+    const adminClient = createAdminClient();
+    const { data: program } = await adminClient
       .from('summer_programs')
-      .select('id, created_by')
+      .select('id, submitted_by')
       .eq('id', id)
       .single();
 
@@ -59,15 +53,14 @@ export async function PUT(request: NextRequest) {
       return NextResponse.json({ error: 'Program not found' }, { status: 404 });
     }
 
-    // Check if coach created it or is assigned to it
-    const isCreator = program.created_by === effectiveUserId;
+    const isCreator = program.submitted_by === effectiveUserId;
 
-    const { data: assignment } = await supabase
+    const { data: assignment } = await adminClient
       .from('program_coaches')
       .select('id')
       .eq('program_id', id)
       .eq('coach_id', effectiveUserId)
-      .single();
+      .maybeSingle();
 
     const isAssigned = !!assignment;
 

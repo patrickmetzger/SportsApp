@@ -147,6 +147,14 @@ export default function CoachProgramsList({ programs }: CoachProgramsListProps) 
                     View Details
                   </a>
                 )}
+                {!isPendingOrRejected && (
+                  <a
+                    href={`/dashboard/coach/programs/${program.id}/edit`}
+                    className="px-3 py-1.5 bg-white border border-slate-200 text-slate-700 text-sm font-medium rounded-lg hover:bg-slate-50 transition-colors"
+                  >
+                    Edit
+                  </a>
+                )}
                 {program.status === 'rejected' && (
                   <a
                     href={`/dashboard/coach/programs/${program.id}/edit`}
