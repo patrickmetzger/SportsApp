@@ -9,11 +9,11 @@ ALTER TABLE coach_certifications
   ADD COLUMN IF NOT EXISTS reviewed_at   TIMESTAMPTZ,
   ADD COLUMN IF NOT EXISTS review_note   TEXT;
 
--- Backfill: treat any cert that already has an expiry date set as approved
+-- Backfill: treat any cert that already has an expiration date set as approved
 -- (they were accepted manually prior to this migration)
 UPDATE coach_certifications
 SET review_status = 'approved'
-WHERE expiry_date IS NOT NULL
+WHERE expiration_date IS NOT NULL
   AND review_status = 'pending';
 
 -- Index for efficient pending-cert queue queries
