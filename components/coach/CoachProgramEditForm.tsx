@@ -1,8 +1,21 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import ImageUpload from '@/components/admin/ImageUpload';
+
+interface CertificationType {
+  id: string;
+  name: string;
+  description?: string;
+  school_id?: string | null;
+}
+
+interface CertRequirement {
+  certification_type_id: string;
+  is_required: boolean;
+  locked_by_admin: boolean;
+}
 
 interface Program {
   id: string;
@@ -32,6 +45,66 @@ export default function CoachProgramEditForm({ program, coachId }: CoachProgramE
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+
+  // Certification requirements state
+  const [certTypes, setCertTypes] = useState<CertificationType[]>([]);
+  const [certRequirements, setCertRequirements] = useState<CertRequirement[]>([]);
+  const [loadingCerts, setLoadingCerts] = useState(true);
+
+  useEffect(() => {
+    const fetchCerts = async () => {
+      setLoadingCerts(true);
+      try {
+        const [typesRes, reqsRes] = await Promise.all([
+          fetch('/api/coach/certification-types'),
+          fetch(`/api/coach/programs/${program.id}/certification-requirements`),
+        ]);
+        if (typesRes.ok) {
+          const data = await typesRes.json();
+          setCertTypes(data.certificationTypes || []);
+        }
+        if (reqsRes.ok) {
+          const data = await reqsRes.json();
+          setCertRequirements(
+            (data.requirements || []).map((r: any) => ({
+              certification_type_id: r.certification_type_id,
+              is_required: r.is_required,
+              locked_by_admin: r.locked_by_admin,
+            }))
+          );
+        }
+      } catch {
+        // Non-fatal — cert section will be empty
+      } finally {
+        setLoadingCerts(false);
+      }
+    };
+    fetchCerts();
+  }, [program.id]);
+
+  const getCertReq = (certTypeId: string) =>
+    certRequirements.find((r) => r.certification_type_id === certTypeId);
+
+  const toggleCert = (certTypeId: string, locked: boolean) => {
+    if (locked) return;
+    setCertRequirements((prev) => {
+      const existing = prev.find((r) => r.certification_type_id === certTypeId);
+      if (existing) {
+        // Remove it
+        return prev.filter((r) => r.certification_type_id !== certTypeId);
+      }
+      // Add it as required by default
+      return [...prev, { certification_type_id: certTypeId, is_required: true, locked_by_admin: false }];
+    });
+  };
+
+  const toggleRequired = (certTypeId: string) => {
+    setCertRequirements((prev) =>
+      prev.map((r) =>
+        r.certification_type_id === certTypeId ? { ...r, is_required: !r.is_required } : r
+      )
+    );
+  };
 
   const [formData, setFormData] = useState({
     name: program.name,
@@ -84,33 +157,47 @@ export default function CoachProgramEditForm({ program, coachId }: CoachProgramE
     setLoading(true);
 
     try {
-      const response = await fetch('/api/coach/programs/update', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          id: program.id,
-          name: formData.name,
-          description: formData.description,
-          start_date: formData.start_date,
-          end_date: formData.end_date,
-          registration_deadline: formData.registration_deadline,
-          cost: formData.cost,
-          header_image_url: formData.header_image_url,
-          program_image_url: formData.program_image_url,
-          min_grade: formData.min_grade ? parseInt(formData.min_grade) : null,
-          max_grade: formData.max_grade ? parseInt(formData.max_grade) : null,
-          min_age: formData.min_age ? parseInt(formData.min_age) : null,
-          max_age: formData.max_age ? parseInt(formData.max_age) : null,
-          gender_restriction: formData.gender_restriction,
-          eligibility_notes: formData.eligibility_notes,
-        })
-      });
+      const [programRes, certsRes] = await Promise.all([
+        fetch('/api/coach/programs/update', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            id: program.id,
+            name: formData.name,
+            description: formData.description,
+            start_date: formData.start_date,
+            end_date: formData.end_date,
+            registration_deadline: formData.registration_deadline,
+            cost: formData.cost,
+            header_image_url: formData.header_image_url,
+            program_image_url: formData.program_image_url,
+            min_grade: formData.min_grade ? parseInt(formData.min_grade) : null,
+            max_grade: formData.max_grade ? parseInt(formData.max_grade) : null,
+            min_age: formData.min_age ? parseInt(formData.min_age) : null,
+            max_age: formData.max_age ? parseInt(formData.max_age) : null,
+            gender_restriction: formData.gender_restriction,
+            eligibility_notes: formData.eligibility_notes,
+          }),
+        }),
+        fetch(`/api/coach/programs/${program.id}/certification-requirements`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            requirements: certRequirements
+              .filter((r) => !r.locked_by_admin)
+              .map((r) => ({
+                certification_type_id: r.certification_type_id,
+                is_required: r.is_required,
+              })),
+          }),
+        }),
+      ]);
 
-      const data = await response.json();
+      const programData = await programRes.json();
+      if (!programRes.ok) throw new Error(programData.error || 'Failed to update program');
 
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to update program');
-      }
+      const certsData = await certsRes.json();
+      if (!certsRes.ok) throw new Error(certsData.error || 'Failed to save certification requirements');
 
       router.push('/dashboard/coach');
       router.refresh();
@@ -350,6 +437,71 @@ export default function CoachProgramEditForm({ program, coachId }: CoachProgramE
             />
           </div>
         </div>
+      </div>
+
+      {/* Certification Requirements */}
+      <div className="border-t pt-6">
+        <h2 className="text-lg font-semibold text-gray-900 mb-1">Certification Requirements</h2>
+        <p className="text-sm text-gray-500 mb-4">
+          Select certifications coaches must hold to be assigned to this program.
+        </p>
+
+        {loadingCerts ? (
+          <p className="text-sm text-gray-500">Loading certifications...</p>
+        ) : certTypes.length === 0 ? (
+          <p className="text-sm text-gray-500">No certification types available for your school.</p>
+        ) : (
+          <div className="space-y-2">
+            {certTypes.map((ct) => {
+              const req = getCertReq(ct.id);
+              const isSelected = !!req;
+              const isLocked = req?.locked_by_admin ?? false;
+
+              return (
+                <div
+                  key={ct.id}
+                  className={`flex items-center justify-between p-3 border rounded-lg ${
+                    isLocked ? 'bg-slate-50 border-slate-200' : 'border-gray-200 hover:bg-gray-50'
+                  }`}
+                >
+                  <label className="flex items-center gap-3 flex-1 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={isSelected}
+                      disabled={isLocked}
+                      onChange={() => toggleCert(ct.id, isLocked)}
+                      className="w-4 h-4 text-teal-600 border-gray-300 rounded focus:ring-teal-500 disabled:opacity-60"
+                    />
+                    <div>
+                      <span className="text-sm font-medium text-gray-900">{ct.name}</span>
+                      {ct.description && (
+                        <p className="text-xs text-gray-500">{ct.description}</p>
+                      )}
+                      {isLocked && (
+                        <span className="text-xs text-slate-500 italic">Set by admin — cannot be removed</span>
+                      )}
+                    </div>
+                  </label>
+
+                  {isSelected && (
+                    <button
+                      type="button"
+                      disabled={isLocked}
+                      onClick={() => toggleRequired(ct.id)}
+                      className={`ml-4 px-2.5 py-1 text-xs font-medium rounded-full transition ${
+                        req?.is_required
+                          ? 'bg-red-100 text-red-700 hover:bg-red-200'
+                          : 'bg-amber-100 text-amber-700 hover:bg-amber-200'
+                      } disabled:opacity-60 disabled:cursor-default`}
+                    >
+                      {req?.is_required ? 'Required' : 'Recommended'}
+                    </button>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        )}
       </div>
 
       {/* Images */}
