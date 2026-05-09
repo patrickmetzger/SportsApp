@@ -87,6 +87,8 @@ export default function CoachProgramsList({ programs }: CoachProgramsListProps) 
     return null;
   };
 
+  const now = new Date();
+
   return (
     <div className="flex flex-wrap gap-6">
       {programs.map((program) => {
@@ -133,14 +135,21 @@ export default function CoachProgramsList({ programs }: CoachProgramsListProps) 
 
               {/* Actions — pushed to bottom */}
               <div className="flex flex-col gap-2 mt-auto">
-                {!isPendingOrRejected && (
-                  <a
-                    href={`/dashboard/coach/attendance?program=${program.id}`}
-                    className="w-full text-center px-3 py-2 bg-teal-500 text-white text-sm font-medium rounded-lg hover:bg-teal-600 transition-colors"
-                  >
-                    Take Attendance
-                  </a>
-                )}
+                {!isPendingOrRejected && (() => {
+                  const isLive = now >= new Date(program.start_date) && now <= new Date(program.end_date);
+                  return isLive ? (
+                    <a
+                      href={`/dashboard/coach/attendance?program=${program.id}`}
+                      className="w-full text-center px-3 py-2 bg-teal-500 text-white text-sm font-medium rounded-lg hover:bg-teal-600 transition-colors"
+                    >
+                      Take Attendance
+                    </a>
+                  ) : (
+                    <span className="w-full text-center px-3 py-2 bg-slate-100 text-slate-400 text-sm font-medium rounded-lg cursor-not-allowed">
+                      Take Attendance
+                    </span>
+                  );
+                })()}
                 <div className="flex flex-wrap gap-2">
                   {!isPendingOrRejected && (
                     <a
