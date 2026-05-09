@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import DashboardLayout from '@/components/layout/DashboardLayout';
+import CoachRequiredTasksBanner from '@/components/coach/CoachRequiredTasksBanner';
 import { coachNavigation, getRoleDisplayName } from '@/lib/navigation';
 
 export default async function CoachLayout({
@@ -47,6 +48,7 @@ export default async function CoachLayout({
         schoolName={school?.name}
         breadcrumbs={[{ label: 'Dashboard', href: '/dashboard/coach' }]}
       >
+        <CoachRequiredTasksBanner />
         {children}
       </DashboardLayout>
     );

@@ -1,6 +1,44 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
-import { getEffectiveUserId } from '@/lib/auth';
+import { createAdminClient } from '@/lib/supabase/admin';
+import { getEffectiveUserId, getUserRole } from '@/lib/auth';
+
+// GET - Return all programs the coach submitted or is assigned to
+export async function GET() {
+  try {
+    const effectiveUserId = await getEffectiveUserId();
+    if (!effectiveUserId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+
+    const role = await getUserRole();
+    if (role !== 'coach') return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+
+    const adminClient = createAdminClient();
+
+    const [{ data: assignedData }, { data: submittedData }] = await Promise.all([
+      adminClient
+        .from('program_coaches')
+        .select('summer_programs(id, name, status, rejection_reason, start_date, end_date, submitted_by)')
+        .eq('coach_id', effectiveUserId),
+      adminClient
+        .from('summer_programs')
+        .select('id, name, status, rejection_reason, start_date, end_date, submitted_by')
+        .eq('submitted_by', effectiveUserId),
+    ]);
+
+    const assignedPrograms = (assignedData?.map((pc: any) => pc.summer_programs).filter(Boolean) || []) as any[];
+    const submittedPrograms = submittedData || [];
+    const submittedIds = new Set(submittedPrograms.map((p: any) => p.id));
+    const programs = [
+      ...submittedPrograms,
+      ...assignedPrograms.filter((p: any) => !submittedIds.has(p.id)),
+    ];
+
+    return NextResponse.json({ programs });
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : 'Failed to fetch programs';
+    return NextResponse.json({ error: message }, { status: 500 });
+  }
+}
 
 export async function POST(request: NextRequest) {
   try {
