@@ -1,27 +1,27 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
-import { getEffectiveUserId } from '@/lib/auth';
+import { createAdminClient } from '@/lib/supabase/admin';
+import { getEffectiveUserId, getUserRole } from '@/lib/auth';
 
-// Helper to verify coach has access to program
-async function verifyCoachAccess(supabase: any, coachId: string, programId: string) {
-  // Check if coach created the program
-  const { data: program } = await supabase
+// Helper to verify coach has access to program (uses adminClient to bypass RLS)
+async function verifyCoachAccess(coachId: string, programId: string) {
+  const adminClient = createAdminClient();
+
+  const { data: program } = await adminClient
     .from('summer_programs')
-    .select('id, created_by')
+    .select('id, submitted_by')
     .eq('id', programId)
     .single();
 
   if (!program) return false;
+  if (program.submitted_by === coachId) return true;
 
-  if (program.created_by === coachId) return true;
-
-  // Check if coach is assigned to the program
-  const { data: assignment } = await supabase
+  const { data: assignment } = await adminClient
     .from('program_coaches')
     .select('id')
     .eq('program_id', programId)
     .eq('coach_id', coachId)
-    .single();
+    .maybeSingle();
 
   return !!assignment;
 }
@@ -33,161 +33,107 @@ export async function GET(
 ) {
   try {
     const { id: programId } = await params;
-    const supabase = await createClient();
-
-    // Verify user
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
 
     const effectiveUserId = await getEffectiveUserId();
-    if (!effectiveUserId) {
-      return NextResponse.json({ error: 'User not found' }, { status: 401 });
-    }
+    if (!effectiveUserId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
-    const { data: userData } = await supabase
-      .from('users')
-      .select('role')
-      .eq('id', effectiveUserId)
-      .single();
+    const role = await getUserRole();
+    if (role !== 'coach') return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
 
-    if (!userData || userData.role !== 'coach') {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
-    }
+    const hasAccess = await verifyCoachAccess(effectiveUserId, programId);
+    if (!hasAccess) return NextResponse.json({ error: 'You do not have access to this program' }, { status: 403 });
 
-    // Verify coach has access to this program
-    const hasAccess = await verifyCoachAccess(supabase, effectiveUserId, programId);
-    if (!hasAccess) {
-      return NextResponse.json({ error: 'You do not have access to this program' }, { status: 403 });
-    }
-
-    const { data, error } = await supabase
+    // Use adminClient so RLS never silently drops locked/global requirements
+    const adminClient = createAdminClient();
+    const { data, error } = await adminClient
       .from('program_certification_requirements')
-      .select(`
-        *,
-        certification_type:certification_types(*)
-      `)
+      .select('*, certification_type:certification_types(*)')
       .eq('program_id', programId)
       .order('is_required', { ascending: false });
 
-    if (error) {
-      return NextResponse.json({ error: error.message }, { status: 400 });
-    }
+    if (error) return NextResponse.json({ error: error.message }, { status: 400 });
 
     return NextResponse.json({ requirements: data });
   } catch (error: unknown) {
-    console.error('Error fetching requirements:', error);
     const message = error instanceof Error ? error.message : 'Failed to fetch requirements';
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }
 
-// POST - Add certification requirements to a program
+// POST - Save certification requirements for a program (coach-editable ones only)
 export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const { id: programId } = await params;
-    const supabase = await createClient();
-
-    // Verify user
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
 
     const effectiveUserId = await getEffectiveUserId();
-    if (!effectiveUserId) {
-      return NextResponse.json({ error: 'User not found' }, { status: 401 });
-    }
+    if (!effectiveUserId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
-    const { data: userData } = await supabase
-      .from('users')
-      .select('role, school_id')
-      .eq('id', effectiveUserId)
-      .single();
+    const role = await getUserRole();
+    if (role !== 'coach') return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
 
-    if (!userData || userData.role !== 'coach') {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
-    }
-
-    // Verify coach has access to this program
-    const hasAccess = await verifyCoachAccess(supabase, effectiveUserId, programId);
-    if (!hasAccess) {
-      return NextResponse.json({ error: 'You do not have access to this program' }, { status: 403 });
-    }
+    const hasAccess = await verifyCoachAccess(effectiveUserId, programId);
+    if (!hasAccess) return NextResponse.json({ error: 'You do not have access to this program' }, { status: 403 });
 
     const body = await request.json();
-    const { requirements } = body; // Array of { certification_type_id, is_required }
-
+    const { requirements } = body;
     if (!Array.isArray(requirements)) {
       return NextResponse.json({ error: 'Requirements must be an array' }, { status: 400 });
     }
 
-    // Get existing locked requirements (these cannot be modified by coaches)
-    const { data: existingReqs } = await supabase
+    const adminClient = createAdminClient();
+
+    // Fetch all existing requirements via adminClient so locked ones are never missed
+    const { data: existingReqs } = await adminClient
       .from('program_certification_requirements')
       .select('certification_type_id, is_required, locked_by_admin')
       .eq('program_id', programId);
 
-    const lockedReqs = (existingReqs || []).filter(r => r.locked_by_admin);
-    const lockedCertTypeIds = new Set(lockedReqs.map(r => r.certification_type_id));
+    // Determine which cert type IDs are protected (locked by admin OR global cert already required)
+    const { data: certTypes } = await adminClient
+      .from('certification_types')
+      .select('id, school_id')
+      .in('id', (existingReqs || []).map((r: any) => r.certification_type_id));
 
-    // Filter out any attempts to modify locked requirements
-    const coachRequirements = requirements.filter(
-      (r: { certification_type_id: string }) => !lockedCertTypeIds.has(r.certification_type_id)
+    const globalCertIds = new Set((certTypes || []).filter((ct: any) => ct.school_id === null).map((ct: any) => ct.id));
+
+    const protectedIds = new Set(
+      (existingReqs || [])
+        .filter((r: any) => r.locked_by_admin || globalCertIds.has(r.certification_type_id))
+        .map((r: any) => r.certification_type_id)
     );
 
-    // Verify all certification types are valid (global or from coach's school)
-    if (coachRequirements.length > 0) {
-      const certTypeIds = coachRequirements.map((r: { certification_type_id: string }) => r.certification_type_id);
+    // Only process requirements the coach is allowed to change
+    const coachRequirements = requirements.filter(
+      (r: { certification_type_id: string }) => !protectedIds.has(r.certification_type_id)
+    );
 
-      const { data: validCertTypes } = await supabase
-        .from('certification_types')
-        .select('id')
-        .or(`school_id.is.null,school_id.eq.${userData.school_id}`)
-        .in('id', certTypeIds);
-
-      const validIds = new Set(validCertTypes?.map(c => c.id) || []);
-      const invalidIds = certTypeIds.filter((id: string) => !validIds.has(id));
-
-      if (invalidIds.length > 0) {
-        return NextResponse.json({
-          error: 'Some certification types are not available for your school'
-        }, { status: 400 });
-      }
-    }
-
-    // Delete only non-locked requirements (preserve locked ones)
-    await supabase
+    // Delete existing non-protected requirements, then re-insert
+    await adminClient
       .from('program_certification_requirements')
       .delete()
       .eq('program_id', programId)
-      .eq('locked_by_admin', false);
+      .eq('locked_by_admin', false)
+      .not('certification_type_id', 'in', `(${[...protectedIds].join(',')})`);
 
-    // Insert coach's requirements (non-locked)
     if (coachRequirements.length > 0) {
-      const inserts = coachRequirements.map((req: { certification_type_id: string; is_required: boolean }) => ({
-        program_id: programId,
-        certification_type_id: req.certification_type_id,
-        is_required: req.is_required ?? true,
-        locked_by_admin: false, // Coach-added requirements are never locked
-      }));
-
-      const { error } = await supabase
+      const { error } = await adminClient
         .from('program_certification_requirements')
-        .insert(inserts);
-
-      if (error) {
-        return NextResponse.json({ error: error.message }, { status: 400 });
-      }
+        .insert(
+          coachRequirements.map((req: { certification_type_id: string; is_required: boolean }) => ({
+            program_id: programId,
+            certification_type_id: req.certification_type_id,
+            is_required: req.is_required ?? true,
+            locked_by_admin: false,
+          }))
+        );
+      if (error) return NextResponse.json({ error: error.message }, { status: 400 });
     }
 
     return NextResponse.json({ success: true });
   } catch (error: unknown) {
-    console.error('Error saving requirements:', error);
     const message = error instanceof Error ? error.message : 'Failed to save requirements';
     return NextResponse.json({ error: message }, { status: 500 });
   }
