@@ -235,12 +235,13 @@ export async function checkCoachCompliance(
   };
 }
 
-// Get all compliance statuses for a coach's assigned programs
+// Get all compliance statuses for a coach's assigned programs.
+// Replaces the N+1 loop with 5 parallel queries then in-memory computation.
 export async function getCoachComplianceStatus(
   supabase: SupabaseClient,
   coachId: string
 ): Promise<ComplianceStatus[]> {
-  // Get programs the coach is assigned to
+  // 1. Get assigned program IDs
   const { data: assignments } = await supabase
     .from('program_coaches')
     .select('program_id')
@@ -248,13 +249,81 @@ export async function getCoachComplianceStatus(
 
   if (!assignments || assignments.length === 0) return [];
 
-  const statuses: ComplianceStatus[] = [];
-  for (const assignment of assignments) {
-    const status = await checkCoachCompliance(supabase, coachId, assignment.program_id);
-    if (status) statuses.push(status);
-  }
+  const programIds = assignments.map((a: { program_id: string }) => a.program_id);
 
-  return statuses;
+  // 2-5. Fetch everything needed in parallel (one round-trip each)
+  const [
+    { data: programs },
+    { data: allRequirements },
+    { data: universalCerts },
+    coachCerts,
+  ] = await Promise.all([
+    supabase
+      .from('summer_programs')
+      .select('id, name')
+      .in('id', programIds),
+    supabase
+      .from('program_certification_requirements')
+      .select('*, certification_type:certification_types(*)')
+      .in('program_id', programIds),
+    supabase
+      .from('certification_types')
+      .select('*')
+      .eq('is_universal', true),
+    getCoachCertifications(supabase, coachId),
+  ]);
+
+  const coachCertTypeIds = new Set(coachCerts.map((c: CoachCertification) => c.certification_type_id));
+
+  // Compute compliance per program in memory
+  return (programs || []).map((program: { id: string; name: string }) => {
+    const requirements: ProgramCertificationRequirement[] = (allRequirements || []).filter(
+      (r: ProgramCertificationRequirement) => r.program_id === program.id
+    );
+    const requiredReqs = requirements.filter((r: ProgramCertificationRequirement) => r.is_required);
+    const recommendedReqs = requirements.filter((r: ProgramCertificationRequirement) => !r.is_required);
+
+    const missingProgramRequired = requiredReqs
+      .filter((r: ProgramCertificationRequirement) => !coachCertTypeIds.has(r.certification_type_id))
+      .map((r: ProgramCertificationRequirement) => r.certification_type!)
+      .filter(Boolean);
+
+    const missingUniversal = (universalCerts || [])
+      .filter((cert: CertificationType) => !coachCertTypeIds.has(cert.id));
+
+    const missingRequiredIds = new Set(missingProgramRequired.map((c: CertificationType) => c.id));
+    const missingRequired = [
+      ...missingProgramRequired,
+      ...missingUniversal.filter((c: CertificationType) => !missingRequiredIds.has(c.id)),
+    ];
+
+    const missingRecommended = recommendedReqs
+      .filter((r: ProgramCertificationRequirement) => !coachCertTypeIds.has(r.certification_type_id))
+      .map((r: ProgramCertificationRequirement) => r.certification_type!)
+      .filter(Boolean);
+
+    const expiringCerts = coachCerts.filter((c: CoachCertification) => {
+      const status = getCertificationStatus(c.expiration_date);
+      return status === 'expiring_soon' || status === 'expired';
+    });
+
+    const totalRequired = requiredReqs.length + (universalCerts?.length || 0);
+
+    return {
+      programId: program.id,
+      programName: program.name,
+      totalRequired,
+      totalRecommended: recommendedReqs.length,
+      completedRequired: totalRequired - missingRequired.length,
+      completedRecommended: recommendedReqs.length - missingRecommended.length,
+      missingRequired,
+      missingRecommended,
+      expiringCerts,
+      isCompliant:
+        missingRequired.length === 0 &&
+        expiringCerts.every((c: CoachCertification) => getCertificationStatus(c.expiration_date) !== 'expired'),
+    };
+  });
 }
 
 // Get expiring certifications for notification purposes
