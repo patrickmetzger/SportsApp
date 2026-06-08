@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getCurrentUser, getUserRoles } from '@/lib/auth';
+import { getCurrentUser, getEffectiveUserId, getUserRoles } from '@/lib/auth';
 import { cookies } from 'next/headers';
 import { UserRole } from '@/lib/types';
 
@@ -16,8 +16,14 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'role is required' }, { status: 400 });
   }
 
-  // Verify the user actually holds this role
-  const roles = await getUserRoles(user.id);
+  // Use the effective user (handles impersonation)
+  const effectiveUserId = await getEffectiveUserId();
+  if (!effectiveUserId) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
+  // Verify the effective user actually holds this role
+  const roles = await getUserRoles(effectiveUserId);
   if (!roles.includes(role)) {
     return NextResponse.json({ error: 'You do not hold this role' }, { status: 403 });
   }

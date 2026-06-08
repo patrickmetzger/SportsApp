@@ -78,7 +78,7 @@ export default function RegistrationsList({
       </div>
 
       {/* Mobile card view */}
-      <div className="lg:hidden space-y-3 px-4 py-4">
+      <div className="md:hidden space-y-3 px-4 py-4">
         {filteredRegistrations?.map((reg) => (
           <div key={reg.id} className="bg-white border border-gray-200 rounded-lg p-4 space-y-2">
             <div className="flex items-start justify-between">
@@ -113,7 +113,7 @@ export default function RegistrationsList({
       </div>
 
       {/* Desktop table view */}
-      <div className="hidden lg:block overflow-x-auto">
+      <div className="hidden md:block overflow-x-auto">
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-50">
             <tr>

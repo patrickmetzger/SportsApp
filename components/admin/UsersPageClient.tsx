@@ -118,7 +118,7 @@ export default function UsersPageClient({ initialUsers, archivedUsers }: UsersPa
           ) : (
             <>
             {/* Mobile card view */}
-            <div className="mt-4 lg:hidden space-y-3">
+            <div className="mt-4 md:hidden space-y-3">
               {archivedUsers.map((user) => (
                 <div key={user.id} className="bg-white border border-gray-200 rounded-lg p-4 opacity-60 hover:opacity-100 space-y-2">
                   <div className="font-medium text-gray-900">{user.first_name} {user.last_name}</div>
@@ -138,7 +138,7 @@ export default function UsersPageClient({ initialUsers, archivedUsers }: UsersPa
             </div>
 
             {/* Desktop table view */}
-            <div className="mt-4 overflow-x-auto hidden lg:block">
+            <div className="mt-4 overflow-x-auto hidden md:block">
               <table className="min-w-full divide-y divide-gray-200">
                 <thead className="bg-gray-50">
                   <tr>

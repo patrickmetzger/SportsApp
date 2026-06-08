@@ -128,7 +128,7 @@ export default function ProgramRegistrationsClient({
       {/* Registrations */}
       <div className="bg-white rounded-lg shadow overflow-hidden">
         {/* Mobile card view */}
-        <div className="lg:hidden space-y-3 p-4">
+        <div className="md:hidden space-y-3 p-4">
           {initialRegistrations.length > 0 ? (
             initialRegistrations.map((reg) => (
               <div key={reg.id} className="border border-gray-200 rounded-lg p-4 space-y-2">
@@ -168,7 +168,7 @@ export default function ProgramRegistrationsClient({
         </div>
 
         {/* Desktop table view */}
-        <div className="hidden lg:block">
+        <div className="hidden md:block">
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-50">
             <tr>

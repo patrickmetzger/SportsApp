@@ -13,17 +13,32 @@ interface User {
   archived: boolean;
 }
 
+const ALL_ROLES = [
+  { value: 'admin', label: 'Admin' },
+  { value: 'school_admin', label: 'School Admin' },
+  { value: 'coach', label: 'Coach' },
+  { value: 'assistant_coach', label: 'Assistant Coach' },
+  { value: 'parent', label: 'Parent' },
+  { value: 'student', label: 'Student' },
+] as const;
+
 interface EditUserFormProps {
   user: User;
+  userRoles: string[];
 }
 
-export default function EditUserForm({ user }: EditUserFormProps) {
+export default function EditUserForm({ user, userRoles }: EditUserFormProps) {
   const [firstName, setFirstName] = useState(user.first_name);
   const [lastName, setLastName] = useState(user.last_name);
   const [email, setEmail] = useState(user.email);
   const [role, setRole] = useState(user.role);
   const [schoolId, setSchoolId] = useState(user.school_id || '');
   const [schools, setSchools] = useState<any[]>([]);
+  const [additionalRoles, setAdditionalRoles] = useState<string[]>(
+    userRoles.filter((r) => r !== user.role)
+  );
+  const [savingRoles, setSavingRoles] = useState(false);
+  const [rolesMessage, setRolesMessage] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const router = useRouter();
@@ -259,6 +274,69 @@ export default function EditUserForm({ user }: EditUserFormProps) {
           </a>
         </div>
       </form>
+
+      <div className="mt-6 pt-6 border-t border-gray-200">
+        <h3 className="text-lg font-semibold text-gray-900 mb-1">Additional Roles</h3>
+        <p className="text-sm text-gray-600 mb-4">
+          Give this user access to multiple dashboards. The primary role above is their default. When a user has multiple roles, they'll choose which dashboard to use on login.
+        </p>
+
+        <div className="space-y-2">
+          {ALL_ROLES.filter((r) => r.value !== role).map((r) => (
+            <label key={r.value} className="flex items-center gap-3 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={additionalRoles.includes(r.value)}
+                onChange={(e) => {
+                  if (e.target.checked) {
+                    setAdditionalRoles((prev) => [...prev, r.value]);
+                  } else {
+                    setAdditionalRoles((prev) => prev.filter((p) => p !== r.value));
+                  }
+                  setRolesMessage('');
+                }}
+                className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+              />
+              <span className="text-sm text-gray-700">{r.label}</span>
+            </label>
+          ))}
+        </div>
+
+        {rolesMessage && (
+          <div className={`mt-3 text-sm ${rolesMessage.startsWith('Error') ? 'text-red-600' : 'text-green-600'}`}>
+            {rolesMessage}
+          </div>
+        )}
+
+        <button
+          type="button"
+          disabled={savingRoles}
+          onClick={async () => {
+            setSavingRoles(true);
+            setRolesMessage('');
+            try {
+              const allRoles = [role, ...additionalRoles];
+              const res = await fetch('/api/admin/user-roles', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ userId: user.id, roles: allRoles }),
+              });
+              const data = await res.json();
+              if (!res.ok) {
+                throw new Error(data.error || 'Failed to update roles');
+              }
+              setRolesMessage('Roles updated successfully');
+            } catch (err: any) {
+              setRolesMessage(`Error: ${err.message}`);
+            } finally {
+              setSavingRoles(false);
+            }
+          }}
+          className="mt-4 px-4 py-2 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 disabled:bg-gray-400 transition"
+        >
+          {savingRoles ? 'Saving...' : 'Save Roles'}
+        </button>
+      </div>
 
       <div className="mt-6 pt-6 border-t border-gray-200">
         <h3 className="text-lg font-semibold text-gray-900 mb-3">Archive User</h3>

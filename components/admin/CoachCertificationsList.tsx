@@ -173,7 +173,7 @@ export default function CoachCertificationsList({ isSchoolAdmin = false }: Coach
       ) : (
         <>
         {/* Mobile card view */}
-        <div className="lg:hidden space-y-3">
+        <div className="md:hidden space-y-3">
           {certifications.map((cert) => {
             const status = getCertificationStatus(cert.expiration_date);
             const statusDisplay = formatCertificationStatus(status);
@@ -218,7 +218,7 @@ export default function CoachCertificationsList({ isSchoolAdmin = false }: Coach
         </div>
 
         {/* Desktop table view */}
-        <div className="hidden lg:block overflow-x-auto">
+        <div className="hidden md:block overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>

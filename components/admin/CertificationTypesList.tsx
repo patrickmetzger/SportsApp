@@ -80,7 +80,7 @@ export default function CertificationTypesList({
   return (
     <>
       {/* Mobile card view */}
-      <div className="lg:hidden space-y-3">
+      <div className="md:hidden space-y-3">
         {certificationTypes.map((type) => {
           const isGlobal = !type.school_id;
           return (
@@ -119,7 +119,7 @@ export default function CertificationTypesList({
       </div>
 
       {/* Desktop table view */}
-      <div className="hidden lg:block overflow-x-auto">
+      <div className="hidden md:block overflow-x-auto">
       <table className="min-w-full divide-y divide-gray-200">
         <thead className="bg-gray-50">
           <tr>

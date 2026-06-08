@@ -129,7 +129,7 @@ export default function CommunicationsList({ communications }: CommunicationsLis
         )}
       </div>
       {/* Mobile card view */}
-      <div className="lg:hidden space-y-3">
+      <div className="md:hidden space-y-3">
         {visible.map((comm) => (
           <div key={comm.id} className={`bg-white border border-gray-200 rounded-lg p-4 space-y-2${comm.archived ? ' opacity-60' : ''}`}>
             <div className="flex items-start justify-between">
@@ -157,7 +157,7 @@ export default function CommunicationsList({ communications }: CommunicationsLis
       </div>
 
       {/* Desktop table view */}
-      <div className="hidden lg:block overflow-x-auto">
+      <div className="hidden md:block overflow-x-auto">
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-50">
             <tr>

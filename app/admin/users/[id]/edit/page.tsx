@@ -1,5 +1,6 @@
 import { requireRole } from '@/lib/auth';
 import { createClient } from '@/lib/supabase/server';
+import { createAdminClient } from '@/lib/supabase/admin';
 import { redirect } from 'next/navigation';
 import EditUserForm from '@/components/admin/EditUserForm';
 
@@ -20,6 +21,15 @@ export default async function EditUserPage({ params }: { params: Promise<{ id: s
       redirect('/admin/users');
     }
 
+    // Fetch user's additional roles from user_roles table
+    const adminClient = createAdminClient();
+    const { data: userRolesData } = await adminClient
+      .from('user_roles')
+      .select('role')
+      .eq('user_id', id);
+
+    const userRoles = userRolesData?.map((r) => r.role) || [user.role];
+
     return (
       <div className="min-h-screen bg-gray-50">
         <nav className="bg-white shadow-sm border-b border-gray-200">
@@ -36,7 +46,7 @@ export default async function EditUserPage({ params }: { params: Promise<{ id: s
         </nav>
 
         <main className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <EditUserForm user={user} />
+          <EditUserForm user={user} userRoles={userRoles} />
         </main>
       </div>
     );

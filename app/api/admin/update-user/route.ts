@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
+import { createAdminClient } from '@/lib/supabase/admin';
 
 export async function PUT(request: NextRequest) {
   try {
@@ -49,6 +50,21 @@ export async function PUT(request: NextRequest) {
 
     if (updateError) {
       return NextResponse.json({ error: updateError.message }, { status: 400 });
+    }
+
+    // Sync user_roles table: ensure the primary role exists
+    const adminClient = createAdminClient();
+    const { data: existingRoles } = await adminClient
+      .from('user_roles')
+      .select('role')
+      .eq('user_id', id);
+
+    if (!existingRoles || existingRoles.length === 0) {
+      // No roles yet — insert the primary role
+      await adminClient.from('user_roles').insert({ user_id: id, role });
+    } else if (!existingRoles.some((r) => r.role === role)) {
+      // Primary role changed and new role isn't in the table — add it
+      await adminClient.from('user_roles').insert({ user_id: id, role });
     }
 
     return NextResponse.json({

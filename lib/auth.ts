@@ -51,23 +51,32 @@ export async function getUserRoles(userId?: string): Promise<UserRole[]> {
   const impersonating = await isImpersonating();
   const client = impersonating ? createAdminClient() : await createClient();
 
-  const { data, error } = await client
-    .from("user_roles")
-    .select("role")
-    .eq("user_id", effectiveUserId);
+  // Fetch from both sources in parallel
+  const [rolesResult, userResult] = await Promise.all([
+    client
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", effectiveUserId),
+    client
+      .from("users")
+      .select("role")
+      .eq("id", effectiveUserId)
+      .single(),
+  ]);
 
-  if (!error && data && data.length > 0) {
-    return data.map((r) => r.role as UserRole);
+  const junctionRoles = (!rolesResult.error && rolesResult.data)
+    ? rolesResult.data.map((r) => r.role as UserRole)
+    : [];
+
+  const primaryRole = userResult.data?.role as UserRole | undefined;
+
+  // Merge: junction table roles + ensure primary role is always included
+  const allRoles = new Set(junctionRoles);
+  if (primaryRole) {
+    allRoles.add(primaryRole);
   }
 
-  // Fallback: read from the legacy single-role column
-  const { data: userData } = await client
-    .from("users")
-    .select("role")
-    .eq("id", effectiveUserId)
-    .single();
-
-  return userData?.role ? [userData.role as UserRole] : [];
+  return Array.from(allRoles);
 }
 
 /**
@@ -86,14 +95,13 @@ export async function getUserRole(userId?: string): Promise<UserRole | null> {
   const impersonating = await isImpersonating();
   const client = impersonating ? createAdminClient() : await createClient();
 
-  // 1. Check active_role cookie — only relevant for the actual authenticated user,
-  //    not when looking up a specific userId or during impersonation.
-  if (!userId && !impersonating) {
+  // 1. Check active_role cookie — applies to both normal sessions and impersonation
+  if (!userId) {
     const cookieStore = await cookies();
     const activeRole = cookieStore.get("active_role")?.value as UserRole | undefined;
 
     if (activeRole) {
-      // Validate the cookie role is actually held by this user
+      // Validate the cookie role is actually held by the effective user
       const roles = await getUserRoles(effectiveUserId);
       if (roles.includes(activeRole)) {
         return activeRole;
