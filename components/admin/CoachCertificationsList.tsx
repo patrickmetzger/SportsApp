@@ -171,7 +171,54 @@ export default function CoachCertificationsList({ isSchoolAdmin = false }: Coach
           )}
         </div>
       ) : (
-        <div className="overflow-x-auto">
+        <>
+        {/* Mobile card view */}
+        <div className="lg:hidden space-y-3">
+          {certifications.map((cert) => {
+            const status = getCertificationStatus(cert.expiration_date);
+            const statusDisplay = formatCertificationStatus(status);
+            const daysUntil = getDaysUntilExpiry(cert.expiration_date);
+            return (
+              <div key={cert.id} className="bg-white border border-gray-200 rounded-lg p-4 space-y-2">
+                <div className="flex items-start justify-between">
+                  <div>
+                    <div className="font-medium text-gray-900">{getCoachName(cert.coach)}</div>
+                    <div className="text-xs text-gray-500">{cert.coach?.email}</div>
+                  </div>
+                  <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${statusDisplay.bgColor} ${statusDisplay.color}`}>
+                    {statusDisplay.label}
+                  </span>
+                </div>
+                {!isSchoolAdmin && (
+                  <div className="text-sm text-gray-500">{getSchoolName(cert.coach)}</div>
+                )}
+                <div className="text-sm">
+                  <span className="font-medium text-gray-900">{cert.certification_type?.name || 'Unknown'}</span>
+                  {cert.issuing_organization && <span className="text-gray-500"> - {cert.issuing_organization}</span>}
+                </div>
+                <div className="flex items-center justify-between text-sm text-gray-500">
+                  <span>Issued: {formatDate(cert.issue_date)}</span>
+                  <span>
+                    Exp: {formatDate(cert.expiration_date)}
+                    {daysUntil !== null && (
+                      <span className={`ml-1 ${daysUntil < 0 ? 'text-red-600' : daysUntil <= 30 ? 'text-yellow-600' : ''}`}>
+                        ({daysUntil < 0 ? `${Math.abs(daysUntil)}d ago` : daysUntil === 0 ? 'Today' : `${daysUntil}d`})
+                      </span>
+                    )}
+                  </span>
+                </div>
+                {cert.document_url && (
+                  <div className="pt-2 border-t border-gray-100">
+                    <a href={cert.document_url} target="_blank" rel="noopener noreferrer" className="text-sm text-blue-600 hover:text-blue-800">View Document</a>
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Desktop table view */}
+        <div className="hidden lg:block overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
@@ -263,6 +310,7 @@ export default function CoachCertificationsList({ isSchoolAdmin = false }: Coach
             </tbody>
           </table>
         </div>
+        </>
       )}
     </div>
   );

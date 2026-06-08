@@ -128,7 +128,36 @@ export default function CommunicationsList({ communications }: CommunicationsLis
           </button>
         )}
       </div>
-      <div className="overflow-x-auto">
+      {/* Mobile card view */}
+      <div className="lg:hidden space-y-3">
+        {visible.map((comm) => (
+          <div key={comm.id} className={`bg-white border border-gray-200 rounded-lg p-4 space-y-2${comm.archived ? ' opacity-60' : ''}`}>
+            <div className="flex items-start justify-between">
+              <div className="font-medium text-gray-900">{comm.subject}</div>
+              {getStatusBadge(comm.status)}
+            </div>
+            <div className="text-sm text-gray-500">{comm.message.substring(0, 120)}{comm.message.length > 120 && '...'}</div>
+            <div className="text-sm text-gray-500">
+              From: {comm.sender ? `${comm.sender.first_name} ${comm.sender.last_name}` : 'Unknown User'}
+            </div>
+            <div className="flex flex-wrap items-center gap-2 text-sm">
+              <span className="text-gray-500">{getRecipientTypeLabel(comm.recipient_type)} ({comm.recipient_ids.length})</span>
+              {getDeliveryMethodBadge(comm.delivery_method)}
+            </div>
+            <div className="text-xs text-gray-400">{comm.sent_at ? formatDate(comm.sent_at) : formatDate(comm.created_at)}</div>
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-1 pt-2 border-t border-gray-100">
+              <button onClick={() => setSelectedCommunication(comm)} className="text-sm text-blue-600 hover:text-blue-800 font-medium">View</button>
+              {!comm.archived && (
+                <button onClick={() => handleArchive(comm.id)} disabled={archivingId === comm.id} className="text-sm text-gray-400 hover:text-gray-600 font-medium disabled:opacity-50">{archivingId === comm.id ? 'Archiving...' : 'Archive'}</button>
+              )}
+              {comm.archived && <span className="text-xs text-gray-400 italic">Archived</span>}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Desktop table view */}
+      <div className="hidden lg:block overflow-x-auto">
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-50">
             <tr>

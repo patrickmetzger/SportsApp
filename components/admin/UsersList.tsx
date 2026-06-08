@@ -54,7 +54,59 @@ export default function UsersList({ users }: UsersListProps) {
   };
 
   return (
-    <div className="overflow-x-auto">
+    <>
+      {/* Mobile card view */}
+      <div className="lg:hidden space-y-3">
+        {users?.map((user) => (
+          <div key={user.id} className="bg-white border border-gray-200 rounded-lg p-4 space-y-2">
+            <div className="flex items-start justify-between gap-2">
+              <div className="min-w-0">
+                <div className="font-medium text-gray-900 truncate">{user.first_name} {user.last_name}</div>
+                <div className="text-sm text-gray-500 truncate">{user.email}</div>
+              </div>
+              <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full shrink-0 ${getStatusBadge(getUserStatus(user))}`}>
+                {getUserStatus(user)}
+              </span>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                user.role === 'admin' ? 'bg-purple-100 text-purple-800' :
+                user.role === 'school_admin' ? 'bg-indigo-100 text-indigo-800' :
+                user.role === 'coach' ? 'bg-blue-100 text-blue-800' :
+                user.role === 'assistant_coach' ? 'bg-cyan-100 text-cyan-800' :
+                user.role === 'student' ? 'bg-green-100 text-green-800' :
+                'bg-yellow-100 text-yellow-800'
+              }`}>
+                {user.role === 'assistant_coach' ? 'assistant coach' : user.role === 'school_admin' ? 'school admin' : user.role}
+              </span>
+            </div>
+            <div className="text-sm text-gray-500">
+              {user.school ? (
+                <span>{user.school.name}{user.school.city && user.school.state && ` - ${user.school.city}, ${user.school.state}`}</span>
+              ) : (
+                (user.role === 'coach' || user.role === 'assistant_coach') ? (
+                  <span className="text-gray-400 italic">No school assigned</span>
+                ) : null
+              )}
+            </div>
+            <div className="text-xs text-gray-400">Joined {new Date(user.created_at).toLocaleDateString()}</div>
+            <div className="flex flex-wrap gap-x-3 gap-y-1 pt-2 border-t border-gray-100">
+              <form action="/api/admin/impersonate" method="POST" className="inline">
+                <input type="hidden" name="userId" value={user.id} />
+                <button type="submit" className="text-sm text-blue-600 hover:text-blue-900">Impersonate</button>
+              </form>
+              <a href={`/admin/users/${user.id}/edit`} className="text-sm text-gray-600 hover:text-gray-900">Edit</a>
+              <form action="/api/admin/archive-user" method="POST" className="inline" onSubmit={handleArchive}>
+                <input type="hidden" name="userId" value={user.id} />
+                <button type="submit" className="text-sm text-orange-600 hover:text-orange-900">Archive</button>
+              </form>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Desktop table view */}
+      <div className="hidden lg:block overflow-x-auto">
       <table className="min-w-full divide-y divide-gray-200">
         <thead className="bg-gray-50">
           <tr>
@@ -161,12 +213,13 @@ export default function UsersList({ users }: UsersListProps) {
           ))}
         </tbody>
       </table>
+      </div>
 
       {!users || users.length === 0 && (
         <div className="px-6 py-12 text-center text-gray-500">
           No users found
         </div>
       )}
-    </div>
+    </>
   );
 }

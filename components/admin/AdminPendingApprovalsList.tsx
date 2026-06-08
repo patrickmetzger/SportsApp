@@ -53,7 +53,46 @@ export default function AdminPendingApprovalsList({ pendingAssistants }: AdminPe
 
   return (
     <div className="bg-white rounded-xl shadow-card overflow-hidden">
-      <div className="overflow-x-auto">
+      {/* Mobile card view */}
+      <div className="lg:hidden space-y-3 p-4">
+        {pendingAssistants.map((assistant) => (
+          <div key={assistant.id} className="border border-gray-200 rounded-lg p-4 space-y-3">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-slate-100 rounded-full flex items-center justify-center shrink-0">
+                <UserIcon className="w-5 h-5 text-slate-500" />
+              </div>
+              <div>
+                <p className="font-medium text-gray-900">{assistant.first_name && assistant.last_name ? `${assistant.first_name} ${assistant.last_name}` : 'Name not set'}</p>
+                <p className="text-sm text-gray-500">{assistant.email}</p>
+              </div>
+            </div>
+            <div className="space-y-1 text-sm">
+              <div className="flex items-center gap-2">
+                <BuildingOfficeIcon className="w-4 h-4 text-gray-400" />
+                <span className="text-gray-600">{assistant.school_name}</span>
+              </div>
+              <div className="text-gray-500">Invited by: {assistant.invited_by || 'Unknown'}</div>
+              <div className="flex items-center gap-2">
+                <DocumentCheckIcon className="w-4 h-4 text-gray-400" />
+                <span className={`font-medium ${assistant.certification_count > 0 ? 'text-teal-600' : 'text-gray-400'}`}>{assistant.certification_count} uploaded</span>
+              </div>
+              <div className="flex items-center gap-2 text-gray-500">
+                <ClockIcon className="w-4 h-4" />
+                <span>{formatDate(assistant.created_at)}</span>
+              </div>
+            </div>
+            <div className="pt-2 border-t border-gray-100">
+              <a href={`/admin/pending-approvals/${assistant.id}`} className="inline-flex items-center gap-1 text-teal-600 hover:text-teal-700 font-medium text-sm">
+                Review
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
+              </a>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Desktop table view */}
+      <div className="hidden lg:block overflow-x-auto">
         <table className="w-full">
           <thead>
             <tr className="bg-gray-50 border-b border-gray-200">

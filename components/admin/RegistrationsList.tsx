@@ -77,8 +77,43 @@ export default function RegistrationsList({
         ))}
       </div>
 
-      {/* Table */}
-      <div className="overflow-x-auto">
+      {/* Mobile card view */}
+      <div className="lg:hidden space-y-3 px-4 py-4">
+        {filteredRegistrations?.map((reg) => (
+          <div key={reg.id} className="bg-white border border-gray-200 rounded-lg p-4 space-y-2">
+            <div className="flex items-start justify-between">
+              <div>
+                <div className="font-medium text-gray-900">{reg.student_name}</div>
+                <div className="text-xs text-gray-500">{reg.student_id}</div>
+              </div>
+              <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                reg.status === 'approved' ? 'bg-green-100 text-green-800' :
+                reg.status === 'rejected' ? 'bg-red-100 text-red-800' :
+                'bg-yellow-100 text-yellow-800'
+              }`}>{reg.status}</span>
+            </div>
+            <div className="text-sm text-gray-500">{reg.summer_programs.name}</div>
+            <div className="text-sm">
+              <div className="text-gray-900">{reg.parent_name}</div>
+              <div className="text-gray-500">{reg.parent_email}</div>
+              <div className="text-gray-500">{reg.parent_phone}</div>
+            </div>
+            <div className="text-xs text-gray-400">{new Date(reg.created_at).toLocaleDateString()}</div>
+            {reg.status === 'pending' && (
+              <div className="flex flex-wrap gap-x-3 gap-y-1 pt-2 border-t border-gray-100">
+                <button onClick={() => updateStatus(reg.id, 'approved')} className="text-sm text-green-600 hover:text-green-900">Approve</button>
+                <button onClick={() => updateStatus(reg.id, 'rejected')} className="text-sm text-red-600 hover:text-red-900">Reject</button>
+              </div>
+            )}
+          </div>
+        ))}
+        {(!filteredRegistrations || filteredRegistrations.length === 0) && (
+          <div className="p-6 text-center text-gray-500">No registrations found</div>
+        )}
+      </div>
+
+      {/* Desktop table view */}
+      <div className="hidden lg:block overflow-x-auto">
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-50">
             <tr>

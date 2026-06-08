@@ -112,10 +112,33 @@ export default function UsersPageClient({ initialUsers, archivedUsers }: UsersPa
         </button>
 
         {showArchived && (
-          <div className="mt-4 overflow-x-auto">
-            {archivedUsers.length === 0 ? (
-              <p className="text-sm text-gray-400 py-4">No archived users.</p>
-            ) : (
+          <>
+          {archivedUsers.length === 0 ? (
+            <p className="text-sm text-gray-400 py-4">No archived users.</p>
+          ) : (
+            <>
+            {/* Mobile card view */}
+            <div className="mt-4 lg:hidden space-y-3">
+              {archivedUsers.map((user) => (
+                <div key={user.id} className="bg-white border border-gray-200 rounded-lg p-4 opacity-60 hover:opacity-100 space-y-2">
+                  <div className="font-medium text-gray-900">{user.first_name} {user.last_name}</div>
+                  <div className="text-sm text-gray-500">{user.email}</div>
+                  <div className="text-sm text-gray-500">{user.role}</div>
+                  <div className="pt-2 border-t border-gray-100">
+                    <button
+                      onClick={() => handleDelete(user.id, `${user.first_name} ${user.last_name}`)}
+                      disabled={deletingId === user.id}
+                      className="text-sm text-red-600 hover:text-red-800 font-medium disabled:opacity-50"
+                    >
+                      {deletingId === user.id ? 'Deleting...' : 'Delete Permanently'}
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Desktop table view */}
+            <div className="mt-4 overflow-x-auto hidden lg:block">
               <table className="min-w-full divide-y divide-gray-200">
                 <thead className="bg-gray-50">
                   <tr>
@@ -146,8 +169,10 @@ export default function UsersPageClient({ initialUsers, archivedUsers }: UsersPa
                   ))}
                 </tbody>
               </table>
-            )}
-          </div>
+            </div>
+            </>
+          )}
+          </>
         )}
       </div>
     </div>

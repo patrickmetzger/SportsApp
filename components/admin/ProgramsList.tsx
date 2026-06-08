@@ -38,7 +38,34 @@ export default function ProgramsList({ programs }: { programs: Program[] | null 
   };
 
   return (
-    <div className="overflow-x-auto">
+    <>
+      {/* Mobile card view */}
+      <div className="lg:hidden space-y-3">
+        {programs?.map((program) => (
+          <div key={program.id} className="bg-white border border-gray-200 rounded-lg p-4 space-y-2">
+            <div className="font-medium text-gray-900">{program.name}</div>
+            <div className="text-sm text-gray-500">
+              {new Date(program.start_date).toLocaleDateString()} - {new Date(program.end_date).toLocaleDateString()}
+            </div>
+            <div className="flex items-center justify-between">
+              <div className="text-sm text-gray-500">
+                Deadline: {new Date(program.registration_deadline).toLocaleDateString()}
+              </div>
+              <div className="text-sm font-semibold text-gray-900">${program.cost.toFixed(2)}</div>
+            </div>
+            <div className="flex flex-wrap gap-x-3 gap-y-1 pt-2 border-t border-gray-100">
+              <a href={`/programs/${program.id}`} className="text-sm text-blue-600 hover:text-blue-900" target="_blank" rel="noopener noreferrer">View</a>
+              <a href={`/admin/programs/${program.id}/registrations`} className="text-sm text-green-600 hover:text-green-900">Registrations</a>
+              <a href={`/admin/programs/${program.id}/eligible-students`} className="text-sm text-purple-600 hover:text-purple-900">Eligible</a>
+              <a href={`/admin/programs/${program.id}/edit`} className="text-sm text-gray-600 hover:text-gray-900">Edit</a>
+              <button onClick={() => handleDelete(program.id, program.name)} className="text-sm text-red-600 hover:text-red-900">Delete</button>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Desktop table view */}
+      <div className="hidden lg:block overflow-x-auto">
       <table className="min-w-full divide-y divide-gray-200">
         <thead className="bg-gray-50">
           <tr>
@@ -117,12 +144,13 @@ export default function ProgramsList({ programs }: { programs: Program[] | null 
           ))}
         </tbody>
       </table>
+      </div>
 
       {!programs || programs.length === 0 ? (
         <div className="px-6 py-12 text-center text-gray-500">
           No programs found. Create your first program!
         </div>
       ) : null}
-    </div>
+    </>
   );
 }

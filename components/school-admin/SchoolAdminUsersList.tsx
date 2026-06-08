@@ -67,7 +67,31 @@ export default function SchoolAdminUsersList({ users }: SchoolAdminUsersListProp
   }
 
   return (
-    <div className="overflow-x-auto">
+    <>
+      {/* Mobile card view */}
+      <div className="lg:hidden space-y-3">
+        {users.map((user) => (
+          <div key={user.id} className="bg-white border border-gray-200 rounded-lg p-4 space-y-2">
+            <div className="flex items-start justify-between">
+              <div>
+                <div className="font-medium text-gray-900">{user.first_name} {user.last_name}</div>
+                <div className="text-sm text-gray-500">{user.email}</div>
+                {user.phone && <div className="text-sm text-gray-500">{user.phone}</div>}
+              </div>
+              <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusBadge(getUserStatus(user))}`}>{getUserStatus(user)}</span>
+            </div>
+            <div>
+              <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${getRoleBadge(user.role)}`}>{getRoleLabel(user.role)}</span>
+            </div>
+            <div className="pt-2 border-t border-gray-100">
+              <a href={`/school-admin/users/${user.id}`} className="text-sm text-blue-600 hover:text-blue-900">Edit</a>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Desktop table view */}
+      <div className="hidden lg:block overflow-x-auto">
       <table className="min-w-full divide-y divide-gray-200">
         <thead className="bg-gray-50">
           <tr>
@@ -127,6 +151,7 @@ export default function SchoolAdminUsersList({ users }: SchoolAdminUsersListProp
           ))}
         </tbody>
       </table>
-    </div>
+      </div>
+    </>
   );
 }

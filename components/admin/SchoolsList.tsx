@@ -360,8 +360,41 @@ export default function SchoolsList({ schools }: { schools: School[] }) {
         </div>
       )}
 
-      {/* Schools Table */}
-      <div className="bg-white rounded-lg shadow overflow-x-auto">
+      {/* Schools - Mobile card view */}
+      <div className="lg:hidden space-y-3">
+        {schools.length > 0 ? (
+          schools.map((school) => (
+            <div key={school.id} className="bg-white border border-gray-200 rounded-lg p-4 space-y-2">
+              <div className="font-medium text-gray-900">{school.name}</div>
+              <div className="text-sm text-gray-500">
+                {school.city && school.state ? `${school.city}, ${school.state}` : school.city || school.state || ''}
+              </div>
+              {(school.phone || school.email) && (
+                <div className="text-sm">
+                  {school.phone && <div className="text-gray-900">{school.phone}</div>}
+                  {school.email && <div className="text-gray-500">{school.email}</div>}
+                </div>
+              )}
+              {school.principal_name && (
+                <div className="text-sm"><span className="text-gray-500">Principal:</span> {school.principal_name}</div>
+              )}
+              {school.athletic_director_name && (
+                <div className="text-sm"><span className="text-gray-500">AD:</span> {school.athletic_director_name}</div>
+              )}
+              <div className="flex flex-wrap gap-x-3 gap-y-1 pt-2 border-t border-gray-100">
+                <button onClick={() => setAssigningSchool(school)} className="text-sm text-green-600 hover:text-green-900">Assign Coaches</button>
+                <button onClick={() => handleEdit(school)} className="text-sm text-blue-600 hover:text-blue-900">Edit</button>
+                <button onClick={() => handleDelete(school.id, school.name)} className="text-sm text-red-600 hover:text-red-900">Delete</button>
+              </div>
+            </div>
+          ))
+        ) : (
+          <div className="p-6 text-center text-gray-500">No schools found. Add your first school!</div>
+        )}
+      </div>
+
+      {/* Schools Table - Desktop */}
+      <div className="bg-white rounded-lg shadow overflow-x-auto hidden lg:block">
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-50">
             <tr>

@@ -125,8 +125,50 @@ export default function ProgramRegistrationsClient({
         </div>
       </div>
 
-      {/* Registrations Table */}
+      {/* Registrations */}
       <div className="bg-white rounded-lg shadow overflow-hidden">
+        {/* Mobile card view */}
+        <div className="lg:hidden space-y-3 p-4">
+          {initialRegistrations.length > 0 ? (
+            initialRegistrations.map((reg) => (
+              <div key={reg.id} className="border border-gray-200 rounded-lg p-4 space-y-2">
+                <div className="flex items-start justify-between">
+                  <div>
+                    <div className="font-medium text-gray-900">{reg.student_name}</div>
+                    <div className="text-xs text-gray-500">{reg.student_id}</div>
+                  </div>
+                  <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                    reg.status === 'approved' ? 'bg-green-100 text-green-800' :
+                    reg.status === 'rejected' ? 'bg-red-100 text-red-800' :
+                    'bg-yellow-100 text-yellow-800'
+                  }`}>{reg.status}</span>
+                </div>
+                <div className="text-sm text-gray-900">{reg.parent_name}</div>
+                <div className="text-sm text-gray-500">{reg.parent_email}</div>
+                <div className="text-sm text-gray-500">{reg.parent_phone}</div>
+                <div className="flex items-center justify-between text-sm">
+                  <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                    reg.payment_status === 'paid' ? 'bg-green-100 text-green-800' :
+                    reg.payment_status === 'partial' ? 'bg-blue-100 text-blue-800' :
+                    reg.payment_status === 'overdue' ? 'bg-red-100 text-red-800' :
+                    'bg-yellow-100 text-yellow-800'
+                  }`}>{reg.payment_status || 'pending'}</span>
+                  <span className="text-xs text-gray-500">${Number(reg.amount_paid || 0).toFixed(2)} / ${Number(reg.amount_due || 0).toFixed(2)}</span>
+                </div>
+                <div className="text-xs text-gray-400">{new Date(reg.created_at).toLocaleDateString()}</div>
+                <div className="flex flex-wrap gap-x-3 gap-y-1 pt-2 border-t border-gray-100">
+                  <button onClick={() => setEditingRegistration(reg)} className="text-sm text-blue-600 hover:text-blue-900">Edit</button>
+                  <button onClick={() => handleDelete(reg.id, reg.student_name)} className="text-sm text-red-600 hover:text-red-900">Delete</button>
+                </div>
+              </div>
+            ))
+          ) : (
+            <div className="p-6 text-center text-gray-500">No registrations yet</div>
+          )}
+        </div>
+
+        {/* Desktop table view */}
+        <div className="hidden lg:block">
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-50">
             <tr>
@@ -236,6 +278,7 @@ export default function ProgramRegistrationsClient({
             )}
           </tbody>
         </table>
+        </div>
       </div>
     </div>
   );

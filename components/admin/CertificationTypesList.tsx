@@ -78,7 +78,48 @@ export default function CertificationTypesList({
   }
 
   return (
-    <div className="overflow-x-auto">
+    <>
+      {/* Mobile card view */}
+      <div className="lg:hidden space-y-3">
+        {certificationTypes.map((type) => {
+          const isGlobal = !type.school_id;
+          return (
+            <div key={type.id} className="bg-white border border-gray-200 rounded-lg p-4 space-y-2">
+              <div className="flex items-start justify-between">
+                <div className="font-medium text-gray-900">{type.name}</div>
+                <div className="flex gap-1">
+                  {isGlobal ? (
+                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">Global</span>
+                  ) : (
+                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">{type.school?.name || 'School-specific'}</span>
+                  )}
+                  {type.is_universal && (
+                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">Universal</span>
+                  )}
+                </div>
+              </div>
+              {type.description && (
+                <div className="text-sm text-gray-500">{type.description}</div>
+              )}
+              <div className="text-sm text-gray-500">Valid for {type.validity_period_months} months</div>
+              <div className="flex flex-wrap gap-x-3 gap-y-1 pt-2 border-t border-gray-100">
+                {canEdit(type) && (
+                  <a href={isSchoolAdmin ? `/school-admin/certification-types/${type.id}/edit` : `/admin/certification-types/${type.id}/edit`} className="text-sm text-blue-600 hover:text-blue-900">Edit</a>
+                )}
+                {canDelete(type) && (
+                  <button onClick={() => handleDelete(type.id, isGlobal)} disabled={deleting === type.id} className="text-sm text-red-600 hover:text-red-900 disabled:opacity-50">{deleting === type.id ? 'Deleting...' : 'Delete'}</button>
+                )}
+                {!canEdit(type) && !canDelete(type) && (
+                  <span className="text-gray-400 text-xs">Read only</span>
+                )}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Desktop table view */}
+      <div className="hidden lg:block overflow-x-auto">
       <table className="min-w-full divide-y divide-gray-200">
         <thead className="bg-gray-50">
           <tr>
@@ -170,6 +211,7 @@ export default function CertificationTypesList({
           })}
         </tbody>
       </table>
-    </div>
+      </div>
+    </>
   );
 }
