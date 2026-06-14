@@ -51,7 +51,11 @@ export default function UsersPageClient({ initialUsers, archivedUsers }: UsersPa
     }
 
     if (filters.role) {
-      filtered = filtered.filter((user) => user.role === filters.role);
+      if (filters.role === 'coaches') {
+        filtered = filtered.filter((user) => user.role === 'coach' || user.role === 'assistant_coach');
+      } else {
+        filtered = filtered.filter((user) => user.role === filters.role);
+      }
     }
 
     if (filters.schoolId) {

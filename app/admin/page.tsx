@@ -9,6 +9,7 @@ import {
   ChartBarIcon,
   Cog6ToothIcon,
   UserGroupIcon,
+  ClipboardDocumentCheckIcon,
 } from '@heroicons/react/24/outline';
 
 export default async function AdminDashboard() {
@@ -21,12 +22,16 @@ export default async function AdminDashboard() {
       { count: schoolCount },
       { count: programCount },
       { count: studentCount },
+      { count: coachCount },
+      { count: pendingAssistantCount },
       { data: recentAthletes },
     ] = await Promise.all([
       adminClient.from('users').select('*', { count: 'exact', head: true }).eq('archived', false),
       adminClient.from('schools').select('*', { count: 'exact', head: true }),
       adminClient.from('summer_programs').select('*', { count: 'exact', head: true }),
       adminClient.from('parent_children').select('*', { count: 'exact', head: true }),
+      adminClient.from('users').select('*', { count: 'exact', head: true }).in('role', ['coach', 'assistant_coach']).eq('archived', false),
+      adminClient.from('users').select('*', { count: 'exact', head: true }).eq('role', 'assistant_coach').eq('approval_status', 'pending').eq('archived', false),
       adminClient
         .from('program_registrations')
         .select('id, student_name, student_id, status, payment_status, created_at, summer_programs(name)')
@@ -44,7 +49,7 @@ export default async function AdminDashboard() {
         </div>
 
         {/* Stat Cards + Navigation */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
           <a
             href="/admin/users"
             className="bg-white rounded-xl p-6 shadow-card hover:shadow-card-hover transition-shadow group"
@@ -115,6 +120,30 @@ export default async function AdminDashboard() {
             <p className="text-sm text-purple-600 group-hover:text-purple-700 font-medium mt-3 transition-colors">
               View athletes →
             </p>
+          </a>
+
+          <a
+            href="/admin/users?role=coaches"
+            className="bg-white rounded-xl p-6 shadow-card hover:shadow-card-hover transition-shadow group"
+          >
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-slate-500">Coaches</p>
+                <p className="text-2xl font-bold text-slate-900 mt-1">{coachCount ?? 0}</p>
+              </div>
+              <div className="w-12 h-12 bg-green-50 group-hover:bg-green-500 rounded-xl flex items-center justify-center transition-colors">
+                <ClipboardDocumentCheckIcon className="w-6 h-6 text-green-600 group-hover:text-white transition-colors" />
+              </div>
+            </div>
+            {(pendingAssistantCount ?? 0) > 0 ? (
+              <p className="text-sm text-orange-600 group-hover:text-orange-700 font-medium mt-3 transition-colors">
+                {pendingAssistantCount} pending approval →
+              </p>
+            ) : (
+              <p className="text-sm text-green-600 group-hover:text-green-700 font-medium mt-3 transition-colors">
+                View coaches →
+              </p>
+            )}
           </a>
         </div>
 

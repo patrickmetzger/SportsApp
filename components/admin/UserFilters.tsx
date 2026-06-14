@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useSearchParams } from 'next/navigation';
 
 interface School {
   id: string;
@@ -20,8 +21,9 @@ export interface FilterState {
 }
 
 export default function UserFilters({ onFilterChange }: UserFiltersProps) {
+  const searchParams = useSearchParams();
   const [search, setSearch] = useState('');
-  const [role, setRole] = useState('');
+  const [role, setRole] = useState(searchParams.get('role') || '');
   const [schoolId, setSchoolId] = useState('');
   const [schools, setSchools] = useState<School[]>([]);
 
@@ -95,6 +97,7 @@ export default function UserFilters({ onFilterChange }: UserFiltersProps) {
             className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           >
             <option value="">All Roles</option>
+            <option value="coaches">Coaches (all)</option>
             <option value="admin">Admin</option>
             <option value="school_admin">School Admin</option>
             <option value="coach">Coach</option>
