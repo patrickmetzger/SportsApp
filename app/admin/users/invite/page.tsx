@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 
 export default function InviteUserPage() {
   const [email, setEmail] = useState('');
-  const [role, setRole] = useState<'coach' | 'assistant_coach' | 'parent' | 'student' | 'school_admin'>('coach');
+  const [role, setRole] = useState<'admin' | 'coach' | 'assistant_coach' | 'parent' | 'student' | 'school_admin'>('coach');
   const [schoolId, setSchoolId] = useState('');
   const [schools, setSchools] = useState<any[]>([]);
   const [error, setError] = useState('');
@@ -131,11 +131,12 @@ export default function InviteUserPage() {
                 onChange={(e) => setRole(e.target.value as any)}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               >
+                <option value="admin">Admin</option>
+                <option value="school_admin">School Admin</option>
                 <option value="coach">Coach</option>
                 <option value="assistant_coach">Assistant Coach</option>
                 <option value="parent">Parent</option>
                 <option value="student">Student</option>
-                <option value="school_admin">School Admin</option>
               </select>
             </div>
 

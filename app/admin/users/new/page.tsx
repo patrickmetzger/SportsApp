@@ -7,7 +7,7 @@ export default function NewUserPage() {
   const [email, setEmail] = useState('');
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
-  const [role, setRole] = useState<'student' | 'parent' | 'coach' | 'assistant_coach' | 'school_admin'>('parent');
+  const [role, setRole] = useState<'admin' | 'student' | 'parent' | 'coach' | 'assistant_coach' | 'school_admin'>('parent');
   const [schoolId, setSchoolId] = useState('');
   const [schools, setSchools] = useState<any[]>([]);
   const [error, setError] = useState('');
@@ -141,11 +141,12 @@ export default function NewUserPage() {
                 onChange={(e) => setRole(e.target.value as any)}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               >
-                <option value="student">Student</option>
-                <option value="parent">Parent</option>
+                <option value="admin">Admin</option>
+                <option value="school_admin">School Admin</option>
                 <option value="coach">Coach</option>
                 <option value="assistant_coach">Assistant Coach</option>
-                <option value="school_admin">School Admin</option>
+                <option value="parent">Parent</option>
+                <option value="student">Student</option>
               </select>
             </div>
 
