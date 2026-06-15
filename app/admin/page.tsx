@@ -69,6 +69,30 @@ export default async function AdminDashboard() {
           </a>
 
           <a
+            href="/admin/users?role=coaches"
+            className="bg-white rounded-xl p-6 shadow-card hover:shadow-card-hover transition-shadow group"
+          >
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-slate-500">Coaches</p>
+                <p className="text-2xl font-bold text-slate-900 mt-1">{coachCount ?? 0}</p>
+              </div>
+              <div className="w-12 h-12 bg-green-50 group-hover:bg-green-500 rounded-xl flex items-center justify-center transition-colors">
+                <ClipboardDocumentCheckIcon className="w-6 h-6 text-green-600 group-hover:text-white transition-colors" />
+              </div>
+            </div>
+            {(pendingAssistantCount ?? 0) > 0 ? (
+              <p className="text-sm text-orange-600 group-hover:text-orange-700 font-medium mt-3 transition-colors">
+                {pendingAssistantCount} pending approval →
+              </p>
+            ) : (
+              <p className="text-sm text-green-600 group-hover:text-green-700 font-medium mt-3 transition-colors">
+                View coaches →
+              </p>
+            )}
+          </a>
+
+          <a
             href="/admin/schools"
             className="bg-white rounded-xl p-6 shadow-card hover:shadow-card-hover transition-shadow group"
           >
@@ -122,29 +146,6 @@ export default async function AdminDashboard() {
             </p>
           </a>
 
-          <a
-            href="/admin/users?role=coaches"
-            className="bg-white rounded-xl p-6 shadow-card hover:shadow-card-hover transition-shadow group"
-          >
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-slate-500">Coaches</p>
-                <p className="text-2xl font-bold text-slate-900 mt-1">{coachCount ?? 0}</p>
-              </div>
-              <div className="w-12 h-12 bg-green-50 group-hover:bg-green-500 rounded-xl flex items-center justify-center transition-colors">
-                <ClipboardDocumentCheckIcon className="w-6 h-6 text-green-600 group-hover:text-white transition-colors" />
-              </div>
-            </div>
-            {(pendingAssistantCount ?? 0) > 0 ? (
-              <p className="text-sm text-orange-600 group-hover:text-orange-700 font-medium mt-3 transition-colors">
-                {pendingAssistantCount} pending approval →
-              </p>
-            ) : (
-              <p className="text-sm text-green-600 group-hover:text-green-700 font-medium mt-3 transition-colors">
-                View coaches →
-              </p>
-            )}
-          </a>
         </div>
 
         {/* Secondary Actions */}
