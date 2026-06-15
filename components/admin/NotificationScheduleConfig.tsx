@@ -9,6 +9,7 @@ interface Schedule {
   days_before_expiry: number;
   notification_type: 'email' | 'in_app' | 'both';
   is_active: boolean;
+  cc_emails: string[] | null;
   created_at: string;
 }
 
@@ -27,11 +28,67 @@ export default function NotificationScheduleConfig({ isSchoolAdmin = false }: No
   const [newSchedule, setNewSchedule] = useState({
     days_before_expiry: 30,
     notification_type: 'both' as 'email' | 'in_app' | 'both',
+    cc_emails_input: '',
   });
+
+  // School-level default CC emails
+  const [schoolCcEmails, setSchoolCcEmails] = useState<string[]>([]);
+  const [schoolCcInput, setSchoolCcInput] = useState('');
+  const [savingSchoolCc, setSavingSchoolCc] = useState(false);
+  const [schoolCcMessage, setSchoolCcMessage] = useState('');
 
   useEffect(() => {
     fetchSchedules();
+    if (isSchoolAdmin) {
+      fetchSchoolCcEmails();
+    }
   }, []);
+
+  const fetchSchoolCcEmails = async () => {
+    try {
+      const res = await fetch('/api/school-admin/school');
+      if (res.ok) {
+        const data = await res.json();
+        setSchoolCcEmails(data.school?.notification_cc_emails || []);
+      }
+    } catch (error) {
+      console.error('Error fetching school CC emails:', error);
+    }
+  };
+
+  const handleSaveSchoolCc = async () => {
+    setSavingSchoolCc(true);
+    setSchoolCcMessage('');
+    try {
+      const res = await fetch('/api/school-admin/school/cc-emails', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ notification_cc_emails: schoolCcEmails }),
+      });
+      if (res.ok) {
+        setSchoolCcMessage('Saved successfully');
+      } else {
+        const data = await res.json();
+        setSchoolCcMessage(`Error: ${data.error}`);
+      }
+    } catch {
+      setSchoolCcMessage('Error: Failed to save');
+    } finally {
+      setSavingSchoolCc(false);
+    }
+  };
+
+  const addSchoolCcEmail = () => {
+    const email = schoolCcInput.trim().toLowerCase();
+    if (email && email.includes('@') && !schoolCcEmails.includes(email)) {
+      setSchoolCcEmails([...schoolCcEmails, email]);
+      setSchoolCcInput('');
+    }
+  };
+
+  const removeSchoolCcEmail = (email: string) => {
+    setSchoolCcEmails(schoolCcEmails.filter((e) => e !== email));
+  };
 
   const fetchSchedules = async () => {
     setLoading(true);
@@ -62,17 +119,26 @@ export default function NotificationScheduleConfig({ isSchoolAdmin = false }: No
         ? '/api/school-admin/notification-schedules'
         : '/api/admin/notification-schedules';
 
+      const ccEmails = newSchedule.cc_emails_input
+        .split(',')
+        .map((e) => e.trim().toLowerCase())
+        .filter((e) => e && e.includes('@'));
+
       const res = await fetch(endpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(newSchedule),
+        body: JSON.stringify({
+          days_before_expiry: newSchedule.days_before_expiry,
+          notification_type: newSchedule.notification_type,
+          cc_emails: ccEmails.length > 0 ? ccEmails : null,
+        }),
       });
 
       const data = await res.json();
 
       if (res.ok) {
         setShowForm(false);
-        setNewSchedule({ days_before_expiry: 30, notification_type: 'both' });
+        setNewSchedule({ days_before_expiry: 30, notification_type: 'both', cc_emails_input: '' });
         fetchSchedules();
       } else {
         setError(data.error || 'Failed to create schedule');
@@ -146,6 +212,66 @@ export default function NotificationScheduleConfig({ isSchoolAdmin = false }: No
 
   return (
     <div className="space-y-6">
+      {/* School-level default CC emails */}
+      {isSchoolAdmin && (
+        <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+          <h3 className="text-sm font-semibold text-gray-900 mb-1">Default Notification Recipients</h3>
+          <p className="text-xs text-gray-500 mb-3">
+            These emails will receive all certification expiry notifications for your school, unless a schedule specifies its own recipients.
+          </p>
+
+          <div className="flex flex-wrap gap-2 mb-3">
+            {schoolCcEmails.map((email) => (
+              <span key={email} className="inline-flex items-center gap-1 px-2.5 py-1 bg-white border border-gray-200 rounded-full text-sm text-gray-700">
+                {email}
+                <button
+                  type="button"
+                  onClick={() => removeSchoolCcEmail(email)}
+                  className="text-gray-400 hover:text-red-500 ml-0.5"
+                >
+                  &times;
+                </button>
+              </span>
+            ))}
+            {schoolCcEmails.length === 0 && (
+              <span className="text-sm text-gray-400">No default recipients set</span>
+            )}
+          </div>
+
+          <div className="flex gap-2">
+            <input
+              type="email"
+              value={schoolCcInput}
+              onChange={(e) => setSchoolCcInput(e.target.value)}
+              onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); addSchoolCcEmail(); } }}
+              placeholder="email@example.com"
+              className="flex-1 px-3 py-1.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+            />
+            <button
+              type="button"
+              onClick={addSchoolCcEmail}
+              className="px-3 py-1.5 text-sm bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300"
+            >
+              Add
+            </button>
+            <button
+              type="button"
+              onClick={handleSaveSchoolCc}
+              disabled={savingSchoolCc}
+              className="px-3 py-1.5 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
+            >
+              {savingSchoolCc ? 'Saving...' : 'Save'}
+            </button>
+          </div>
+
+          {schoolCcMessage && (
+            <p className={`text-xs mt-2 ${schoolCcMessage.startsWith('Error') ? 'text-red-600' : 'text-green-600'}`}>
+              {schoolCcMessage}
+            </p>
+          )}
+        </div>
+      )}
+
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
@@ -204,6 +330,24 @@ export default function NotificationScheduleConfig({ isSchoolAdmin = false }: No
               </div>
             </div>
 
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                CC Emails <span className="font-normal text-gray-400">(optional, comma-separated)</span>
+              </label>
+              <input
+                type="text"
+                value={newSchedule.cc_emails_input}
+                onChange={(e) => setNewSchedule({ ...newSchedule, cc_emails_input: e.target.value })}
+                placeholder="ad@school.edu, principal@school.edu"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+              />
+              <p className="text-xs text-gray-400 mt-1">
+                {isSchoolAdmin
+                  ? 'Overrides school default recipients for this schedule. Leave blank to use defaults.'
+                  : 'Additional recipients for this schedule.'}
+              </p>
+            </div>
+
             <div className="flex gap-3">
               <button
                 type="submit"
@@ -258,6 +402,11 @@ export default function NotificationScheduleConfig({ isSchoolAdmin = false }: No
                       </span>
                     )}
                   </div>
+                  {schedule.cc_emails && schedule.cc_emails.length > 0 && (
+                    <div className="text-xs text-gray-400 mt-0.5">
+                      CC: {schedule.cc_emails.join(', ')}
+                    </div>
+                  )}
                 </div>
               </div>
 

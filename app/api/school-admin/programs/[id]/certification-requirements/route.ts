@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
+import { getUserRole } from '@/lib/auth';
 
 // GET - List certification requirements for a program
 export async function GET(
@@ -16,13 +17,18 @@ export async function GET(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    const activeRole = await getUserRole();
+    if (activeRole !== 'school_admin') {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    }
+
     const { data: userData } = await supabase
       .from('users')
-      .select('role, school_id')
+      .select('school_id')
       .eq('id', user.id)
       .single();
 
-    if (!userData || userData.role !== 'school_admin') {
+    if (!userData) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
@@ -73,13 +79,18 @@ export async function POST(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    const activeRole = await getUserRole();
+    if (activeRole !== 'school_admin') {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    }
+
     const { data: userData } = await supabase
       .from('users')
-      .select('role, school_id')
+      .select('school_id')
       .eq('id', user.id)
       .single();
 
-    if (!userData || userData.role !== 'school_admin') {
+    if (!userData) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 

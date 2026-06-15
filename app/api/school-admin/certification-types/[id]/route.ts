@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
+import { getUserRole } from '@/lib/auth';
 
 // GET - Get a single certification type (global or school-specific)
 export async function GET(
@@ -16,15 +17,16 @@ export async function GET(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { data: userData } = await supabase
-      .from('users')
-      .select('role, school_id')
-      .eq('id', user.id)
-      .single();
-
-    if (!userData || userData.role !== 'school_admin') {
+    const activeRole = await getUserRole();
+    if (activeRole !== 'school_admin') {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
+
+    const { data: userData } = await supabase
+      .from('users')
+      .select('school_id')
+      .eq('id', user.id)
+      .single();
 
     const { data, error } = await supabase
       .from('certification_types')
@@ -40,7 +42,7 @@ export async function GET(
     }
 
     // Verify access: global types or types from this school
-    if (data.school_id && data.school_id !== userData.school_id) {
+    if (data.school_id && data.school_id !== userData?.school_id) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
@@ -67,15 +69,16 @@ export async function PUT(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { data: userData } = await supabase
-      .from('users')
-      .select('role, school_id')
-      .eq('id', user.id)
-      .single();
-
-    if (!userData || userData.role !== 'school_admin') {
+    const activeRole = await getUserRole();
+    if (activeRole !== 'school_admin') {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
+
+    const { data: userData } = await supabase
+      .from('users')
+      .select('school_id')
+      .eq('id', user.id)
+      .single();
 
     // Check if this is a school-specific type from this school
     const { data: existingType } = await supabase
@@ -88,7 +91,7 @@ export async function PUT(
       return NextResponse.json({ error: 'Not found' }, { status: 404 });
     }
 
-    if (!existingType.school_id || existingType.school_id !== userData.school_id) {
+    if (!existingType.school_id || existingType.school_id !== userData?.school_id) {
       return NextResponse.json({ error: 'Cannot modify global or other schools certification types' }, { status: 403 });
     }
 
@@ -138,15 +141,16 @@ export async function DELETE(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { data: userData } = await supabase
-      .from('users')
-      .select('role, school_id')
-      .eq('id', user.id)
-      .single();
-
-    if (!userData || userData.role !== 'school_admin') {
+    const activeRole = await getUserRole();
+    if (activeRole !== 'school_admin') {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
+
+    const { data: userData } = await supabase
+      .from('users')
+      .select('school_id')
+      .eq('id', user.id)
+      .single();
 
     // Check if this is a school-specific type from this school
     const { data: existingType } = await supabase
@@ -159,7 +163,7 @@ export async function DELETE(
       return NextResponse.json({ error: 'Not found' }, { status: 404 });
     }
 
-    if (!existingType.school_id || existingType.school_id !== userData.school_id) {
+    if (!existingType.school_id || existingType.school_id !== userData?.school_id) {
       return NextResponse.json({ error: 'Cannot delete global or other schools certification types' }, { status: 403 });
     }
 

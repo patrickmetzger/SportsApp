@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase/server';
+import { getUserRole } from '@/lib/auth';
 import { NextRequest, NextResponse } from 'next/server';
 
 export async function PUT(request: NextRequest) {
@@ -10,13 +11,18 @@ export async function PUT(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    const activeRole = await getUserRole();
+    if (activeRole !== 'school_admin') {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    }
+
     const { data: currentUserData } = await supabase
       .from('users')
-      .select('role, school_id')
+      .select('school_id')
       .eq('id', user.id)
       .single();
 
-    if (!currentUserData || currentUserData.role !== 'school_admin' || !currentUserData.school_id) {
+    if (!currentUserData || !currentUserData.school_id) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
@@ -24,7 +30,7 @@ export async function PUT(request: NextRequest) {
     const userData = currentUserData;
 
     const body = await request.json();
-    const { id, name, address, city, state, zip_code, phone, email, website, logo_url, primary_color, secondary_color } = body;
+    const { id, name, address, city, state, zip_code, phone, email, website, logo_url, primary_color, secondary_color, notification_cc_emails } = body;
 
     if (!id) {
       return NextResponse.json({ error: 'School ID is required' }, { status: 400 });
@@ -54,6 +60,7 @@ export async function PUT(request: NextRequest) {
         logo_url,
         primary_color,
         secondary_color,
+        notification_cc_emails: notification_cc_emails || [],
         updated_at: new Date().toISOString(),
       })
       .eq('id', id);

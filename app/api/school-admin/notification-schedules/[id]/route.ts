@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { createAdminClient } from '@/lib/supabase/admin';
 import { createClient } from '@/lib/supabase/server';
+import { getUserRole, getEffectiveUserId } from '@/lib/auth';
 
-// PUT - Update a notification schedule
+// PUT - Update a school-specific notification schedule
 export async function PUT(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -10,20 +12,38 @@ export async function PUT(
     const { id } = await params;
     const supabase = await createClient();
 
-    // Verify admin
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { data: userData } = await supabase
+    const activeRole = await getUserRole();
+    if (activeRole !== 'school_admin') {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    }
+
+    const effectiveUserId = await getEffectiveUserId();
+    const client = createAdminClient();
+
+    const { data: userData } = await client
       .from('users')
-      .select('role')
-      .eq('id', user.id)
+      .select('school_id')
+      .eq('id', effectiveUserId!)
       .single();
 
-    if (!userData || userData.role !== 'admin') {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    if (!userData?.school_id) {
+      return NextResponse.json({ error: 'No school assigned' }, { status: 400 });
+    }
+
+    // Verify the schedule belongs to this school (not a global one)
+    const { data: schedule } = await client
+      .from('certification_notification_schedules')
+      .select('school_id')
+      .eq('id', id)
+      .single();
+
+    if (!schedule || schedule.school_id !== userData.school_id) {
+      return NextResponse.json({ error: 'Cannot modify this schedule' }, { status: 403 });
     }
 
     const body = await request.json();
@@ -35,7 +55,7 @@ export async function PUT(
     if (is_active !== undefined) updateData.is_active = is_active;
     if (cc_emails !== undefined) updateData.cc_emails = cc_emails && cc_emails.length > 0 ? cc_emails : null;
 
-    const { data, error } = await supabase
+    const { data, error } = await client
       .from('certification_notification_schedules')
       .update(updateData)
       .eq('id', id)
@@ -54,7 +74,7 @@ export async function PUT(
   }
 }
 
-// DELETE - Delete a notification schedule
+// DELETE - Delete a school-specific notification schedule
 export async function DELETE(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -63,23 +83,41 @@ export async function DELETE(
     const { id } = await params;
     const supabase = await createClient();
 
-    // Verify admin
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { data: userData } = await supabase
-      .from('users')
-      .select('role')
-      .eq('id', user.id)
-      .single();
-
-    if (!userData || userData.role !== 'admin') {
+    const activeRole = await getUserRole();
+    if (activeRole !== 'school_admin') {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
-    const { error } = await supabase
+    const effectiveUserId = await getEffectiveUserId();
+    const client = createAdminClient();
+
+    const { data: userData } = await client
+      .from('users')
+      .select('school_id')
+      .eq('id', effectiveUserId!)
+      .single();
+
+    if (!userData?.school_id) {
+      return NextResponse.json({ error: 'No school assigned' }, { status: 400 });
+    }
+
+    // Verify the schedule belongs to this school (not a global one)
+    const { data: schedule } = await client
+      .from('certification_notification_schedules')
+      .select('school_id')
+      .eq('id', id)
+      .single();
+
+    if (!schedule || schedule.school_id !== userData.school_id) {
+      return NextResponse.json({ error: 'Cannot delete this schedule' }, { status: 403 });
+    }
+
+    const { error } = await client
       .from('certification_notification_schedules')
       .delete()
       .eq('id', id);

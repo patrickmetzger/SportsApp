@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
-import { getEffectiveUserId } from '@/lib/auth';
+import { getEffectiveUserId, getUserRole } from '@/lib/auth';
 import { resend } from '@/lib/resend';
 
 export async function POST(
@@ -15,13 +15,18 @@ export async function POST(
     const effectiveUserId = await getEffectiveUserId();
     const { id } = await params;
 
+    const activeRole = await getUserRole();
+    if (activeRole !== 'school_admin') {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    }
+
     const { data: adminData } = await supabase
       .from('users')
-      .select('role, school_id')
+      .select('school_id')
       .eq('id', effectiveUserId)
       .single();
 
-    if (!adminData || adminData.role !== 'school_admin') {
+    if (!adminData) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 

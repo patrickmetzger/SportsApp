@@ -64,7 +64,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { days_before_expiry, notification_type, is_active } = body;
+    const { days_before_expiry, notification_type, is_active, cc_emails } = body;
 
     if (!days_before_expiry || !notification_type) {
       return NextResponse.json({ error: 'Days and notification type are required' }, { status: 400 });
@@ -77,6 +77,7 @@ export async function POST(request: NextRequest) {
         days_before_expiry,
         notification_type,
         is_active: is_active ?? true,
+        cc_emails: cc_emails && cc_emails.length > 0 ? cc_emails : null,
       })
       .select()
       .single();

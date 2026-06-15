@@ -18,7 +18,7 @@ export async function POST(request: NextRequest) {
     // Get all active notification schedules
     const { data: schedules, error: schedulesError } = await supabase
       .from('certification_notification_schedules')
-      .select('*')
+      .select('*, school:schools(notification_cc_emails)')
       .eq('is_active', true);
 
     if (schedulesError) {
@@ -133,9 +133,19 @@ export async function POST(request: NextRequest) {
           }
 
           if (notifType === 'email' && coach?.email) {
+            // Determine CC recipients:
+            // Per-schedule cc_emails override school defaults
+            const schoolData = Array.isArray(schedule.school) ? schedule.school[0] : schedule.school;
+            const ccEmails: string[] = schedule.cc_emails && schedule.cc_emails.length > 0
+              ? schedule.cc_emails
+              : schoolData?.notification_cc_emails || [];
+
             // TODO: Send email via Resend
             // For now, just log it
             console.log(`Would send email to ${coach.email} about expiring cert`);
+            if (ccEmails.length > 0) {
+              console.log(`  CC: ${ccEmails.join(', ')}`);
+            }
 
             // Log the notification
             await supabase

@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
+import { createAdminClient } from '@/lib/supabase/admin';
+import { getUserRole, getEffectiveUserId } from '@/lib/auth';
 
 // GET - List notification schedules (global + school-specific)
 export async function GET() {
@@ -12,13 +14,21 @@ export async function GET() {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { data: userData } = await supabase
+    const activeRole = await getUserRole();
+    if (activeRole !== 'school_admin') {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    }
+
+    const effectiveUserId = await getEffectiveUserId();
+    const client = createAdminClient();
+
+    const { data: userData } = await client
       .from('users')
-      .select('role, school_id')
-      .eq('id', user.id)
+      .select('school_id')
+      .eq('id', effectiveUserId!)
       .single();
 
-    if (!userData || userData.role !== 'school_admin') {
+    if (!userData) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
@@ -27,7 +37,7 @@ export async function GET() {
     }
 
     // Get global + school-specific schedules
-    const { data, error } = await supabase
+    const { data, error } = await client
       .from('certification_notification_schedules')
       .select('*')
       .or(`school_id.is.null,school_id.eq.${userData.school_id}`)
@@ -56,13 +66,21 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { data: userData } = await supabase
+    const activeRole = await getUserRole();
+    if (activeRole !== 'school_admin') {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    }
+
+    const effectiveUserId = await getEffectiveUserId();
+    const client = createAdminClient();
+
+    const { data: userData } = await client
       .from('users')
-      .select('role, school_id')
-      .eq('id', user.id)
+      .select('school_id')
+      .eq('id', effectiveUserId!)
       .single();
 
-    if (!userData || userData.role !== 'school_admin') {
+    if (!userData) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
@@ -71,19 +89,20 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { days_before_expiry, notification_type, is_active } = body;
+    const { days_before_expiry, notification_type, is_active, cc_emails } = body;
 
     if (!days_before_expiry || !notification_type) {
       return NextResponse.json({ error: 'Days and notification type are required' }, { status: 400 });
     }
 
-    const { data, error } = await supabase
+    const { data, error } = await client
       .from('certification_notification_schedules')
       .insert({
         school_id: userData.school_id,
         days_before_expiry,
         notification_type,
         is_active: is_active ?? true,
+        cc_emails: cc_emails && cc_emails.length > 0 ? cc_emails : null,
       })
       .select()
       .single();
